@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LEGION BOX</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <!-- ─── LOGIN ──────────────────────────────────────── -->
+    <div id="screen-login">
+      <div class="login-box">
+        <div class="login-logo-wrap">
+          <img src="img/logo-legion.png" alt="Legión Box" />
+        </div>
+        <div class="login-tagline">Centro de Entrenamiento</div>
+
+        <div class="form-row">
+          <label>Tipo de Usuario</label>
+          <select id="login-role">
+            <option value="user">ATLETA</option>
+            <option value="admin">COACH</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>DNI</label>
+          <input type="text" id="login-user" placeholder="Sin puntos" />
+        </div>
+        <div class="form-row">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
+        <div id="login-error" class="error-msg"></div>
+
+        <div class="login-footer">
+          <p>Fotheringham 65 (Este) · Formosa Capital</p>
+          <p>(370) 4818550 · @legion.box</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── APP ────────────────────────────────────────── -->
+    <div id="screen-app" class="hidden">
+      <nav>
+        <div class="nav-logo">LEGION BOX</div>
+        <div class="nav-user-info">
+          <span id="nav-username"></span>
+          <button onclick="location.reload()" class="btn-exit">
+            Cerrar Sesión
+          </button>
+        </div>
+      </nav>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">
+          Clases
+        </button>
+        <button class="tab-btn" onclick="switchTab('ranking', this)">
+          Ranking
+        </button>
+        <button
+          id="tab-link-calc"
+          class="tab-btn"
+          onclick="switchTab('calc', this)"
+        >
+          Calculadora RM
+        </button>
+        <button class="tab-btn" onclick="switchTab('info', this)">
+          Info Box
+        </button>
+        <button
+          id="tab-link-profile"
+          class="tab-btn"
+          onclick="switchTab('profile', this)"
+        >
+          Mi Perfil
+        </button>
+        <button
+          id="tab-link-users"
+          class="tab-btn hidden"
+          onclick="switchTab('users', this)"
+        >
+          Atletas
+        </button>
+      </div>
+
+      <main>
+        <!-- ── DASHBOARD ─────────────────────────────── -->
+        <div id="tab-dashboard" class="tab-content active">
+          <div id="news-banner" class="news-banner">
+            <strong>Comunicado:</strong>
+            <p id="news-text"></p>
+          </div>
+
+          <div class="day-selector">
+            <button
+              id="btn-lunes"
+              class="day-btn"
+              onclick="changeViewDay('lunes', this)"
+            >
+              LUN
+            </button>
+            <button
+              id="btn-martes"
+              class="day-btn"
+              onclick="changeViewDay('martes', this)"
+            >
+              MAR
+            </button>
+            <button
+              id="btn-miercoles"
+              class="day-btn"
+              onclick="changeViewDay('miercoles', this)"
+            >
+              MIE
+            </button>
+            <button
+              id="btn-jueves"
+              class="day-btn"
+              onclick="changeViewDay('jueves', this)"
+            >
+              JUE
+            </button>
+            <button
+              id="btn-viernes"
+              class="day-btn"
+              onclick="changeViewDay('viernes', this)"
+            >
+              VIE
+            </button>
+            <button
+              id="btn-sabado"
+              class="day-btn"
+              onclick="changeViewDay('sabado', this)"
+            >
+              SAB
+            </button>
+          </div>
+
+          <div
+            id="user-plan-switcher"
+            class="hidden"
+            style="margin-bottom: 14px; display: flex; gap: 6px"
+          ></div>
+
+          <div class="class-card">
+            <div class="class-card-header">
+              <span id="display-day-name">DÍA</span>
+              <span style="color: var(--border-strong); margin: 0 4px">·</span>
+              <span id="display-plan-name"></span>
+            </div>
+            <div class="class-body">
+              <h2 id="class-title-display">Selecciona un día</h2>
+              <div id="class-blocks-display"></div>
+
+              <div
+                id="score-upload-container"
+                class="hidden score-upload-container"
+              >
+                <span class="score-upload-label">Registrar mi resultado</span>
+                <div class="score-upload-row">
+                  <input type="text" id="input-score" id="input-score" placeholder="" style="flex:1;">
+                  <button class="btn-save" onclick="saveWodScore()">
+                    Subir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ADMIN: Programación -->
+          <div
+            id="admin-panel"
+            class="admin-section hidden"
+            style="margin-top: 32px; border-left: 3px solid var(--accent)"
+          >
+            <div class="admin-title">Programación de Clases</div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Día</label>
+                <select id="edit-day-select" onchange="syncAdminView()">
+                  <option value="lunes">Lunes</option>
+                  <option value="martes">Martes</option>
+                  <option value="miercoles">Miércoles</option>
+                  <option value="jueves">Jueves</option>
+                  <option value="viernes">Viernes</option>
+                  <option value="sabado">Sábado</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Disciplina</label>
+                <select id="edit-plan-select" onchange="syncAdminView()">
+                  <option value="crossfit">CrossFit</option>
+                  <option value="funcional">Funcional</option>
+                  <option value="planificacion">Planificación</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>Título</label><input type="text" id="edit-title" />
+            </div>
+            <div class="form-row">
+              <label>Tipo de Resultado</label>
+              <select id="edit-result-type">
+                <option value="time">Tiempo (menor es mejor)</option>
+                <option value="reps">Reps (mayor es mejor)</option>
+                <option value="weight">Peso (mayor es mejor)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Calentamiento / Core</label
+              ><textarea id="edit-warmup" rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <label>Fuerza / Técnica</label
+              ><textarea id="edit-strength" rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <label>WOD / Principal</label
+              ><textarea id="edit-wod" rows="5"></textarea>
+            </div>
+            <button class="btn-save" onclick="saveClass()" style="width: 100%">
+              GUARDAR CLASE
+            </button>
+
+            <hr class="divider" />
+
+            <div class="admin-title">Comunicado</div>
+            <div class="form-row">
+              <textarea id="edit-news" rows="2" style="width: 100%"></textarea>
+            </div>
+            <button
+              class="btn-save"
+              onclick="saveNews()"
+              style="
+                width: 100%;
+                background: #34df45;
+              "
+            >
+              PUBLICAR
+            </button>
+            <hr class="divider" style="margin-top:24px;">
+<div class="admin-title" style="color:var(--danger); margin-bottom:8px;">Limpiar Clases</div>
+<p style="font-size:0.78rem; color:var(--text-tertiary); margin-bottom:12px;">Seleccioná los días a limpiar. El ranking no se ve afectado.</p>
+<div id="reset-day-selector" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+  <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">LUN</button>
+  <button class="day-btn" onclick="toggleResetDay(this, 'martes')">MAR</button>
+  <button class="day-btn" onclick="toggleResetDay(this, 'miercoles')">MIE</button>
+  <button class="day-btn" onclick="toggleResetDay(this, 'jueves')">JUE</button>
+  <button class="day-btn" onclick="toggleResetDay(this, 'viernes')">VIE</button>
+  <button class="day-btn" onclick="toggleResetDay(this, 'sabado')">SAB</button>
+</div>
+<button class="btn-save" onclick="resetProgramacion()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger);">LIMPIAR SELECCIONADOS</button>
+          </div>
+        </div>
+
+        <!-- ── RANKING ────────────────────────────────── -->
+        <div id="tab-ranking" class="tab-content">
+          <div class="page-title">Ranking</div>
+
+          <div class="admin-section">
+            <div style="display: flex; gap: 6px; margin-bottom: 18px">
+              <button
+                id="rank-mode-day"
+                class="day-btn active"
+                style="flex: 1"
+                onclick="setRankingMode('day')"
+              >
+                DIARIO
+              </button>
+              <button
+                id="rank-mode-week"
+                class="day-btn"
+                style="flex: 1"
+                onclick="setRankingMode('week')"
+              >
+                SEMANAL
+              </button>
+            </div>
+
+            <div
+              id="rank-filters-row"
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 16px;
+              "
+            >
+              <div class="form-row">
+                <label>Día</label>
+                <select
+                  id="rank-day-select"
+                  onchange="renderRanking()"
+                ></select>
+              </div>
+              <div class="form-row">
+                <label>Disciplina</label>
+                <select id="rank-plan-select" onchange="renderRanking()">
+                  <option value="crossfit">CrossFit</option>
+                  <option value="funcional">Funcional</option>
+                </select>
+              </div>
+            </div>
+
+            <div
+              id="ranking-list-container"
+              style="
+                background: var(--surface);
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+                overflow: hidden;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <!-- ── CALCULADORA RM ─────────────────────────── -->
+        <div id="tab-calc" class="tab-content">
+          <div class="page-title">Calculadora RM</div>
+
+          <div class="admin-section">
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Movimiento</label>
+                <select id="rm-exercise" onchange="loadRMValue()">
+                  <option value="">— Seleccionar —</option>
+                  <optgroup label="SQUATS">
+                    <option value="back-squat">Back Squat</option>
+                    <option value="front-squat">Front Squat</option>
+                    <option value="overhead-squat">Overhead Squat</option>
+                  </optgroup>
+                  <optgroup label="CLEAN">
+                    <option value="squat-clean">Squat Clean</option>
+                    <option value="hang-squat-clean">Hang Squat Clean</option>
+                    <option value="power-clean">Power Clean</option>
+                    <option value="hang-power-clean">Hang Power Clean</option>
+                  </optgroup>
+                  <optgroup label="SNATCH">
+                    <option value="squat-snatch">Squat Snatch</option>
+                    <option value="hang-squat-snatch">Hang Squat Snatch</option>
+                    <option value="power-snatch">Power Snatch</option>
+                    <option value="hang-power-snatch">Hang Power Snatch</option>
+                  </optgroup>
+                  <optgroup label="PRESS / JERK">
+                    <option value="shoulder-press">Shoulder Press</option>
+                    <option value="push-press">Push Press</option>
+                    <option value="push-jerk">Push Jerk</option>
+                    <option value="split-jerk">Split Jerk</option>
+                    <option value="clean-and-jerk">Clean & Jerk</option>
+                  </optgroup>
+                  <optgroup label="OTROS">
+                    <option value="deadlift">Dead Lift</option>
+                    <option value="sumo-deadlift">Sumo DeadLift</option>
+                    <option value="bench-press">Bench Press</option>
+                    <option value="barbell-row">Barbell Row</option>
+                    <option value="hip-thrust">Hip Thrust</option>
+                    <option value="thrusters">Thrusters</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Peso 1RM (kg)</label>
+                <input
+                  type="number"
+                  id="input-rm"
+                  oninput="calculate()"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <button
+              class="btn-save"
+              onclick="saveRM()"
+              style="width: 100%; margin-top: 10px"
+            >
+              GUARDAR RÉCORD (PR)
+            </button>
+          </div>
+
+          <div id="calc-results"></div>
+        </div>
+
+        <!-- ── INFO BOX ───────────────────────────────── -->
+        <div id="tab-info" class="tab-content">
+          <div class="page-title">Info Box</div>
+
+          <div
+            class="admin-section"
+            style="
+              border-left: 3px solid rgba(1, 254, 241, 0.4);
+              margin-bottom: 16px;
+            "
+          >
+            <div class="admin-title" style="color: #01fef1">
+              Cumpleaños del Mes
+            </div>
+            <div
+              id="info-birthday-list"
+              style="display: flex; flex-wrap: wrap; gap: 8px"
+            ></div>
+          </div>
+
+          <div class="admin-section">
+            <div class="admin-title">Membresías y Planes</div>
+            <div
+              id="display-prices"
+              style="
+                white-space: pre-wrap;
+                line-height: 1.7;
+                font-size: 0.88rem;
+                color: var(--text-secondary);
+                margin-bottom: 20px;
+              "
+            ></div>
+            <div id="admin-prices-editor" class="hidden">
+              <hr class="divider" />
+              <div class="admin-title">Editar Información</div>
+              <textarea
+                id="edit-prices"
+                rows="8"
+                style="width: 100%; margin-bottom: 10px"
+              ></textarea>
+              <button
+                class="btn-save"
+                onclick="savePrices()"
+                style="width: 100%"
+              >
+                ACTUALIZAR
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MI PERFIL ──────────────────────────────── -->
+        <div id="tab-profile" class="tab-content">
+          <div class="page-title">Mi Perfil</div>
+
+          <div class="admin-section">
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            >
+              <div class="form-row">
+                <label>DNI</label><input type="text" id="prof-id" disabled />
+              </div>
+              <div class="form-row">
+                <label>Nombre</label><input type="text" id="prof-name" />
+              </div>
+              <div class="form-row">
+                <label>Email</label><input type="email" id="prof-email" />
+              </div>
+              <div class="form-row">
+                <label>Dirección</label><input type="text" id="prof-address" />
+              </div>
+              <div class="form-row">
+                <label>Teléfono</label><input type="text" id="prof-phone" />
+              </div>
+              <div class="form-row">
+                <label>Contacto de Emergencia</label
+                ><input type="text" id="prof-emergency" />
+              </div>
+              <div class="form-row" style="grid-column: 1/-1">
+                <label>Nueva Contraseña</label
+                ><input
+                  type="password"
+                  id="prof-pass"
+                  placeholder="Dejar en blanco para no cambiar"
+                />
+              </div>
+            </div>
+            <button
+              class="btn-save"
+              onclick="updateOwnProfile()"
+              style="width: 100%; margin-top: 16px"
+            >
+              GUARDAR CAMBIOS
+            </button>
+
+            <div id="prof-status-info"></div>
+
+            <hr class="divider" />
+            <div class="admin-title">Mis Pagos Recientes</div>
+            <div id="profile-payment-list" style="font-size: 0.88rem"></div>
+          </div>
+        </div>
+
+        <!-- ── GESTIÓN DE ATLETAS ─────────────────────── -->
+        <div id="tab-users" class="tab-content">
+          <div class="page-title">Atletas</div>
+
+          <div class="admin-section">
+            <div class="admin-title">Registro / Edición</div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+              "
+            >
+              <div class="form-row">
+                <label>DNI</label><input type="text" id="user-id" />
+              </div>
+              <div class="form-row">
+                <label>Nombre Completo</label
+                ><input type="text" id="user-name" />
+              </div>
+              <div class="form-row">
+                <label>Contraseña</label
+                ><input type="text" id="user-pass-admin" />
+              </div>
+              <div class="form-row">
+                <label>Vencimiento Cuota</label
+                ><input type="date" id="user-expiry" />
+              </div>
+              <div class="form-row">
+                <label>Email</label><input type="email" id="user-email" />
+              </div>
+              <div class="form-row">
+                <label>Teléfono</label><input type="text" id="user-phone" />
+              </div>
+              <div class="form-row">
+                <label>Dirección</label><input type="text" id="user-address" />
+              </div>
+              <div class="form-row">
+                <label>Emergencia</label
+                ><input type="text" id="user-emergency" />
+              </div>
+              <div class="form-row">
+                <label>Nacimiento</label><input type="date" id="user-birth" />
+              </div>
+              <div class="form-row">
+                <label>Horario</label>
+                <select id="user-schedule">
+                  <option value="">Seleccione Disciplina Primero</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 6px">
+              <label>Disciplinas Habilitadas</label>
+              <div class="plan-check-group">
+                <label
+                  ><input
+                    type="checkbox"
+                    class="plan-check"
+                    value="crossfit"
+                    onchange="refreshScheduleUI()"
+                  />
+                  CrossFit</label
+                >
+                <label
+                  ><input
+                    type="checkbox"
+                    class="plan-check"
+                    value="funcional"
+                    onchange="refreshScheduleUI()"
+                  />
+                  Funcional</label
+                >
+                <label
+                  ><input
+                    type="checkbox"
+                    class="plan-check"
+                    value="planificacion"
+                    onchange="refreshScheduleUI()"
+                  />
+                  Planificación</label
+                >
+              </div>
+            </div>
+
+            <button
+              class="btn-save"
+              onclick="saveUser()"
+              style="width: 100%; margin-top: 14px"
+            >
+              GUARDAR ATLETA
+            </button>
+          </div>
+
+          <!-- Historial de Pagos -->
+          <div
+            id="admin-user-history"
+            class="admin-section hidden"
+            style="margin-top: 16px; border-left: 3px solid var(--warning)"
+          >
+            <div class="admin-title" style="color: var(--warning)">
+              Historial de Pagos — <span id="history-user-name"></span>
+            </div>
+
+            <div
+              id="payment-history-list"
+              style="
+                max-height: 200px;
+                overflow-y: auto;
+                margin-bottom: 16px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 8px 14px;
+              "
+            ></div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 10px;
+              "
+            >
+              <div class="form-row">
+                <label>Fecha</label><input type="date" id="pay-date" />
+              </div>
+              <div class="form-row">
+                <label>Método</label>
+                <select id="pay-method">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Mixto">Mixto</option>
+                </select>
+              </div>
+            </div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Monto $</label
+                ><input type="number" id="pay-amount" placeholder="8500" />
+              </div>
+              <div class="form-row">
+                <label>Observación</label
+                ><input type="text" id="pay-obs" placeholder="Opcional" />
+              </div>
+            </div>
+            <button
+              class="btn-save"
+              onclick="addPaymentRecord()"
+              style="
+                width: 100%;
+                margin-top: 10px;
+                background: var(--warning);
+                color: #000;
+              "
+            >
+              REGISTRAR PAGO
+            </button>
+          </div>
+
+          <!-- Buscador y filtros -->
+          <div
+            style="
+              margin: 20px 0;
+              background: var(--card);
+              padding: 16px;
+              border-radius: var(--radius-lg);
+              border: 1px solid var(--border);
+            "
+          >
+            <input
+              type="text"
+              id="user-search"
+              placeholder="Buscar por nombre o DNI..."
+              oninput="renderUserList()"
+              style="margin-bottom: 14px"
+            />
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px"
+            >
+              <div class="form-row">
+                <label>Estado</label>
+                <div class="filter-bar">
+                  <button
+                    class="day-btn active"
+                    id="filter-all"
+                    onclick="setSocioFilter('all', this)"
+                    style="flex: 1"
+                  >
+                    TODOS
+                  </button>
+                  <button
+                    class="day-btn"
+                    id="filter-active"
+                    onclick="setSocioFilter('active', this)"
+                    style="flex: 1"
+                  >
+                    AL DÍA
+                  </button>
+                  <button
+                    class="day-btn"
+                    id="filter-expired"
+                    onclick="setSocioFilter('expired', this)"
+                    style="flex: 1"
+                  >
+                    VENC.
+                  </button>
+                  <button
+                    class="day-btn"
+                    id="filter-inactive"
+                    onclick="setSocioFilter('inactive', this)"
+                    style="flex: 1"
+                  >
+                    INACT.
+                  </button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Disciplina</label>
+                <select id="filter-discipline" onchange="renderUserList()">
+                  <option value="all">Todas</option>
+                  <option value="crossfit">CrossFit</option>
+                  <option value="funcional">Funcional</option>
+                  <option value="planificacion">Planificación</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 16px">
+            <button
+              class="btn-save"
+              onclick="exportAtletas('xlsx')"
+              style="
+                flex: 1;
+                background: var(--surface);
+                border: 1px solid var(--border-strong);
+                color: var(--text);
+              "
+            >
+              ↓ Excel
+            </button>
+            <button
+              class="btn-save"
+              onclick="exportAtletas('pdf')"
+              style="
+                flex: 1;
+                background: var(--surface);
+                border: 1px solid var(--border-strong);
+                color: var(--text);
+              "
+            >
+              ↓ PDF
+            </button>
+          </div>
+          <div id="user-list-container"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
