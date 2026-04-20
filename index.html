@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LEGION BOX</title>
+    <title>LEGIÓN BOX</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&family=Josefin+Sans:wght@700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -29,7 +29,7 @@
         </div>
         <div class="form-row">
           <label>DNI</label>
-          <input type="text" id="login-user" placeholder="Sin puntos" />
+          <input type="text" id="login-user" placeholder="DNI (Sin puntos)" />
         </div>
         <div class="form-row">
           <label>Contraseña</label>
@@ -39,7 +39,7 @@
         <div id="login-error" class="error-msg"></div>
 
         <div class="login-footer">
-          <p>Fotheringham 65 (Este) · Formosa Capital</p>
+          <p>Fotheringham 65 - Este · Formosa Capital</p>
           <p>(370) 4818550 · @legion.box</p>
         </div>
       </div>
@@ -48,7 +48,7 @@
     <!-- ─── APP ────────────────────────────────────────── -->
     <div id="screen-app" class="hidden">
       <nav>
-        <div class="nav-logo">LEGION BOX</div>
+        <div class="nav-logo">LEGIÓN BOX</div>
         <div class="nav-user-info">
           <span id="nav-username"></span>
           <button onclick="location.reload()" class="btn-exit">
@@ -94,7 +94,7 @@
         <!-- ── DASHBOARD ─────────────────────────────── -->
         <div id="tab-dashboard" class="tab-content active">
           <div id="news-banner" class="news-banner">
-            <strong>Comunicado:</strong>
+            <strong>AVISO:</strong>
             <p id="news-text"></p>
           </div>
 
@@ -165,7 +165,13 @@
               >
                 <span class="score-upload-label">Registrar mi resultado</span>
                 <div class="score-upload-row">
-                  <input type="text" id="input-score" id="input-score" placeholder="" style="flex:1;">
+                  <input
+                    type="text"
+                    id="input-score"
+                    id="input-score"
+                    placeholder=""
+                    style="flex: 1"
+                  />
                   <button class="btn-save" onclick="saveWodScore()">
                     Subir
                   </button>
@@ -212,9 +218,9 @@
             <div class="form-row">
               <label>Tipo de Resultado</label>
               <select id="edit-result-type">
-                <option value="time">Tiempo (menor es mejor)</option>
-                <option value="reps">Reps (mayor es mejor)</option>
-                <option value="weight">Peso (mayor es mejor)</option>
+                <option value="time">Tiempo</option>
+                <option value="reps">Reps</option>
+                <option value="weight">Peso</option>
               </select>
             </div>
             <div class="form-row">
@@ -226,8 +232,7 @@
               ><textarea id="edit-strength" rows="3"></textarea>
             </div>
             <div class="form-row">
-              <label>WOD / Principal</label
-              ><textarea id="edit-wod" rows="5"></textarea>
+              <label>WOD</label><textarea id="edit-wod" rows="5"></textarea>
             </div>
             <button class="btn-save" onclick="saveClass()" style="width: 100%">
               GUARDAR CLASE
@@ -235,32 +240,76 @@
 
             <hr class="divider" />
 
-            <div class="admin-title">Comunicado</div>
+            <div class="admin-title">Avisos:</div>
             <div class="form-row">
               <textarea id="edit-news" rows="2" style="width: 100%"></textarea>
             </div>
             <button
               class="btn-save"
               onclick="saveNews()"
-              style="
-                width: 100%;
-                background: #34df45;
-              "
+              style="width: 100%; background: #34df45"
             >
               PUBLICAR
             </button>
-            <hr class="divider" style="margin-top:24px;">
-<div class="admin-title" style="color:var(--danger); margin-bottom:8px;">Limpiar Clases</div>
-<p style="font-size:0.78rem; color:var(--text-tertiary); margin-bottom:12px;">Seleccioná los días a limpiar. El ranking no se ve afectado.</p>
-<div id="reset-day-selector" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-  <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">LUN</button>
-  <button class="day-btn" onclick="toggleResetDay(this, 'martes')">MAR</button>
-  <button class="day-btn" onclick="toggleResetDay(this, 'miercoles')">MIE</button>
-  <button class="day-btn" onclick="toggleResetDay(this, 'jueves')">JUE</button>
-  <button class="day-btn" onclick="toggleResetDay(this, 'viernes')">VIE</button>
-  <button class="day-btn" onclick="toggleResetDay(this, 'sabado')">SAB</button>
-</div>
-<button class="btn-save" onclick="resetProgramacion()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger);">LIMPIAR SELECCIONADOS</button>
+            <hr class="divider" style="margin-top: 24px" />
+            <div
+              class="admin-title"
+              style="color: var(--danger); margin-bottom: 8px"
+            >
+              Eliminar clases
+            </div>
+            <p
+              style="
+                font-size: 0.78rem;
+                color: var(--text-tertiary);
+                margin-bottom: 12px;
+              "
+            >
+              Seleccioná los días que quieras eliminar
+            </p>
+            <div
+              id="reset-day-selector"
+              style="
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+              "
+            >
+              <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">
+                LUN
+              </button>
+              <button class="day-btn" onclick="toggleResetDay(this, 'martes')">
+                MAR
+              </button>
+              <button
+                class="day-btn"
+                onclick="toggleResetDay(this, 'miercoles')"
+              >
+                MIE
+              </button>
+              <button class="day-btn" onclick="toggleResetDay(this, 'jueves')">
+                JUE
+              </button>
+              <button class="day-btn" onclick="toggleResetDay(this, 'viernes')">
+                VIE
+              </button>
+              <button class="day-btn" onclick="toggleResetDay(this, 'sabado')">
+                SAB
+              </button>
+            </div>
+            <button
+              class="btn-save"
+              onclick="resetProgramacion()"
+              style="
+                width: 100%;
+                background: none;
+                border: 1px solid var(--danger);
+                color: var(--danger);
+              "
+            >
+              ELIMINAR
+            </button>
           </div>
         </div>
 
@@ -465,7 +514,7 @@
                 <label>Dirección</label><input type="text" id="prof-address" />
               </div>
               <div class="form-row">
-                <label>Teléfono</label><input type="text" id="prof-phone" />
+                <label>Celular</label><input type="text" id="prof-phone" />
               </div>
               <div class="form-row">
                 <label>Contacto de Emergencia</label
@@ -544,13 +593,15 @@
               <div class="form-row">
                 <label>Horario</label>
                 <select id="user-schedule">
-                  <option value="">Seleccione Disciplina Primero</option>
+                  <option value="">
+                    Seleccione el Tipo de Entrenamiento Primero
+                  </option>
                 </select>
               </div>
             </div>
 
             <div class="form-row" style="margin-top: 6px">
-              <label>Disciplinas Habilitadas</label>
+              <label>Tipo de Entrenamiento</label>
               <div class="plan-check-group">
                 <label
                   ><input
@@ -719,7 +770,7 @@
                 </div>
               </div>
               <div class="form-row">
-                <label>Disciplina</label>
+                <label>Tipo de Entr.</label>
                 <select id="filter-discipline" onchange="renderUserList()">
                   <option value="all">Todas</option>
                   <option value="crossfit">CrossFit</option>
@@ -735,24 +786,24 @@
               onclick="exportAtletas('xlsx')"
               style="
                 flex: 1;
-                background: var(--surface);
-                border: 1px solid var(--border-strong);
-                color: var(--text);
+                background: none;
+                border: 1px solid var(--accent);
+                color: var(--accent);
               "
             >
-              ↓ Excel
+              Descargar en Excel
             </button>
             <button
               class="btn-save"
               onclick="exportAtletas('pdf')"
               style="
                 flex: 1;
-                background: var(--surface);
-                border: 1px solid var(--border-strong);
-                color: var(--text);
+                background: none;
+                border: 1px solid var(--danger);
+                color: var(--danger);
               "
             >
-              ↓ PDF
+              Descargar en PDF
             </button>
           </div>
           <div id="user-list-container"></div>
