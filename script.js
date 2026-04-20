@@ -1,7 +1,45 @@
-const DB_USERS = "legion_final_users";
-const DB_PROGRAMS = "legion_final_programs";
-const DB_BOXINFO = "legion_final_info";
-const DB_RESULTS = "legion_final_results";
+// ─── FIREBASE ────────────────────────────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",
+  authDomain: "legion-box.firebaseapp.com",
+  projectId: "legion-box",
+  storageBucket: "legion-box.firebasestorage.app",
+  messagingSenderId: "466827904574",
+  appId: "1:466827904574:web:abb454a6f79f00517ff36f"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+async function fsGet(doc_id) {
+  const snap = await getDoc(doc(db, 'legion', doc_id));
+  return snap.exists() ? snap.data() : null;
+}
+async function fsSet(doc_id, data) {
+  await setDoc(doc(db, 'legion', doc_id), data);
+}
+
+// Cache en memoria
+let cacheUsers    = null;
+let cachePrograms = null;
+let cacheResults  = null;
+let cacheInfo     = null;
+
+async function cargarDatos() {
+  const [users, programs, results, info] = await Promise.all([
+    fsGet('users'), fsGet('programs'), fsGet('results'), fsGet('info')
+  ]);
+  cacheUsers    = users    || {};
+  cachePrograms = programs || { lunes:{}, martes:{}, miercoles:{}, jueves:{}, viernes:{}, sabado:{} };
+  cacheResults  = results  || {};
+  cacheInfo     = info     || { news: "Bienvenidos Atletas al Centro de Entrenamiento.", prices: "Membresías y Planes actualizados..." };
+  if(!programs) await fsSet('programs', cachePrograms);
+  if(!results)  await fsSet('results',  cacheResults);
+  if(!info)     await fsSet('info',     cacheInfo);
+}
 
 const SCHEDULES = {
   crossfit: [
@@ -46,30 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoyIdx = new Date().getDay();
   selectedViewDay = hoyIdx === 0 ? "lunes" : dias[hoyIdx];
 
-  if (!localStorage.getItem(DB_PROGRAMS)) {
-    localStorage.setItem(
-      DB_PROGRAMS,
-      JSON.stringify({
-        lunes: {},
-        martes: {},
-        miercoles: {},
-        jueves: {},
-        viernes: {},
-        sabado: {},
-      }),
-    );
-  }
-  if (!localStorage.getItem(DB_RESULTS)) {
-    localStorage.setItem(DB_RESULTS, JSON.stringify({}));
-  }
-  if (!localStorage.getItem(DB_BOXINFO)) {
-    localStorage.setItem(
-      DB_BOXINFO,
-      JSON.stringify({
-        news: "Bienvenidos Atletas al Centro de Entrenamiento.",
-        prices: "Membresías y Planes actualizados...",
-      }),
-    );
+  if (!localStorage.getItem("legion_init_done")) {
+    // primera carga — cargarDatos() se llama en doLogin()
   }
 
   // Poblar select de ranking día
@@ -96,7 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const horas = ahora.getHours();
         const mins  = ahora.getMinutes();
         if(horas === 23 && mins === 59) {
-          localStorage.setItem(DB_RESULTS, JSON.stringify({}));
+          cacheResults = {};
+          await fsSet('results', {});
           localStorage.setItem(clave, '1');
           renderRanking();
           console.log('Ranking reseteado automáticamente.');
@@ -108,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- SISTEMA DE LOGIN ---
-function doLogin() {
+async function doLogin() {
   const role = document.getElementById("login-role").value;
   const userIn = document
     .getElementById("login-user")
@@ -116,34 +133,37 @@ function doLogin() {
     .trim();
   const passIn = document.getElementById("login-pass").value;
 
+  document.getElementById("login-error").textContent = "Verificando...";
+  await cargarDatos();
+
   if (role === "admin" && userIn === "coach" && passIn === "coach123") {
     currentUser = { id: "coach", role: "coach", name: "Coach" };
     showApp(true);
-  } else {
-    const users = JSON.parse(localStorage.getItem(DB_USERS)) || {};
-    const u = users[userIn];
-    if (u && u.pass === passIn) {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fv = u.expiry ? new Date(u.expiry + "T00:00:00") : null;
-      if (fv && fv < hoy) {
-        document.getElementById("login-error").innerHTML =
-          "CUOTA VENCIDA.<br>Comunicate con el Coach.";
-        return;
-      }
-      currentUser = { id: userIn, ...u, role: "atleta" };
-      showApp(false, u);
-    } else {
-      document.getElementById("login-error").textContent =
-        "Credenciales incorrectas.";
+    return;
+  }
+
+  const u = cacheUsers[userIn];
+  if (u && u.pass === passIn) {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fv = u.expiry ? new Date(u.expiry + "T00:00:00") : null;
+    if (fv && fv < hoy) {
+      document.getElementById("login-error").innerHTML =
+        "CUOTA VENCIDA.<br>Comunicate con el Coach.";
+      return;
     }
+    currentUser = { id: userIn, ...u, role: "atleta" };
+    showApp(false, u);
+  } else {
+    document.getElementById("login-error").textContent =
+      "Credenciales incorrectas.";
   }
 }
 
 function showApp(isCoach, userData = null) {
   document.getElementById("screen-login").classList.add("hidden");
   document.getElementById("screen-app").classList.remove("hidden");
-  const info = JSON.parse(localStorage.getItem(DB_BOXINFO));
+  const info = cacheInfo;
   document.getElementById("news-text").textContent = info.news;
 
   const navUser = document.getElementById("nav-username");
@@ -188,7 +208,7 @@ function setSocioFilter(f, btn) {
 }
 
 function renderUserList() {
-  const users = JSON.parse(localStorage.getItem(DB_USERS)) || {};
+  const users = cacheUsers || {};
   const cont = document.getElementById("user-list-container");
   const search = document.getElementById("user-search").value.toLowerCase();
   const disc = document.getElementById("filter-discipline").value;
@@ -239,23 +259,21 @@ function renderUserList() {
   }
 }
 
-function saveUser() {
+async function saveUser() {
   const id = document.getElementById('user-id').value.toLowerCase().trim();
   const name = document.getElementById('user-name').value;
   if(!id || !name) return alert("DNI y Nombre son obligatorios");
 
-  const users = JSON.parse(localStorage.getItem(DB_USERS)) || {};
   const p = Array.from(document.querySelectorAll('.plan-check:checked')).map(c => c.value);
 
-  // Si el DNI ya existe y NO estamos editando ese mismo usuario, avisar
-  if(users[id] && editingUserId !== id) {
-    const confirmar = confirm(`El DNI ${id} ya está registrado como "${users[id].name}".\n\n¿Querés actualizar sus datos? Si cancelás no se realizará ningún cambio.`);
+  if(cacheUsers[id] && editingUserId !== id) {
+    const confirmar = confirm(`El DNI ${id} ya está registrado como "${cacheUsers[id].name}".\n\n¿Querés actualizar sus datos? Si cancelás no se realizará ningún cambio.`);
     if(!confirmar) return;
   }
 
-  users[id] = {
-    ...users[id], name, plans: p,
-    pass: document.getElementById('user-pass-admin').value || users[id]?.pass || '1234',
+  cacheUsers[id] = {
+    ...cacheUsers[id], name, plans: p,
+    pass: document.getElementById('user-pass-admin').value || cacheUsers[id]?.pass || '1234',
     expiry: document.getElementById('user-expiry').value,
     email: document.getElementById('user-email').value,
     phone: document.getElementById('user-phone').value,
@@ -265,7 +283,7 @@ function saveUser() {
     schedule: document.getElementById('user-schedule').value
   };
 
-  localStorage.setItem(DB_USERS, JSON.stringify(users));
+  await fsSet('users', cacheUsers);
   editingUserId = null;
   alert("Atleta guardado.");
   renderUserList();
@@ -274,7 +292,7 @@ function saveUser() {
 
 function editUser(id) {
   editingUserId = id;
-  const u = JSON.parse(localStorage.getItem(DB_USERS))[id];
+  const u = cacheUsers[id];
   document.getElementById("user-id").value = id;
   document.getElementById("user-name").value = u.name;
   document.getElementById("user-pass-admin").value = u.pass;
@@ -304,7 +322,7 @@ function editUser(id) {
 }
 
 // --- PAGOS ---
-function addPaymentRecord() {
+async function addPaymentRecord() {
   const amount = document.getElementById("pay-amount").value;
   const obs = document.getElementById("pay-obs").value;
   const date = document.getElementById("pay-date").value;
@@ -313,13 +331,12 @@ function addPaymentRecord() {
   if (!amount || !editingUserId || !date)
     return alert("Ingrese monto y fecha.");
 
-  const users = JSON.parse(localStorage.getItem(DB_USERS));
-  if (!users[editingUserId].payments) users[editingUserId].payments = [];
+  if (!cacheUsers[editingUserId].payments) cacheUsers[editingUserId].payments = [];
 
   const dateParts = date.split("-");
   const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
 
-  users[editingUserId].payments.push({
+  cacheUsers[editingUserId].payments.push({
     id: Date.now(),
     date: formattedDate,
     amount,
@@ -327,15 +344,11 @@ function addPaymentRecord() {
     obs: obs || "S/O",
   });
 
-  localStorage.setItem(DB_USERS, JSON.stringify(users));
+  await fsSet('users', cacheUsers);
   document.getElementById("pay-amount").value = "";
   document.getElementById("pay-obs").value = "";
 
-  renderPaymentHistory(
-    users[editingUserId].payments,
-    "payment-history-list",
-    true,
-  );
+  renderPaymentHistory(cacheUsers[editingUserId].payments, "payment-history-list", true);
   alert("Pago registrado.");
 }
 
@@ -366,18 +379,13 @@ function renderPaymentHistory(payments, containerId, canDelete = false) {
   }
 }
 
-function deletePayment(payId) {
+async function deletePayment(payId) {
   if (!confirm("¿Eliminar este pago?")) return;
-  const users = JSON.parse(localStorage.getItem(DB_USERS));
-  users[editingUserId].payments = users[editingUserId].payments.filter(
+  cacheUsers[editingUserId].payments = cacheUsers[editingUserId].payments.filter(
     (p) => p.id !== payId,
   );
-  localStorage.setItem(DB_USERS, JSON.stringify(users));
-  renderPaymentHistory(
-    users[editingUserId].payments,
-    "payment-history-list",
-    true,
-  );
+  await fsSet('users', cacheUsers);
+  renderPaymentHistory(cacheUsers[editingUserId].payments, "payment-history-list", true);
 }
 
 // --- RANKING ---
@@ -394,31 +402,27 @@ function setRankingMode(mode) {
   renderRanking();
 }
 
-function saveWodScore() {
+async function saveWodScore() {
   const score = document.getElementById("input-score").value.trim();
   if (!score) return alert("Ingresa un resultado.");
 
-  const results = JSON.parse(localStorage.getItem(DB_RESULTS)) || {};
-  const day = selectedViewDay;
-  const plan = currentViewPlan;
+  if (!cacheResults[selectedViewDay]) cacheResults[selectedViewDay] = {};
+  if (!cacheResults[selectedViewDay][currentViewPlan]) cacheResults[selectedViewDay][currentViewPlan] = {};
 
-  if (!results[day]) results[day] = {};
-  if (!results[day][plan]) results[day][plan] = {};
-
-  results[day][plan][currentUser.id] = {
+  cacheResults[selectedViewDay][currentViewPlan][currentUser.id] = {
     name: currentUser.name,
     score: score,
     timestamp: Date.now(),
   };
 
-  localStorage.setItem(DB_RESULTS, JSON.stringify(results));
+  await fsSet('results', cacheResults);
   document.getElementById("input-score").value = "";
   alert("¡Resultado subido con éxito!");
 }
 
 function renderRanking() {
   const cont = document.getElementById("ranking-list-container");
-  const results = JSON.parse(localStorage.getItem(DB_RESULTS)) || {};
+  const results = cacheResults || {};
   cont.innerHTML = "";
 
   if (currentRankingMode === "day") {
@@ -433,8 +437,7 @@ function renderRanking() {
       return;
     }
 
-    // Ordenar según tipo de resultado de la clase
-    const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
+    const week = cachePrograms;
     const resultType = week[day]?.[plan]?.resultType || 'time';
 
     entries.sort((a, b) => {
@@ -464,7 +467,7 @@ function renderRanking() {
         </div>`;
     });
   } else {
-    const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
+    const week = cachePrograms;
     let athletes = {}; // { uid: { name, points, wods } }
 
     // Por cada día y disciplina con resultados, ordenar y asignar posiciones
@@ -523,7 +526,7 @@ function renderRanking() {
 
 // --- CUMPLEAÑOS ---
 function renderBirthdays() {
-  const users = JSON.parse(localStorage.getItem(DB_USERS)) || {};
+  const users = cacheUsers || {};
   const cont = document.getElementById("info-birthday-list");
   if (!cont) return;
   const mesHoy = new Date().getMonth();
@@ -545,11 +548,10 @@ function renderBirthdays() {
 }
 
 // --- PROGRAMACIÓN ---
-function saveNews() {
+async function saveNews() {
   const text = document.getElementById("edit-news").value;
-  const info = JSON.parse(localStorage.getItem(DB_BOXINFO));
-  info.news = text;
-  localStorage.setItem(DB_BOXINFO, JSON.stringify(info));
+  cacheInfo.news = text;
+  await fsSet('info', cacheInfo);
   document.getElementById("news-text").textContent = text;
   alert("Comunicado actualizado.");
 }
@@ -559,8 +561,7 @@ function syncAdminView() {
   const p = document.getElementById("edit-plan-select").value;
   selectedViewDay = d;
   currentViewPlan = p;
-  const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
-  const c = week[d][p] || {};
+  const week = cachePrograms;
   document.getElementById('edit-title').value = c.title || '';
   document.getElementById('edit-result-type').value = c.resultType || 'time';
   document.getElementById("edit-warmup").value = c.warmup || "";
@@ -569,25 +570,25 @@ function syncAdminView() {
   renderClass();
 }
 
-function saveClass() {
+async function saveClass() {
   const d = document.getElementById("edit-day-select").value;
   const p = document.getElementById("edit-plan-select").value;
-  const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
- week[d][p] = {
+  if(!cachePrograms[d]) cachePrograms[d] = {};
+  cachePrograms[d][p] = {
     title: document.getElementById('edit-title').value,
     resultType: document.getElementById('edit-result-type').value,
     warmup: document.getElementById('edit-warmup').value,
     strength: document.getElementById('edit-strength').value,
     wod: document.getElementById('edit-wod').value
   };
-  localStorage.setItem(DB_PROGRAMS, JSON.stringify(week));
+  await fsSet('programs', cachePrograms);
   alert("Clase publicada.");
   renderClass();
 }
 
 function renderClass() {
-  const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
-  const c = week[selectedViewDay][currentViewPlan] || {};
+  const week = cachePrograms;
+  const c = week[selectedViewDay]?.[currentViewPlan] || {};
   document.getElementById("display-day-name").textContent =
     selectedViewDay.toUpperCase();
   document.getElementById("display-plan-name").textContent =
@@ -610,19 +611,17 @@ function renderClass() {
 // --- RM Y PERFIL ---
 function loadRMValue() {
   const ex = document.getElementById("rm-exercise").value;
-  const users = JSON.parse(localStorage.getItem(DB_USERS));
   document.getElementById("input-rm").value =
-    users[currentUser.id]?.rms?.[ex] || "";
+    cacheUsers[currentUser.id]?.rms?.[ex] || "";
   calculate();
 }
 
-function saveRM() {
+async function saveRM() {
   const ex = document.getElementById("rm-exercise").value;
   if (!ex) return alert("Selecciona ejercicio");
-  const users = JSON.parse(localStorage.getItem(DB_USERS));
-  if (!users[currentUser.id].rms) users[currentUser.id].rms = {};
-  users[currentUser.id].rms[ex] = document.getElementById("input-rm").value;
-  localStorage.setItem(DB_USERS, JSON.stringify(users));
+  if (!cacheUsers[currentUser.id].rms) cacheUsers[currentUser.id].rms = {};
+  cacheUsers[currentUser.id].rms[ex] = document.getElementById("input-rm").value;
+  await fsSet('users', cacheUsers);
   alert("PR guardado.");
 }
 
@@ -647,7 +646,7 @@ function calculate() {
 }
 
 function loadProfileData() {
-  const u = JSON.parse(localStorage.getItem(DB_USERS))[currentUser.id];
+  const u = cacheUsers[currentUser.id];
   document.getElementById("prof-id").value = currentUser.id;
   document.getElementById("prof-name").value = u.name;
   document.getElementById("prof-email").value = u.email || "";
@@ -667,9 +666,8 @@ function loadProfileData() {
   renderPaymentHistory(u.payments || [], "profile-payment-list", false);
 }
 
-function updateOwnProfile() {
-  const users = JSON.parse(localStorage.getItem(DB_USERS));
-  const u = users[currentUser.id];
+async function updateOwnProfile() {
+  const u = cacheUsers[currentUser.id];
   u.name = document.getElementById("prof-name").value;
   u.email = document.getElementById("prof-email").value;
   u.address = document.getElementById("prof-address").value;
@@ -677,7 +675,7 @@ function updateOwnProfile() {
   u.emergency = document.getElementById("prof-emergency").value;
   if (document.getElementById("prof-pass").value)
     u.pass = document.getElementById("prof-pass").value;
-  localStorage.setItem(DB_USERS, JSON.stringify(users));
+  await fsSet('users', cacheUsers);
   alert("Perfil guardado.");
 }
 
@@ -753,22 +751,20 @@ function refreshScheduleUI() {
 }
 
 function loadBoxInfo() {
-  const info = JSON.parse(localStorage.getItem(DB_BOXINFO));
-  document.getElementById("display-prices").textContent = info.prices;
+  document.getElementById("display-prices").textContent = cacheInfo.prices || '';
   if (currentUser.role === "coach")
-    document.getElementById("edit-prices").value = info.prices;
+    document.getElementById("edit-prices").value = cacheInfo.prices || '';
 }
 
-function savePrices() {
-  const info = JSON.parse(localStorage.getItem(DB_BOXINFO));
-  info.prices = document.getElementById("edit-prices").value;
-  localStorage.setItem(DB_BOXINFO, JSON.stringify(info));
+async function savePrices() {
+  cacheInfo.prices = document.getElementById("edit-prices").value;
+  await fsSet('info', cacheInfo);
   alert("Información actualizada.");
   loadBoxInfo();
 }
 
 function exportAtletas(formato) {
-  const users = JSON.parse(localStorage.getItem(DB_USERS)) || {};
+  const users = cacheUsers || {};
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
   // Respetar el filtro activo en pantalla
@@ -877,17 +873,15 @@ function toggleResetDay(btn, dia) {
   }
 }
 
-function resetProgramacion() {
+async function resetProgramacion() {
   if(!diasSeleccionadosReset.size) return alert('Seleccioná al menos un día para limpiar.');
 
   const diasTexto = [...diasSeleccionadosReset].join(', ');
   if(!confirm(`¿Borrar la programación de: ${diasTexto}?\n\nLos resultados del ranking se conservan.`)) return;
 
-  const week = JSON.parse(localStorage.getItem(DB_PROGRAMS));
-  diasSeleccionadosReset.forEach(d => { week[d] = {}; });
-  localStorage.setItem(DB_PROGRAMS, JSON.stringify(week));
+  diasSeleccionadosReset.forEach(d => { cachePrograms[d] = {}; });
+  await fsSet('programs', cachePrograms);
 
-  // Limpiar selección visual
   diasSeleccionadosReset.clear();
   document.querySelectorAll('#reset-day-selector .day-btn').forEach(b => b.classList.remove('active'));
 
