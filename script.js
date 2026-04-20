@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (payDateInput) payDateInput.valueAsDate = new Date();
 
   // Reset automático del ranking los domingos a las 23:59
-  function checkAutoReset() {
+  async function checkAutoReset() {
     const ahora = new Date();
     if(ahora.getDay() === 0) { // domingo
       const clave = `legion_reset_${ahora.getFullYear()}_${ahora.getMonth()}_${ahora.getDate()}`;
@@ -889,3 +889,28 @@ async function resetProgramacion() {
   renderClass();
   alert(`Programación de ${diasTexto} borrada correctamente.`);
 }
+
+// Exponer funciones al scope global para los onclick del HTML
+window.doLogin         = doLogin;
+window.switchTab       = switchTab;
+window.changeViewDay   = changeViewDay;
+window.setSocioFilter  = setSocioFilter;
+window.saveUser        = saveUser;
+window.editUser        = editUser;
+window.saveClass       = saveClass;
+window.saveNews        = saveNews;
+window.savePrices      = savePrices;
+window.saveRM          = saveRM;
+window.saveWodScore    = saveWodScore;
+window.calculate       = calculate;
+window.loadRMValue     = loadRMValue;
+window.updateOwnProfile = updateOwnProfile;
+window.addPaymentRecord = addPaymentRecord;
+window.deletePayment   = deletePayment;
+window.setRankingMode  = setRankingMode;
+window.renderRanking   = renderRanking;
+window.refreshScheduleUI = refreshScheduleUI;
+window.syncAdminView   = syncAdminView;
+window.toggleResetDay  = toggleResetDay;
+window.resetProgramacion = resetProgramacion;
+window.exportAtletas   = exportAtletas;
