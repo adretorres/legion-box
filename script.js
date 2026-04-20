@@ -583,7 +583,7 @@ async function saveClass() {
   };
   await fsSet('programs', cachePrograms);
   alert("Clase publicada.");
-  renderClass();
+  syncAdminView();
 }
 
 function renderClass() {
