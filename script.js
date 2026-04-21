@@ -1194,58 +1194,66 @@ function renderRankingPublico() {
   cont.innerHTML = '';
   if(!catId || !cacheComp) return;
 
-  const cat    = cacheComp.categorias.find(c => c.id === catId);
-  const lista  = calcularRankingCategoria(catId);
+  const cat   = cacheComp.categorias.find(c => c.id === catId);
+  const lista = calcularRankingCategoria(catId);
 
   if(!lista.length) {
     cont.innerHTML = '<p style="text-align:center; color:var(--text-tertiary); padding:20px;">Sin participantes en esta categoría.</p>';
     return;
   }
 
-  // Cabecera con eventos
-  const headers = cacheComp.eventos.map(e => `<span style="font-size:0.7rem; color:var(--text-tertiary); text-align:center;">${e.nombre}</span>`).join('');
+  const eventos = cacheComp.eventos;
 
-  cont.innerHTML = `
+  // Cabecera
+  let tabla = `
     <div style="margin-bottom:12px;">
       <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent);">${cat.nombre}</span>
-    </div>`;
+    </div>
+    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--accent);">
+          <th style="text-align:left; padding:8px 12px; font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; letter-spacing:1.5px; color:var(--text-tertiary); font-weight:700; white-space:nowrap;">ATLETA</th>`;
 
-  // Calcular posición final con empates olímpicos
+  eventos.forEach(e => {
+    tabla += `<th style="text-align:center; padding:8px 10px; font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; letter-spacing:1.5px; color:var(--text-tertiary); font-weight:700; white-space:nowrap;">${e.nombre}</th>`;
+  });
+
+  tabla += `<th style="text-align:center; padding:8px 10px; font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; letter-spacing:1.5px; color:var(--accent); font-weight:700;">PUESTO</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  // Filas con empates olímpicos
   let posActual = 1;
   lista.forEach((r, idx) => {
     if(idx > 0 && lista[idx].puntos !== lista[idx-1].puntos) {
       posActual = idx + 1;
     }
 
-    const detalleStr = r.detalle.map(d =>
-      '<div style="display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid var(--border);">' +
-        '<span style="color:var(--text-tertiary); font-size:0.72rem;">' + d.evento + '</span>' +
-        '<span>' +
-          '<b style="color:var(--accent); margin-right:6px;">' + (d.pos ? d.pos + '°' : 'DNS') + '</b>' +
-          '<span style="color:var(--text-secondary); font-size:0.78rem;">' + (d.score || '-') + '</span>' +
-        '</span>' +
-      '</div>'
-    ).join('');
+    const esPar = idx % 2 === 0;
+    tabla += `<tr style="border-bottom:1px solid var(--border); background:${esPar ? 'transparent' : 'rgba(255,255,255,0.02)'};">
+      <td style="padding:10px 12px;">
+        <b style="font-size:0.88rem;">${r.nombre}</b>
+        <div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:2px;">${r.box}</div>
+      </td>`;
 
-    cont.innerHTML += `
-      <div class="ranking-comp-row">
-        <span class="rank-num">#${posActual}</span>
-        <div>
-          <span class="ranking-comp-name">${r.nombre}</span>
-          <span class="ranking-comp-box">${r.box}</span>
-          <div class="ranking-comp-detail">
-            ${r.detalle.map(d =>
-              '<div class="ranking-comp-detail-row">' +
-                '<span>' + d.evento + '</span>' +
-                '<span><b style="color:var(--accent); margin-right:8px;">' + (d.pos ? d.pos + '°' : 'DNS') + '</b>' +
-                '<span style="color:var(--text-secondary);">' + (d.score || '-') + '</span></span>' +
-              '</div>'
-            ).join('')}
-          </div>
-        </div>
-        <span class="ranking-comp-pts">${r.puntos} pts</span>
-      </div>`;
+    r.detalle.forEach(d => {
+      tabla += `<td style="text-align:center; padding:10px 8px; white-space:nowrap;">
+        <div style="font-size:0.82rem; color:var(--text-secondary);">${d.score || '-'}</div>
+        <div style="font-size:0.72rem; color:var(--accent); font-weight:700; margin-top:2px;">${d.pos ? d.pos+'°' : 'DNS'}</div>
+      </td>`;
+    });
+
+    tabla += `<td style="text-align:center; padding:10px 8px;">
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; color:${posActual === 1 ? '#FFD700' : posActual === 2 ? '#C0C0C0' : posActual === 3 ? '#CD7F32' : 'var(--text)'};">#${posActual}</span>
+        <div style="font-size:0.68rem; color:var(--text-tertiary); margin-top:2px;">${r.puntos} pts</div>
+      </td>
+    </tr>`;
   });
+
+  tabla += `</tbody></table></div>`;
+  cont.innerHTML = tabla;
 }
 
 function renderCompAdmin() {
