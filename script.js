@@ -147,8 +147,9 @@ async function doLogin() {
   document.getElementById("login-error").textContent = "Verificando...";
   await cargarDatos();
 
-  // Login espectador competencia
-  if(cacheComp && cacheComp.activa && passIn === cacheComp.pass) {
+  // Login leaderboard
+  const passLeader = document.getElementById('login-leaderboard')?.value?.trim();
+  if(passLeader && cacheComp && cacheComp.activa && passLeader === cacheComp.pass) {
     currentUser = { id: 'espectador', role: 'espectador', name: 'Espectador' };
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').classList.remove('hidden');
@@ -156,6 +157,7 @@ async function doLogin() {
     document.getElementById('nav-username').textContent = cacheComp.nombre;
     renderCompAdmin();
     switchTab('comp-public', document.getElementById('tab-link-comp-public'));
+    localStorage.setItem('legion_session', JSON.stringify(currentUser));
     return;
   }
 
@@ -1353,3 +1355,4 @@ window.renderParticipantesResultado = renderParticipantesResultado;
 window.guardarResultados        = guardarResultados;
 window.renderRankingPublico     = renderRankingPublico;
 window.finalizarCompetencia     = finalizarCompetencia;
+window.actualizarTamEquipo = function(){};
