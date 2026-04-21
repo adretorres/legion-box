@@ -208,11 +208,11 @@ function showApp(isCoach, userData = null) {
     renderUserList();
     syncAdminView();
     document.getElementById('tab-link-comp').classList.remove('hidden');
-    await cargarCompetencia();
-    if(cacheComp && cacheComp.activa) {
-      mostrarFormComp();
-      renderCompAdmin();
-    }
+    cargarCompetencia().then(() => {
+      if(cacheComp && cacheComp.activa) {
+        mostrarFormComp();
+        renderCompAdmin();
+      }
   } else {
     currentViewPlan =
       userData.plans && userData.plans.length > 0
