@@ -183,7 +183,7 @@ async function doLogin() {
   }
 }
 
-function showApp(isCoach, userData = null) {
+async function showApp(isCoach, userData = null) {
   document.getElementById("screen-login").classList.add("hidden");
   document.getElementById("screen-app").classList.remove("hidden");
   localStorage.setItem('legion_session', JSON.stringify(currentUser));
@@ -208,12 +208,11 @@ function showApp(isCoach, userData = null) {
     renderUserList();
     syncAdminView();
     document.getElementById('tab-link-comp').classList.remove('hidden');
-    cargarCompetencia().then(() => {
-      if(cacheComp && cacheComp.activa) {
-        mostrarFormComp();
-        renderCompAdmin();
-      }
-    });
+    await cargarCompetencia();
+    if(cacheComp && cacheComp.activa) {
+      mostrarFormComp();
+      renderCompAdmin();
+    }
   } else {
     currentViewPlan =
       userData.plans && userData.plans.length > 0
@@ -1317,30 +1316,30 @@ async function finalizarCompetencia() {
 }
 
 // Exponer funciones al scope global para los onclick del HTML
-window.doLogin              = doLogin;
-window.cerrarSesion         = cerrarSesion;
-window.switchTab            = switchTab;
-window.changeViewDay        = changeViewDay;
-window.setSocioFilter       = setSocioFilter;
-window.saveUser             = saveUser;
-window.editUser             = editUser;
-window.saveClass            = saveClass;
-window.saveNews             = saveNews;
-window.savePrices           = savePrices;
-window.saveRM               = saveRM;
-window.saveWodScore         = saveWodScore;
-window.calculate            = calculate;
-window.loadRMValue          = loadRMValue;
-window.updateOwnProfile     = updateOwnProfile;
-window.addPaymentRecord     = addPaymentRecord;
-window.deletePayment        = deletePayment;
-window.setRankingMode       = setRankingMode;
-window.renderRanking        = renderRanking;
-window.refreshScheduleUI    = refreshScheduleUI;
-window.syncAdminView        = syncAdminView;
-window.toggleResetDay       = toggleResetDay;
-window.resetProgramacion    = resetProgramacion;
-window.exportAtletas        = exportAtletas;
+window.doLogin         = doLogin;
+window.switchTab       = switchTab;
+window.changeViewDay   = changeViewDay;
+window.setSocioFilter  = setSocioFilter;
+window.saveUser        = saveUser;
+window.editUser        = editUser;
+window.saveClass       = saveClass;
+window.saveNews        = saveNews;
+window.savePrices      = savePrices;
+window.saveRM          = saveRM;
+window.saveWodScore    = saveWodScore;
+window.calculate       = calculate;
+window.loadRMValue     = loadRMValue;
+window.updateOwnProfile = updateOwnProfile;
+window.addPaymentRecord = addPaymentRecord;
+window.deletePayment   = deletePayment;
+window.setRankingMode  = setRankingMode;
+window.renderRanking   = renderRanking;
+window.refreshScheduleUI = refreshScheduleUI;
+window.syncAdminView   = syncAdminView;
+window.toggleResetDay  = toggleResetDay;
+window.resetProgramacion = resetProgramacion;
+window.exportAtletas   = exportAtletas;
+window.cerrarSesion = cerrarSesion;
 window.mostrarFormComp          = mostrarFormComp;
 window.guardarCompetencia       = guardarCompetencia;
 window.agregarCategoria         = agregarCategoria;
