@@ -1231,11 +1231,19 @@ function renderRankingPublico() {
       <div class="ranking-comp-row">
         <span class="rank-num">#${posActual}</span>
         <div>
-          <b>${r.nombre}</b>
-          <small style="color:var(--text-tertiary); margin-left:6px;">${r.box}</small>
-          <div class="ranking-comp-detail">${detalleStr}</div>
+          <span class="ranking-comp-name">${r.nombre}</span>
+          <span class="ranking-comp-box">${r.box}</span>
+          <div class="ranking-comp-detail">
+            ${r.detalle.map(d =>
+              '<div class="ranking-comp-detail-row">' +
+                '<span>' + d.evento + '</span>' +
+                '<span><b style="color:var(--accent); margin-right:8px;">' + (d.pos ? d.pos + '°' : 'DNS') + '</b>' +
+                '<span style="color:var(--text-secondary);">' + (d.score || '-') + '</span></span>' +
+              '</div>'
+            ).join('')}
+          </div>
         </div>
-        <span class="rank-score">${r.puntos} pts</span>
+        <span class="ranking-comp-pts">${r.puntos} pts</span>
       </div>`;
   });
 }
