@@ -122,6 +122,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   setInterval(checkAutoReset, 30000); // chequea cada 30 segundos
+
+  // Restaurar sesión si existe
+  const sesionGuardada = localStorage.getItem('legion_session');
+  if(sesionGuardada) {
+    cargarDatos().then(() => {
+      const s = JSON.parse(sesionGuardada);
+      currentUser = s;
+      if(s.role === 'coach') showApp(true);
+      else showApp(false, cacheUsers[s.id] || s);
+    });
+  }
 });
 
 // --- SISTEMA DE LOGIN ---
@@ -163,6 +174,7 @@ async function doLogin() {
 function showApp(isCoach, userData = null) {
   document.getElementById("screen-login").classList.add("hidden");
   document.getElementById("screen-app").classList.remove("hidden");
+  localStorage.setItem('legion_session', JSON.stringify(currentUser));
   const info = cacheInfo;
   document.getElementById("news-text").textContent = info.news;
 
@@ -890,6 +902,11 @@ async function resetProgramacion() {
   alert(`Programación de ${diasTexto} borrada correctamente.`);
 }
 
+function cerrarSesion() {
+  localStorage.removeItem('legion_session');
+  location.reload();
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -914,3 +931,4 @@ window.syncAdminView   = syncAdminView;
 window.toggleResetDay  = toggleResetDay;
 window.resetProgramacion = resetProgramacion;
 window.exportAtletas   = exportAtletas;
+window.cerrarSesion = cerrarSesion;
