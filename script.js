@@ -1295,13 +1295,13 @@ function renderCompAdmin() {
   const resCat = document.getElementById('res-cat');
   resCat.innerHTML = '<option value="">— Categoría —</option>';
   cacheComp.categorias.forEach(c => {
-    resCat.innerHTML += '<option value="${c.id}">${c.nombre}</option>';
+    resCat.innerHTML += '<option value="' + c.id + '">' + c.nombre + '</option>';
   });
 
   const resEv = document.getElementById('res-evento');
   resEv.innerHTML = '<option value="">— Evento —</option>';
   cacheComp.eventos.forEach(e => {
-    resEv.innerHTML += '<option value="${e.id}">${e.nombre}</option>';
+    resEv.innerHTML += '<option value="' + e.id + '">' + e.nombre + '</option>';
   });
 
   // Estado acceso público
