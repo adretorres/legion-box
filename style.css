@@ -737,3 +737,76 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   margin-top: 6px;
   width: 100%;
 }
+
+/* ─── COMPETENCIA LAYOUT ─────────────────────────────── */
+#tab-comp .admin-section,
+#tab-comp-public .admin-section {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ranking-comp-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.ranking-comp-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ranking-comp-box {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+}
+
+.ranking-comp-pts {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(200,241,53,0.2);
+  color: var(--accent);
+  padding: 3px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  align-self: start;
+}
+
+.ranking-comp-detail {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+  width: 100%;
+}
+
+.ranking-comp-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ranking-comp-detail-row:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 500px) {
+  .ranking-comp-row {
+    grid-template-columns: 24px 1fr auto;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .ranking-comp-pts {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+  }
+}
