@@ -125,14 +125,29 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(checkAutoReset, 30000); // chequea cada 30 segundos
 
   // Restaurar sesión si existe
-  const sesionGuardada = localStorage.getItem('legion_session');
+ const sesionGuardada = localStorage.getItem('legion_session');
   if(sesionGuardada) {
-    cargarDatos().then(() => {
-      const s = JSON.parse(sesionGuardada);
-      currentUser = s;
-      if(s.role === 'coach') showApp(true);
-      else showApp(false, cacheUsers[s.id] || s);
-    });
+    const s = JSON.parse(sesionGuardada);
+    currentUser = s;
+    if(s.role === 'espectador') {
+      cargarCompetencia().then(() => {
+        if(cacheComp && cacheComp.activa) {
+          document.getElementById('screen-login').classList.add('hidden');
+          document.getElementById('screen-app').classList.remove('hidden');
+          document.getElementById('tab-link-comp-public').classList.remove('hidden');
+          document.getElementById('nav-username').textContent = cacheComp.nombre;
+          renderCompAdmin();
+          switchTab('comp-public', document.getElementById('tab-link-comp-public'));
+        } else {
+          localStorage.removeItem('legion_session');
+        }
+      });
+    } else {
+      cargarDatos().then(() => {
+        if(s.role === 'coach') showApp(true);
+        else showApp(false, cacheUsers[s.id] || s);
+      });
+    }
   }
 });
 
@@ -1203,7 +1218,7 @@ function renderRankingPublico() {
     }
 
     const detalleStr = r.detalle.map(d =>
-      `<span style="margin-right:12px; white-space:nowrap;">${d.evento} <b style="color:var(--accent);">${d.pos ? d.pos+'°' : 'DNS'}</b> <span style="color:var(--text-secondary);">(${d.score})</span></span>`
+      '<span>' + d.evento + ' <b style="color:var(--accent);">' + (d.pos ? d.pos+'°' : 'DNS') + '</b> <span style="color:var(--text-secondary);">(' + d.score + ')</span></span>'
     ).join('');
 
     cont.innerHTML += `
@@ -1250,7 +1265,7 @@ function renderCompAdmin() {
           <div><b>${e.nombre}</b> <small style="color:var(--text-tertiary);">· ${tipos[e.tipo]}</small></div>
           <button onclick="eliminarEvento('${e.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
         </div>
-        ${e.desc ? `<small style="color:var(--text-tertiary); line-height:1.4;">${e.desc}</small>` : ''}
+        ${e.desc ? '<small style="color:var(--text-tertiary); line-height:1.4; display:block; margin-top:4px;">' + e.desc + '</small>' : ''}
       </div>`;
   });
 
