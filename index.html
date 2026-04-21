@@ -88,6 +88,123 @@
         >
           Atletas
         </button>
+        <button id="tab-link-comp" class="tab-btn hidden" onclick="switchTab('comp', this)">Competencia</button>
+        <button id="tab-link-comp-public" class="tab-btn hidden" onclick="switchTab('comp-public', this)">Ranking</button>
+      </div>
+
+      <!-- ── COMPETENCIA (COACH) ────────────────────── -->
+      <div id="tab-comp" class="tab-content">
+        <div class="page-title">Competencia</div>
+
+        <div id="comp-empty" class="admin-section" style="text-align:center; padding:40px;">
+          <p style="color:var(--text-tertiary); margin-bottom:20px; font-size:0.9rem;">No hay ninguna competencia activa.</p>
+          <button class="btn-save" onclick="mostrarFormComp()">+ CREAR COMPETENCIA</button>
+        </div>
+
+        <div id="comp-form" class="hidden">
+          <div class="admin-section">
+            <div class="admin-title">Datos de la Competencia</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div class="form-row"><label>Nombre</label><input type="text" id="comp-nombre"></div>
+              <div class="form-row"><label>Fecha</label><input type="date" id="comp-fecha"></div>
+            </div>
+            <div class="form-row"><label>Descripción / Info</label><textarea id="comp-desc" rows="3"></textarea></div>
+            <div class="form-row"><label>Contraseña Pública (espectadores)</label><input type="text" id="comp-pass"></div>
+            <button class="btn-save" onclick="guardarCompetencia()" style="width:100%; margin-top:8px;">GUARDAR</button>
+          </div>
+
+          <div class="admin-section" style="margin-top:16px;">
+            <div class="admin-title">Categorías</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:12px;">
+              <div class="form-row">
+                <label>Nivel</label>
+                <select id="cat-nivel">
+                  <option value="RX">RX</option>
+                  <option value="Advanced">Advanced</option>
+                  <option value="Scaled">Scaled</option>
+                  <option value="Principiante">Principiante</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Modalidad</label>
+                <select id="cat-modalidad" onchange="actualizarTamEquipo()">
+                  <option value="Individual">Individual</option>
+                  <option value="Duplas">Duplas</option>
+                  <option value="Tríos">Tríos</option>
+                  <option value="Cuarteto">Cuarteto</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>Sexo</label>
+                <select id="cat-sexo">
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Mixto">Mixto</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-save" onclick="agregarCategoria()" style="background:none; border:1px solid var(--accent); color:var(--accent);">+ AGREGAR CATEGORÍA</button>
+            <div id="comp-cat-list" style="margin-top:16px;"></div>
+          </div>
+
+          <div class="admin-section" style="margin-top:16px;">
+            <div class="admin-title">Eventos / WODs</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+              <div class="form-row"><label>Nombre del Evento</label><input type="text" id="evento-nombre" placeholder="Ej: WOD 1"></div>
+              <div class="form-row">
+                <label>Tipo de Resultado</label>
+                <select id="evento-tipo">
+                  <option value="time">Tiempo</option>
+                  <option value="reps">Repeticiones</option>
+                  <option value="weight">Peso</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-save" onclick="agregarEvento()" style="background:none; border:1px solid var(--accent); color:var(--accent);">+ AGREGAR EVENTO</button>
+            <div id="comp-evento-list" style="margin-top:16px;"></div>
+          </div>
+
+          <div class="admin-section" style="margin-top:16px;">
+            <div class="admin-title">Participantes</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+              <div class="form-row"><label>Categoría</label><select id="part-cat"></select></div>
+              <div class="form-row"><label>Nombre Atleta / Equipo</label><input type="text" id="part-nombre"></div>
+              <div class="form-row"><label>Box</label><input type="text" id="part-box"></div>
+              <div class="form-row"><label>Integrantes (separados por coma)</label><input type="text" id="part-integrantes" placeholder="Opcional para individual"></div>
+            </div>
+            <button class="btn-save" onclick="agregarParticipante()" style="background:none; border:1px solid var(--accent); color:var(--accent);">+ AGREGAR PARTICIPANTE</button>
+            <div id="comp-part-list" style="margin-top:16px;"></div>
+          </div>
+
+          <div class="admin-section" style="margin-top:16px;">
+            <div class="admin-title">Cargar Resultados</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+              <div class="form-row"><label>Categoría</label><select id="res-cat" onchange="renderParticipantesResultado()"></select></div>
+              <div class="form-row"><label>Evento</label><select id="res-evento" onchange="renderParticipantesResultado()"></select></div>
+            </div>
+            <div id="res-inputs"></div>
+            <button class="btn-save" onclick="guardarResultados()" style="width:100%; margin-top:12px;">GUARDAR RESULTADOS</button>
+          </div>
+
+          <div class="admin-section" style="margin-top:16px; border-left:3px solid var(--danger);">
+            <div class="admin-title" style="color:var(--danger);">Zona de Peligro</div>
+            <button class="btn-save" onclick="finalizarCompetencia()" style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger);">FINALIZAR Y ARCHIVAR COMPETENCIA</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RANKING PÚBLICO ────────────────────────── -->
+      <div id="tab-comp-public" class="tab-content">
+        <div class="page-title">Ranking Competencia</div>
+        <div class="admin-section">
+          <div class="form-row">
+            <label>Categoría</label>
+            <select id="public-cat-select" onchange="renderRankingPublico()">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <div id="public-ranking-container" style="margin-top:16px;"></div>
+        </div>
       </div>
 
       <main>
