@@ -970,12 +970,14 @@ function agregarCategoria() {
 function agregarEvento() {
   const nombre = document.getElementById('evento-nombre').value.trim();
   const tipo   = document.getElementById('evento-tipo').value;
+  const desc   = document.getElementById('evento-desc').value.trim();
   if(!nombre) return alert('Ingresá el nombre del evento.');
   if(!cacheComp) return alert('Primero guardá los datos de la competencia.');
 
-  cacheComp.eventos.push({ id: Date.now().toString(), nombre, tipo });
+  cacheComp.eventos.push({ id: Date.now().toString(), nombre, tipo, desc });
   fsSet('competencia', cacheComp);
   document.getElementById('evento-nombre').value = '';
+  document.getElementById('evento-desc').value   = '';
   renderCompAdmin();
 }
 
@@ -1201,7 +1203,7 @@ function renderRankingPublico() {
     }
 
     const detalleStr = r.detalle.map(d =>
-      `<span style="margin-right:8px;">${d.evento}: ${d.pos ? d.pos+'°' : 'DNS'} (${d.score})</span>`
+      `<span style="margin-right:12px; white-space:nowrap;">${d.evento} <b style="color:var(--accent);">${d.pos ? d.pos+'°' : 'DNS'}</b> <span style="color:var(--text-secondary);">(${d.score})</span></span>`
     ).join('');
 
     cont.innerHTML += `
@@ -1243,9 +1245,12 @@ function renderCompAdmin() {
   cacheComp.eventos.forEach(e => {
     const tipos = { time:'Tiempo', reps:'Repeticiones', weight:'Peso' };
     evList.innerHTML += `
-      <div class="comp-cat-pill">
-        <div><b>${e.nombre}</b> <small style="color:var(--text-tertiary);">· ${tipos[e.tipo]}</small></div>
-        <button onclick="eliminarEvento('${e.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+      <div class="comp-cat-pill" style="flex-direction:column; align-items:flex-start; gap:4px;">
+        <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+          <div><b>${e.nombre}</b> <small style="color:var(--text-tertiary);">· ${tipos[e.tipo]}</small></div>
+          <button onclick="eliminarEvento('${e.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+        </div>
+        ${e.desc ? `<small style="color:var(--text-tertiary); line-height:1.4;">${e.desc}</small>` : ''}
       </div>`;
   });
 
@@ -1265,15 +1270,25 @@ function renderCompAdmin() {
     partList.innerHTML += `<p style="font-size:0.72rem; font-weight:700; letter-spacing:1.5px; color:var(--accent); margin:12px 0 6px; text-transform:uppercase;">${c.nombre}</p>`;
     partic.forEach(p => {
       partList.innerHTML += `
-        <div class="comp-cat-pill">
-          <div>
-            <b>${p.nombre}</b> <small style="color:var(--text-tertiary);">· ${p.box}</small>
-            ${p.integrantes?.length ? `<div style="font-size:0.75rem; color:var(--text-tertiary); margin-top:2px;">${p.integrantes.join(', ')}</div>` : ''}
+        <div class="comp-cat-pill" id="pill-${p.id}">
+          <div style="flex:1;">
+            <div id="view-${p.id}">
+              <b>${p.nombre}</b> <small style="color:var(--text-tertiary);">· ${p.box}</small>
+              ${p.integrantes?.length ? `<div style="font-size:0.75rem; color:var(--text-tertiary); margin-top:2px;">${p.integrantes.join(', ')}</div>` : ''}
+            </div>
+            <div id="edit-${p.id}" class="hidden" style="display:none; gap:6px; flex-wrap:wrap;">
+              <input type="text" id="edit-nombre-${p.id}" value="${p.nombre}" style="flex:1; min-width:120px; padding:6px 10px; font-size:0.82rem;">
+              <input type="text" id="edit-box-${p.id}" value="${p.box}" style="flex:1; min-width:120px; padding:6px 10px; font-size:0.82rem;">
+              <button onclick="guardarEdicionParticipante('${p.id}')" style="background:var(--accent);border:none;color:#000;padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.75rem;font-weight:700;">OK</button>
+              <button onclick="cancelarEdicionParticipante('${p.id}')" style="background:none;border:1px solid var(--border-strong);color:var(--text-secondary);padding:6px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.75rem;">✕</button>
+            </div>
           </div>
-          <button onclick="eliminarParticipante('${p.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button onclick="editarParticipante('${p.id}')" style="background:none;border:1px solid var(--border-strong);color:var(--text-secondary);padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.75rem;">Editar</button>
+            <button onclick="eliminarParticipante('${p.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+          </div>
         </div>`;
     });
-  });
 
   // Poblar selects de resultados
   const resCat = document.getElementById('res-cat');
@@ -1347,6 +1362,39 @@ function actualizarBotonLeaderboard() {
   }
 }
 
+function editarParticipante(id) {
+  document.getElementById(`view-${id}`).style.display = 'none';
+  const editDiv = document.getElementById(`edit-${id}`);
+  editDiv.classList.remove('hidden');
+  editDiv.style.display = 'flex';
+}
+
+function cancelarEdicionParticipante(id) {
+  document.getElementById(`view-${id}`).style.display = 'block';
+  const editDiv = document.getElementById(`edit-${id}`);
+  editDiv.classList.add('hidden');
+  editDiv.style.display = 'none';
+}
+
+async function guardarEdicionParticipante(id) {
+  const nuevoNombre = document.getElementById(`edit-nombre-${id}`).value.trim();
+  const nuevoBox    = document.getElementById(`edit-box-${id}`).value.trim();
+  if(!nuevoNombre) return alert('El nombre no puede estar vacío.');
+  const p = cacheComp.participantes.find(p => p.id === id);
+  if(!p) return;
+  p.nombre = nuevoNombre;
+  p.box    = nuevoBox;
+  // Actualizar también en resultados
+  for(let key in cacheComp.resultados) {
+    if(cacheComp.resultados[key][id]) {
+      cacheComp.resultados[key][id].nombre = nuevoNombre;
+      cacheComp.resultados[key][id].box    = nuevoBox;
+    }
+  }
+  await fsSet('competencia', cacheComp);
+  renderCompAdmin();
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -1389,3 +1437,6 @@ window.entrarLeaderboard    = entrarLeaderboard;
 window.toggleAccesoPublico  = toggleAccesoPublico;
 window.entrarLeaderboard    = entrarLeaderboard;
 window.toggleAccesoPublico  = toggleAccesoPublico;
+window.editarParticipante          = editarParticipante;
+window.cancelarEdicionParticipante = cancelarEdicionParticipante;
+window.guardarEdicionParticipante  = guardarEdicionParticipante;
