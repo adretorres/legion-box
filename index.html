@@ -35,12 +35,22 @@
           <label>Contraseña</label>
           <input type="password" id="login-pass" placeholder="••••••••" />
         </div>
-        <div style="text-align:center; margin:10px 0; font-size:0.75rem; color:var(--text-tertiary);">— o —</div>
-      <div class="form-row">
-        <label>Contraseña Leaderboard</label>
-        <input type="password" id="login-leaderboard" placeholder="Acceso público a competencia">
-      </div>
+
         <button class="btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
+        <div id="btn-ver-comp-wrap" class="hidden" style="margin-top: 10px">
+          <button
+            class="btn-primary"
+            onclick="entrarLeaderboard()"
+            style="
+              background: none;
+              border: 1px solid var(--accent);
+              color: var(--accent);
+            "
+            id="btn-ver-comp-label"
+          >
+            Ver Competencia
+          </button>
+        </div>
         <div id="login-error" class="error-msg"></div>
 
         <div class="login-footer">
@@ -97,8 +107,20 @@
         >
           Atletas
         </button>
-        <button id="tab-link-comp" class="tab-btn hidden" onclick="switchTab('comp', this)">Competencia</button>
-        <button id="tab-link-comp-public" class="tab-btn hidden" onclick="switchTab('comp-public', this)">Ranking</button>
+        <button
+          id="tab-link-comp"
+          class="tab-btn hidden"
+          onclick="switchTab('comp', this)"
+        >
+          Competencia
+        </button>
+        <button
+          id="tab-link-comp-public"
+          class="tab-btn hidden"
+          onclick="switchTab('comp-public', this)"
+        >
+          Ranking
+        </button>
         <button
           id="tab-link-comp"
           class="tab-btn hidden"
@@ -339,6 +361,49 @@
             </button>
           </div>
 
+          <div
+            class="admin-section"
+            style="margin-top: 16px; border-left: 3px solid var(--accent)"
+          >
+            <div class="admin-title">Acceso Público</div>
+            <div class="form-row">
+              <label>Nombre del Botón</label>
+              <input
+                type="text"
+                id="comp-btn-label"
+                placeholder="Ver Competencia"
+              />
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px">
+              <button
+                class="btn-save"
+                onclick="toggleAccesoPublico(true)"
+                style="flex: 1"
+              >
+                HABILITAR ACCESO
+              </button>
+              <button
+                class="btn-save"
+                onclick="toggleAccesoPublico(false)"
+                style="
+                  flex: 1;
+                  background: none;
+                  border: 1px solid var(--danger);
+                  color: var(--danger);
+                "
+              >
+                DESHABILITAR
+              </button>
+            </div>
+            <p
+              id="comp-acceso-status"
+              style="
+                font-size: 0.78rem;
+                margin-top: 10px;
+                color: var(--text-tertiary);
+              "
+            ></p>
+          </div>
           <div
             class="admin-section"
             style="margin-top: 16px; border-left: 3px solid var(--danger)"
