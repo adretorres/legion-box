@@ -1288,19 +1288,20 @@ function renderCompAdmin() {
             <button onclick="eliminarParticipante('${p.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
           </div>
         </div>`;
-    });
+   });
+  });
 
   // Poblar selects de resultados
   const resCat = document.getElementById('res-cat');
   resCat.innerHTML = '<option value="">— Categoría —</option>';
   cacheComp.categorias.forEach(c => {
-    resCat.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    resCat.innerHTML += '<option value="${c.id}">${c.nombre}</option>';
   });
 
   const resEv = document.getElementById('res-evento');
   resEv.innerHTML = '<option value="">— Evento —</option>';
   cacheComp.eventos.forEach(e => {
-    resEv.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+    resEv.innerHTML += '<option value="${e.id}">${e.nombre}</option>';
   });
 
   // Estado acceso público
@@ -1313,7 +1314,7 @@ function renderCompAdmin() {
   const pubCat = document.getElementById('public-cat-select');
   pubCat.innerHTML = '<option value="">— Seleccionar —</option>';
   cacheComp.categorias.forEach(c => {
-    pubCat.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    pubCat.innerHTML += '<option value="' + c.id + '">' + c.nombre + '</option>';
   });
 }
 
