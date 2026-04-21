@@ -1218,7 +1218,13 @@ function renderRankingPublico() {
     }
 
     const detalleStr = r.detalle.map(d =>
-      '<span>' + d.evento + ' <b style="color:var(--accent);">' + (d.pos ? d.pos+'°' : 'DNS') + '</b> <span style="color:var(--text-secondary);">(' + d.score + ')</span></span>'
+      '<div style="display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid var(--border);">' +
+        '<span style="color:var(--text-tertiary); font-size:0.72rem;">' + d.evento + '</span>' +
+        '<span>' +
+          '<b style="color:var(--accent); margin-right:6px;">' + (d.pos ? d.pos + '°' : 'DNS') + '</b>' +
+          '<span style="color:var(--text-secondary); font-size:0.78rem;">' + (d.score || '-') + '</span>' +
+        '</span>' +
+      '</div>'
     ).join('');
 
     cont.innerHTML += `
@@ -1263,7 +1269,10 @@ function renderCompAdmin() {
       <div class="comp-cat-pill" style="flex-direction:column; align-items:flex-start; gap:4px;">
         <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
           <div><b>${e.nombre}</b> <small style="color:var(--text-tertiary);">· ${tipos[e.tipo]}</small></div>
-          <button onclick="eliminarEvento('${e.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+          <div style="display:flex; gap:6px;">
+            <button onclick="editarEvento('${e.id}')" style="background:none;border:1px solid var(--border-strong);color:var(--text-secondary);padding:4px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.75rem;">Editar</button>
+            <button onclick="eliminarEvento('${e.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">✕</button>
+          </div>
         </div>
         ${e.desc ? '<small style="color:var(--text-tertiary); line-height:1.4; display:block; margin-top:4px;">' + e.desc + '</small>' : ''}
       </div>`;
@@ -1410,6 +1419,35 @@ async function guardarEdicionParticipante(id) {
   renderCompAdmin();
 }
 
+function editarEvento(id) {
+  const e = cacheComp.eventos.find(e => e.id === id);
+  if(!e) return;
+  document.getElementById('evento-nombre').value = e.nombre;
+  document.getElementById('evento-tipo').value   = e.tipo;
+  document.getElementById('evento-desc').value   = e.desc || '';
+  // Cambiar el botón agregar para que guarde la edición
+  const btn = document.querySelector('[onclick="agregarEvento()"]');
+  btn.textContent = 'GUARDAR CAMBIOS';
+  btn.onclick = () => guardarEdicionEvento(id);
+}
+
+async function guardarEdicionEvento(id) {
+  const e = cacheComp.eventos.find(e => e.id === id);
+  if(!e) return;
+  e.nombre = document.getElementById('evento-nombre').value.trim();
+  e.tipo   = document.getElementById('evento-tipo').value;
+  e.desc   = document.getElementById('evento-desc').value.trim();
+  await fsSet('competencia', cacheComp);
+  // Restaurar botón
+  const btn = document.querySelector('[onclick]');
+  btn.textContent = '+ AGREGAR EVENTO';
+  btn.onclick = agregarEvento;
+  document.getElementById('evento-nombre').value = '';
+  document.getElementById('evento-desc').value   = '';
+  renderCompAdmin();
+  alert('Evento actualizado.');
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -1455,3 +1493,5 @@ window.toggleAccesoPublico  = toggleAccesoPublico;
 window.editarParticipante          = editarParticipante;
 window.cancelarEdicionParticipante = cancelarEdicionParticipante;
 window.guardarEdicionParticipante  = guardarEdicionParticipante;
+window.editarEvento           = editarEvento;
+window.guardarEdicionEvento   = guardarEdicionEvento;
