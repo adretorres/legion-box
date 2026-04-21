@@ -1238,9 +1238,11 @@ function renderRankingPublico() {
         <div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:2px;">${r.box}</div>
       </td>`;
 
-    r.detalle.forEach(d => {
+    r.detalle.forEach((d, di) => {
+      const tipo  = cacheComp.eventos[di]?.tipo || 'time';
+      const unidad = tipo === 'reps' ? ' reps' : tipo === 'weight' ? ' kg' : '';
       tabla += `<td style="text-align:center; padding:10px 8px; white-space:nowrap;">
-        <div style="font-size:0.82rem; color:var(--text-secondary);">${d.score || '-'}</div>
+        <div style="font-size:0.82rem; color:var(--text-secondary);">${d.score ? d.score + unidad : '-'}</div>
         <div style="font-size:0.72rem; color:var(--accent); font-weight:700; margin-top:2px;">${d.pos ? d.pos+'°' : 'DNS'}</div>
       </td>`;
     });
