@@ -1306,8 +1306,7 @@ function renderCompAdmin() {
   // Estado acceso público
   const statusEl = document.getElementById('comp-acceso-status');
   const labelEl  = document.getElementById('comp-btn-label');
-  if(statusEl) statusEl.textContent = cacheComp.accesoPublico ? 
-    `✓ Acceso habilitado — botón: "${cacheComp.btnLabel || 'Ver Competencia'}"` : '✗ Acceso deshabilitado';
+  if(statusEl) statusEl.textContent = cacheComp.accesoPublico ? ('Acceso habilitado — boton: ' + (cacheComp.btnLabel || 'Ver Competencia')) : 'Acceso deshabilitado';
   if(labelEl) labelEl.value = cacheComp.btnLabel || '';
 
   // Poblar select público
