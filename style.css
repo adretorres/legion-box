@@ -674,3 +674,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   #class-title-display { font-size: 1.9rem; }
   .tab-btn { padding: 12px 12px; font-size: 0.72rem; }
 }
+
+.nav-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(1.1);
+}
