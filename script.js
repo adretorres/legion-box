@@ -1387,3 +1387,5 @@ window.finalizarCompetencia     = finalizarCompetencia;
 window.actualizarTamEquipo = function(){};
 window.entrarLeaderboard    = entrarLeaderboard;
 window.toggleAccesoPublico  = toggleAccesoPublico;
+window.entrarLeaderboard    = entrarLeaderboard;
+window.toggleAccesoPublico  = toggleAccesoPublico;
