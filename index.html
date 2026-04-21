@@ -35,6 +35,11 @@
           <label>Contraseña</label>
           <input type="password" id="login-pass" placeholder="••••••••" />
         </div>
+        <div style="text-align:center; margin:10px 0; font-size:0.75rem; color:var(--text-tertiary);">— o —</div>
+      <div class="form-row">
+        <label>Contraseña Leaderboard</label>
+        <input type="password" id="login-leaderboard" placeholder="Acceso público a competencia">
+      </div>
         <button class="btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
         <div id="login-error" class="error-msg"></div>
 
@@ -184,7 +189,7 @@
               </div>
               <div class="form-row">
                 <label>Modalidad</label>
-                <select id="cat-modalidad" onchange="actualizarTamEquipo()">
+                <select id="cat-modalidad">
                   <option value="Individual">Individual</option>
                   <option value="Duplas">Duplas</option>
                   <option value="Tríos">Tríos</option>
