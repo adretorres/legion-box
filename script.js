@@ -146,21 +146,8 @@ async function doLogin() {
   const passIn = document.getElementById("login-pass").value;
 
   document.getElementById("login-error").textContent = "Verificando...";
+  await cargarCompetencia();
   await cargarDatos();
-
-  // Login leaderboard
-  const passLeader = document.getElementById('login-leaderboard')?.value?.trim();
-  if(passLeader && cacheComp && cacheComp.activa && passLeader === cacheComp.pass) {
-    currentUser = { id: 'espectador', role: 'espectador', name: 'Espectador' };
-    document.getElementById('screen-login').classList.add('hidden');
-    document.getElementById('screen-app').classList.remove('hidden');
-    document.getElementById('tab-link-comp-public').classList.remove('hidden');
-    document.getElementById('nav-username').textContent = cacheComp.nombre;
-    renderCompAdmin();
-    switchTab('comp-public', document.getElementById('tab-link-comp-public'));
-    localStorage.setItem('legion_session', JSON.stringify(currentUser));
-    return;
-  }
 
   if (role === "admin" && userIn === "coach" && passIn === "coach123") {
     currentUser = { id: "coach", role: "coach", name: "Coach" };
