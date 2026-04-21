@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const payDateInput = document.getElementById("pay-date");
   if (payDateInput) payDateInput.valueAsDate = new Date();
+  cargarCompetencia().then(() => actualizarBotonLeaderboard());
 
   // Reset automático del ranking los domingos a las 23:59
   async function checkAutoReset() {
@@ -1300,6 +1301,13 @@ function renderCompAdmin() {
     resEv.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
   });
 
+  // Estado acceso público
+  const statusEl = document.getElementById('comp-acceso-status');
+  const labelEl  = document.getElementById('comp-btn-label');
+  if(statusEl) statusEl.textContent = cacheComp.accesoPublico ? 
+    `✓ Acceso habilitado — botón: "${cacheComp.btnLabel || 'Ver Competencia'}"` : '✗ Acceso deshabilitado';
+  if(labelEl) labelEl.value = cacheComp.btnLabel || '';
+
   // Poblar select público
   const pubCat = document.getElementById('public-cat-select');
   pubCat.innerHTML = '<option value="">— Seleccionar —</option>';
@@ -1316,6 +1324,40 @@ async function finalizarCompetencia() {
   alert('Competencia finalizada.');
   switchTab('comp', document.getElementById('tab-link-comp'));
   renderCompAdmin();
+}
+
+function entrarLeaderboard() {
+  currentUser = { id: 'espectador', role: 'espectador', name: 'Espectador' };
+  document.getElementById('screen-login').classList.add('hidden');
+  document.getElementById('screen-app').classList.remove('hidden');
+  document.getElementById('tab-link-comp-public').classList.remove('hidden');
+  document.getElementById('nav-username').textContent = cacheComp?.nombre || 'Competencia';
+  renderCompAdmin();
+  switchTab('comp-public', document.getElementById('tab-link-comp-public'));
+  localStorage.setItem('legion_session', JSON.stringify(currentUser));
+}
+
+async function toggleAccesoPublico(habilitar) {
+  if(!cacheComp) return alert('Primero guardá la competencia.');
+  const label = document.getElementById('comp-btn-label').value.trim() || 'Ver Competencia';
+  cacheComp.accesoPublico  = habilitar;
+  cacheComp.btnLabel       = label;
+  await fsSet('competencia', cacheComp);
+  actualizarBotonLeaderboard();
+  document.getElementById('comp-acceso-status').textContent = 
+    habilitar ? `✓ Acceso habilitado — botón: "${label}"` : '✗ Acceso deshabilitado';
+}
+
+function actualizarBotonLeaderboard() {
+  const wrap  = document.getElementById('btn-ver-comp-wrap');
+  const label = document.getElementById('btn-ver-comp-label');
+  if(!wrap || !label) return;
+  if(cacheComp?.accesoPublico && cacheComp?.activa) {
+    wrap.classList.remove('hidden');
+    label.textContent = cacheComp.btnLabel || 'Ver Competencia';
+  } else {
+    wrap.classList.add('hidden');
+  }
 }
 
 // Exponer funciones al scope global para los onclick del HTML
@@ -1356,3 +1398,5 @@ window.guardarResultados        = guardarResultados;
 window.renderRankingPublico     = renderRankingPublico;
 window.finalizarCompetencia     = finalizarCompetencia;
 window.actualizarTamEquipo = function(){};
+window.entrarLeaderboard    = entrarLeaderboard;
+window.toggleAccesoPublico  = toggleAccesoPublico;
