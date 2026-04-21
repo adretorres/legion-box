@@ -213,6 +213,7 @@ function showApp(isCoach, userData = null) {
         mostrarFormComp();
         renderCompAdmin();
       }
+    });
   } else {
     currentViewPlan =
       userData.plans && userData.plans.length > 0
