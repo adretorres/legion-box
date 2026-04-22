@@ -1506,7 +1506,11 @@ function beepVictory()   { beep(880,0.15); setTimeout(()=>beep(1100,0.15),200); 
 function beepCountdown() { beep(440, 0.08, 0.3); }
 function beepTen()       { beep(660, 0.12, 0.4); }
 function beepStart()     { beep(1100, 0.25, 0.6); }
-function beepNewRound()  { beep(880, 0.15); }
+function beepNewRound() {
+  beep(880, 0.08);
+  setTimeout(() => beep(880, 0.08), 100);
+  setTimeout(() => beep(1100, 0.35), 200);
+}
 
 function formatTime(s) {
   const m = Math.floor(s / 60);
@@ -1658,21 +1662,24 @@ function iniciarCuentaRegresiva(callback) {
   timerCountdown = true;
   timerCountdownSec = 10;
   document.getElementById('timer-phase-label').textContent = 'PREPARATE';
-  document.getElementById('timer-clock').textContent = '00:10';
+  document.getElementById('timer-clock').style.fontSize = '8rem';
+  document.getElementById('timer-clock').textContent = '10';
   document.getElementById('timer-clock').style.color = 'var(--warning, #F5A623)';
   beepTen();
 
   const cdInterval = setInterval(() => {
     timerCountdownSec--;
-    document.getElementById('timer-clock').textContent = '00:' + String(timerCountdownSec).padStart(2,'0');
+    document.getElementById('timer-clock').textContent = timerCountdownSec > 0 ? String(timerCountdownSec) : '¡YA!';
 
     if(timerCountdownSec <= 3 && timerCountdownSec > 0) beepCountdown();
     if(timerCountdownSec === 0) {
       clearInterval(cdInterval);
       timerCountdown = false;
+      document.getElementById('timer-clock').style.fontSize = '6rem';
       document.getElementById('timer-clock').style.color = '';
+      document.getElementById('timer-clock').textContent = '00:00';
       beepStart();
-      callback();
+      setTimeout(callback, 300);
     }
   }, 1000);
 }
