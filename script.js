@@ -1466,6 +1466,218 @@ async function guardarEdicionEvento(id) {
   alert('Evento actualizado.');
 }
 
+// ─── CRONÓMETRO ──────────────────────────────────────────────────────────────
+let timerMode      = 'fortime';
+let timerInterval  = null;
+let timerRunning   = false;
+let timerSeconds   = 0;
+let timerPhase     = 'work'; // 'work' | 'rest'
+let timerRound     = 1;
+let timerTotalRounds = 0;
+let timerPhaseSeconds = 0;
+let timerWorkSecs  = 0;
+let timerRestSecs  = 0;
+let timerLimitSecs = 0;
+
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function beep(freq = 880, duration = 0.15, vol = 0.4) {
+  try {
+    if(!audioCtx) audioCtx = new AudioCtx();
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function beepFinish() { beep(660, 0.12); setTimeout(() => beep(880, 0.12), 150); setTimeout(() => beep(1100, 0.3), 300); }
+function beepCountdown() { beep(440, 0.08, 0.3); }
+function beepNewRound()  { beep(880, 0.15); }
+
+function setTimerMode(mode) {
+  timerMode = mode;
+  timerReset();
+  document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.timer-config-panel').forEach(p => p.classList.add('hidden'));
+  const panels = { fortime:'fortime', amrap:'fortime', emom:'emom', tabata:'tabata', interval:'interval' };
+  document.getElementById('timer-config-' + panels[mode]).classList.remove('hidden');
+  const labels = { fortime:'For Time', amrap:'AMRAP', emom:'EMOM', tabata:'Tabata', interval:'Intervalos' };
+  const labelEl = document.getElementById('timer-mode-label');
+  if(labelEl) labelEl.textContent = labels[mode] || mode;
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function timerStart() {
+  if(timerRunning) {
+    // Pausar
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-btn-start').textContent = 'RESUME';
+    return;
+  }
+
+  // Inicializar si es primer start
+  if(timerSeconds === 0 && timerPhase === 'work' && timerRound === 1) {
+    if(!audioCtx) audioCtx = new AudioCtx();
+    switch(timerMode) {
+      case 'fortime':
+      case 'amrap':
+        timerLimitSecs = parseInt(document.getElementById('ft-min').value||0)*60 + parseInt(document.getElementById('ft-sec').value||0);
+        break;
+      case 'emom':
+        timerWorkSecs    = parseInt(document.getElementById('emom-interval').value||1)*60;
+        timerTotalRounds = parseInt(document.getElementById('emom-rounds').value||10);
+        timerPhaseSeconds = 0;
+        break;
+      case 'tabata':
+        timerWorkSecs    = 20;
+        timerRestSecs    = 10;
+        timerTotalRounds = 8;
+        timerPhaseSeconds = 0;
+        break;
+      case 'interval':
+        timerWorkSecs    = parseInt(document.getElementById('int-work').value||30);
+        timerRestSecs    = parseInt(document.getElementById('int-rest').value||30);
+        timerTotalRounds = parseInt(document.getElementById('int-rounds').value||5);
+        timerPhaseSeconds = 0;
+        break;
+    }
+  }
+
+  timerRunning = true;
+  document.getElementById('timer-btn-start').textContent = 'PAUSE';
+  const display = document.getElementById('timer-display');
+  display.classList.remove('timer-work','timer-rest','timer-finish');
+
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+
+    switch(timerMode) {
+      case 'fortime':
+      case 'amrap':
+        updateClockSimple();
+        break;
+      case 'emom':
+        updateClockEmom();
+        break;
+      case 'tabata':
+      case 'interval':
+        updateClockInterval();
+        break;
+    }
+  }, 1000);
+}
+
+function updateClockSimple() {
+  document.getElementById('timer-clock').textContent = formatTime(timerSeconds);
+  document.getElementById('timer-phase-label').textContent = timerMode === 'amrap' ? 'AMRAP' : 'FOR TIME';
+  if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) {
+    timerStop('¡TIEMPO!');
+    beepFinish();
+  }
+}
+
+function updateClockEmom() {
+  timerPhaseSeconds++;
+  const remaining = timerWorkSecs - timerPhaseSeconds;
+  document.getElementById('timer-clock').textContent = formatTime(timerPhaseSeconds);
+  document.getElementById('timer-phase-label').textContent = 'EMOM';
+  document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds;
+
+  if(remaining <= 3 && remaining > 0) beepCountdown();
+
+  if(timerPhaseSeconds >= timerWorkSecs) {
+    timerRound++;
+    timerPhaseSeconds = 0;
+    if(timerRound > timerTotalRounds) {
+      timerStop('¡COMPLETADO!');
+      beepFinish();
+    } else {
+      beepNewRound();
+    }
+  }
+}
+
+function updateClockInterval() {
+  timerPhaseSeconds++;
+  const isTabata  = timerMode === 'tabata';
+  const workSecs  = isTabata ? 20 : timerWorkSecs;
+  const restSecs  = isTabata ? 10 : timerRestSecs;
+  const phaseSecs = timerPhase === 'work' ? workSecs : restSecs;
+  const remaining = phaseSecs - timerPhaseSeconds;
+
+  document.getElementById('timer-clock').textContent = formatTime(timerPhaseSeconds);
+
+  const display = document.getElementById('timer-display');
+  if(timerPhase === 'work') {
+    display.classList.add('timer-work');
+    display.classList.remove('timer-rest');
+    document.getElementById('timer-phase-label').textContent = 'TRABAJO';
+  } else {
+    display.classList.add('timer-rest');
+    display.classList.remove('timer-work');
+    document.getElementById('timer-phase-label').textContent = 'DESCANSO';
+  }
+  document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds;
+
+  if(remaining <= 3 && remaining > 0) beepCountdown();
+
+  if(timerPhaseSeconds >= phaseSecs) {
+    timerPhaseSeconds = 0;
+    if(timerPhase === 'work') {
+      timerPhase = 'rest';
+      beepNewRound();
+    } else {
+      timerPhase = 'work';
+      timerRound++;
+      if(timerRound > timerTotalRounds) {
+        timerStop('¡COMPLETADO!');
+        beepFinish();
+        return;
+      }
+      beepNewRound();
+    }
+  }
+}
+
+function timerStop(msg) {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-btn-start').textContent = 'START';
+  document.getElementById('timer-phase-label').textContent = msg || '¡LISTO!';
+  document.getElementById('timer-display').classList.add('timer-finish');
+  document.getElementById('timer-display').classList.remove('timer-work','timer-rest');
+}
+
+function timerReset() {
+  clearInterval(timerInterval);
+  timerRunning      = false;
+  timerSeconds      = 0;
+  timerPhase        = 'work';
+  timerRound        = 1;
+  timerPhaseSeconds = 0;
+  document.getElementById('timer-clock').textContent      = '00:00';
+  document.getElementById('timer-phase-label').textContent = '';
+  document.getElementById('timer-round-label').textContent = '';
+  document.getElementById('timer-btn-start').textContent  = 'START';
+  const display = document.getElementById('timer-display');
+  display.classList.remove('timer-work','timer-rest','timer-finish');
+  document.getElementById('timer-clock').style.color = '';
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -1513,3 +1725,6 @@ window.cancelarEdicionParticipante = cancelarEdicionParticipante;
 window.guardarEdicionParticipante  = guardarEdicionParticipante;
 window.editarEvento           = editarEvento;
 window.guardarEdicionEvento   = guardarEdicionEvento;
+window.setTimerMode = setTimerMode;
+window.timerStart   = timerStart;
+window.timerReset   = timerReset;
