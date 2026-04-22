@@ -135,6 +135,7 @@
         >
           Ranking
         </button>
+        <button id="tab-link-timer" class="tab-btn" onclick="switchTab('timer', this)">Cronómetro</button>
       </div>
 
       <!-- ── COMPETENCIA (COACH) ────────────────────── -->
@@ -177,10 +178,7 @@
               <label>Descripción / Info</label
               ><textarea id="comp-desc" rows="3"></textarea>
             </div>
-            <div class="form-row">
-              <label>Contraseña Pública (espectadores)</label
-              ><input type="text" id="comp-pass" />
-            </div>
+            
             <button
               class="btn-save"
               onclick="guardarCompetencia()"
@@ -440,6 +438,66 @@
           </div>
           <div id="public-ranking-container" style="margin-top: 16px"></div>
         </div>
+      </div>
+
+      <!-- ── CRONÓMETRO ─────────────────────────────── -->
+      <div id="tab-timer" class="tab-content">
+
+        <div id="timer-mode-selector" style="margin-bottom:20px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="timer-mode-btn active" onclick="setTimerMode('fortime')">FOR TIME</button>
+            <button class="timer-mode-btn" onclick="setTimerMode('amrap')">AMRAP</button>
+            <button class="timer-mode-btn" onclick="setTimerMode('emom')">EMOM</button>
+            <button class="timer-mode-btn" onclick="setTimerMode('tabata')">TABATA</button>
+            <button class="timer-mode-btn" onclick="setTimerMode('interval')">INTERVALOS</button>
+          </div>
+        </div>
+
+        <!-- Config FOR TIME / AMRAP -->
+        <div id="timer-config-fortime" class="timer-config-panel admin-section">
+          <div class="admin-title" id="timer-mode-label">For Time</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-row"><label>Minutos</label><input type="number" id="ft-min" value="10" min="0" max="99"></div>
+            <div class="form-row"><label>Segundos</label><input type="number" id="ft-sec" value="0" min="0" max="59"></div>
+          </div>
+        </div>
+
+        <!-- Config EMOM -->
+        <div id="timer-config-emom" class="timer-config-panel admin-section hidden">
+          <div class="admin-title">EMOM</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="form-row"><label>Cada (minutos)</label><input type="number" id="emom-interval" value="1" min="1" max="10"></div>
+            <div class="form-row"><label>Rondas</label><input type="number" id="emom-rounds" value="10" min="1" max="60"></div>
+          </div>
+        </div>
+
+        <!-- Config TABATA -->
+        <div id="timer-config-tabata" class="timer-config-panel admin-section hidden">
+          <div class="admin-title">Tabata</div>
+          <p style="font-size:0.82rem; color:var(--text-tertiary); margin-bottom:12px;">20 seg trabajo · 10 seg descanso · 8 rondas</p>
+        </div>
+
+        <!-- Config INTERVALOS -->
+        <div id="timer-config-interval" class="timer-config-panel admin-section hidden">
+          <div class="admin-title">Intervalos</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div class="form-row"><label>Trabajo (seg)</label><input type="number" id="int-work" value="30" min="1" max="600"></div>
+            <div class="form-row"><label>Descanso (seg)</label><input type="number" id="int-rest" value="30" min="0" max="600"></div>
+            <div class="form-row"><label>Rondas</label><input type="number" id="int-rounds" value="5" min="1" max="99"></div>
+          </div>
+        </div>
+
+        <!-- Display -->
+        <div id="timer-display" class="admin-section" style="text-align:center; margin-top:16px; padding:40px 20px;">
+          <div id="timer-phase-label" style="font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:3px; color:var(--text-tertiary); margin-bottom:8px; text-transform:uppercase; min-height:20px;"></div>
+          <div id="timer-clock" style="font-family:'Bebas Neue',sans-serif; font-size:6rem; line-height:1; color:var(--text); letter-spacing:4px;">00:00</div>
+          <div id="timer-round-label" style="font-family:'Barlow Condensed',sans-serif; font-size:0.9rem; letter-spacing:2px; color:var(--text-tertiary); margin-top:10px; min-height:22px;"></div>
+          <div style="display:flex; gap:12px; justify-content:center; margin-top:28px;">
+            <button id="timer-btn-start" class="btn-save" onclick="timerStart()" style="min-width:100px; font-size:0.9rem; padding:14px 24px;">START</button>
+            <button id="timer-btn-reset" class="btn-save" onclick="timerReset()" style="min-width:80px; background:none; border:1px solid var(--border-strong); color:var(--text-secondary); font-size:0.9rem; padding:14px 24px;">RESET</button>
+          </div>
+        </div>
+
       </div>
 
       <main>
