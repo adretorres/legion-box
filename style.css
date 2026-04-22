@@ -810,3 +810,31 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
     padding: 2px 8px;
   }
 }
+
+/* ─── CRONÓMETRO ─────────────────────────────────── */
+.timer-mode-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.18s;
+}
+
+.timer-mode-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.timer-mode-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+#timer-display { transition: background 0.4s ease; }
+#timer-clock   { transition: color 0.3s ease; }
+
+.timer-work  { background: rgba(46,204,113,0.08) !important; }
+.timer-rest  { background: rgba(255,69,69,0.08)  !important; }
+.timer-work #timer-clock { color: #2ecc71; }
+.timer-rest #timer-clock { color: var(--danger); }
+.timer-finish #timer-clock { color: var(--accent); }
