@@ -1733,9 +1733,16 @@ function tickEmom() {
   document.getElementById('timer-phase-label').textContent = 'EMOM';
 
   // Mostrar ejercicio del minuto actual si hay descripción
-  const exIdx = (timerRound - 1) % emomExercises.length;
-  const exLabel = emomExercises.length ? (emomExercises[exIdx] || '') : '';
-  document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds + (exLabel ? '  —  ' + exLabel : '');
+  const exIdx   = emomExercises.length ? (timerRound - 1) % emomExercises.length : -1;
+  const exLabel = exIdx >= 0 ? (emomExercises[exIdx] || '') : '';
+  const ciclo   = emomExercises.length ? Math.floor((timerRound - 1) / emomExercises.length) + 1 : null;
+  const totalCiclos = emomExercises.length ? Math.ceil(timerTotalRounds / emomExercises.length) : null;
+
+  let roundText = 'Min ' + timerRound + ' / ' + timerTotalRounds;
+  if(ciclo) roundText += '  ·  Ciclo ' + ciclo + '/' + totalCiclos;
+  if(exLabel) roundText += '  —  ' + exLabel;
+
+  document.getElementById('timer-round-label').textContent = roundText;
 
   if(remaining === 10) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
@@ -1832,7 +1839,13 @@ function tickCompuesto() {
     const remaining = intervalSecs - compPhaseSeconds;
     document.getElementById('timer-clock').textContent = formatTime(compPhaseSeconds);
     document.getElementById('timer-phase-label').textContent = 'EMOM';
-    document.getElementById('timer-round-label').textContent = 'Ronda ' + compRound + ' / ' + b.rounds + ' — Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
+    const cExIdx = b.exercises?.length ? (compRound - 1) % b.exercises.length : -1;
+    const cExLabel = cExIdx >= 0 ? (b.exercises[cExIdx] || '') : '';
+    document.getElementById('timer-round-label').textContent =
+      'Min ' + compRound + '/' + b.rounds +
+      (cExLabel ? '  —  ' + cExLabel : '') +
+      '  ·  Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
+      
     if(remaining === 10) beepTen();
     if(remaining <= 3 && remaining > 0) beepCountdown();
     if(compPhaseSeconds >= intervalSecs) {
