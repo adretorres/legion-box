@@ -740,10 +740,25 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* ─── COMPETENCIA LAYOUT ─────────────────────────────── */
 #tab-comp .admin-section,
-#tab-comp-public .admin-section {
+#tab-comp-public .admin-section,
+#tab-timer .admin-section,
+#tab-timer #timer-display {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
+}
+
+#tab-timer .timer-config-panel {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#tab-timer #timer-mode-selector {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
 }
 
 .ranking-comp-row {
