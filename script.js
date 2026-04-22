@@ -1467,17 +1467,21 @@ async function guardarEdicionEvento(id) {
 }
 
 // ─── CRONÓMETRO ──────────────────────────────────────────────────────────────
-let timerMode      = 'fortime';
-let timerInterval  = null;
-let timerRunning   = false;
-let timerSeconds   = 0;
-let timerPhase     = 'work'; // 'work' | 'rest'
-let timerRound     = 1;
-let timerTotalRounds = 0;
+let timerMode         = 'fortime';
+let timerInterval     = null;
+let timerRunning      = false;
+let timerSeconds      = 0;
+let timerPhase        = 'work';
+let timerRound        = 1;
+let timerTotalRounds  = 0;
 let timerPhaseSeconds = 0;
-let timerWorkSecs  = 0;
-let timerRestSecs  = 0;
-let timerLimitSecs = 0;
+let timerWorkSecs     = 0;
+let timerRestSecs     = 0;
+let timerLimitSecs    = 0;
+let timerCountdown    = false;
+let timerCountdownSec = 10;
+let wodBlocks         = [];
+let currentBlockIdx   = 0;
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
@@ -1497,22 +1501,12 @@ function beep(freq = 880, duration = 0.15, vol = 0.4) {
   } catch(e) {}
 }
 
-function beepFinish() { beep(660, 0.12); setTimeout(() => beep(880, 0.12), 150); setTimeout(() => beep(1100, 0.3), 300); }
+function beepFinish()    { beep(660,0.12); setTimeout(()=>beep(880,0.12),150); setTimeout(()=>beep(1100,0.3),300); }
+function beepVictory()   { beep(880,0.15); setTimeout(()=>beep(1100,0.15),200); setTimeout(()=>beep(1320,0.4),400); }
 function beepCountdown() { beep(440, 0.08, 0.3); }
+function beepTen()       { beep(660, 0.12, 0.4); }
+function beepStart()     { beep(1100, 0.25, 0.6); }
 function beepNewRound()  { beep(880, 0.15); }
-
-function setTimerMode(mode) {
-  timerMode = mode;
-  timerReset();
-  document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  document.querySelectorAll('.timer-config-panel').forEach(p => p.classList.add('hidden'));
-  const panels = { fortime:'fortime', amrap:'fortime', emom:'emom', tabata:'tabata', interval:'interval' };
-  document.getElementById('timer-config-' + panels[mode]).classList.remove('hidden');
-  const labels = { fortime:'For Time', amrap:'AMRAP', emom:'EMOM', tabata:'Tabata', interval:'Intervalos' };
-  const labelEl = document.getElementById('timer-mode-label');
-  if(labelEl) labelEl.textContent = labels[mode] || mode;
-}
 
 function formatTime(s) {
   const m = Math.floor(s / 60);
@@ -1520,143 +1514,367 @@ function formatTime(s) {
   return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
 }
 
+// ─── MODOS ───────────────────────────────────────────────────────────────────
+function setTimerMode(mode) {
+  timerMode = mode;
+  timerReset();
+  document.querySelectorAll('.timer-mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.timer-config-panel').forEach(p => p.classList.add('hidden'));
+  const panels = { fortime:'fortime', amrap:'fortime', emom:'emom', tabata:'tabata', interval:'interval', compound:'compound' };
+  document.getElementById('timer-config-' + panels[mode]).classList.remove('hidden');
+  const labels = { fortime:'For Time', amrap:'AMRAP', emom:'EMOM', tabata:'Tabata', interval:'Intervalos', compound:'WOD Compuesto' };
+  const labelEl = document.getElementById('timer-mode-label');
+  if(labelEl) labelEl.textContent = labels[mode] || mode;
+}
+
+// ─── EMOM EJERCICIOS ─────────────────────────────────────────────────────────
+let emomExercises = [];
+
+function agregarEjercicioEmom() {
+  emomExercises.push('');
+  renderEjerciciosEmom();
+}
+
+function renderEjerciciosEmom() {
+  const cont = document.getElementById('emom-exercises');
+  cont.innerHTML = '';
+  emomExercises.forEach((ex, i) => {
+    cont.innerHTML += `
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; color:var(--accent); min-width:40px;">MIN ${i+1}</span>
+        <input type="text" value="${ex}" oninput="emomExercises[${i}]=this.value" placeholder="Ej: 10 Burpees" style="flex:1; padding:8px 12px; font-size:0.82rem;">
+        <button onclick="eliminarEjercicioEmom(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;">✕</button>
+      </div>`;
+  });
+}
+
+function eliminarEjercicioEmom(i) {
+  emomExercises.splice(i, 1);
+  renderEjerciciosEmom();
+}
+
+// ─── WOD COMPUESTO ───────────────────────────────────────────────────────────
+function agregarBloqueWod() {
+  const tipo = document.getElementById('compound-tipo').value;
+  let bloque = { tipo };
+
+  if(tipo === 'rest') {
+    bloque.min = parseInt(document.getElementById('compound-min').value||0);
+    bloque.sec = parseInt(document.getElementById('compound-sec').value||0);
+    bloque.label = 'REST ' + formatTime(bloque.min*60 + bloque.sec);
+  } else if(tipo === 'emom') {
+    bloque.interval = parseInt(document.getElementById('compound-emom-interval').value||1);
+    bloque.rounds   = parseInt(document.getElementById('compound-emom-rounds').value||10);
+    bloque.exercises = [];
+    bloque.label = 'EMOM ' + bloque.interval + 'min x' + bloque.rounds;
+  } else if(tipo === 'amrap' || tipo === 'fortime') {
+    bloque.min = parseInt(document.getElementById('compound-min').value||0);
+    bloque.sec = parseInt(document.getElementById('compound-sec').value||0);
+    bloque.label = tipo.toUpperCase() + ' ' + formatTime(bloque.min*60 + bloque.sec);
+  } else if(tipo === 'interval') {
+    bloque.work   = parseInt(document.getElementById('compound-int-work').value||30);
+    bloque.rest   = parseInt(document.getElementById('compound-int-rest').value||30);
+    bloque.rounds = parseInt(document.getElementById('compound-int-rounds').value||5);
+    bloque.label  = 'INTERVALOS ' + bloque.work + '/' + bloque.rest + 'seg x' + bloque.rounds;
+  }
+
+  wodBlocks.push(bloque);
+  renderBloquesWod();
+}
+
+function renderBloquesWod() {
+  const cont = document.getElementById('compound-blocks-list');
+  cont.innerHTML = '';
+  if(!wodBlocks.length) {
+    cont.innerHTML = '<small style="color:var(--text-tertiary)">Sin bloques agregados.</small>';
+    return;
+  }
+  wodBlocks.forEach((b, i) => {
+    cont.innerHTML += `
+      <div class="comp-cat-pill" style="margin-bottom:6px;">
+        <div>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; color:var(--accent); margin-right:8px;">${i+1}</span>
+          <b>${b.label}</b>
+        </div>
+        <button onclick="eliminarBloqueWod(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;">✕</button>
+      </div>`;
+  });
+}
+
+function eliminarBloqueWod(i) {
+  wodBlocks.splice(i, 1);
+  renderBloquesWod();
+}
+
+function toggleCompoundTipo() {
+  const tipo = document.getElementById('compound-tipo').value;
+  document.getElementById('compound-config-time').classList.toggle('hidden',   !['rest','amrap','fortime'].includes(tipo));
+  document.getElementById('compound-config-emom').classList.toggle('hidden',   tipo !== 'emom');
+  document.getElementById('compound-config-interval').classList.toggle('hidden', tipo !== 'interval');
+}
+
+// ─── INICIO ──────────────────────────────────────────────────────────────────
 function timerStart() {
+  if(!audioCtx) audioCtx = new AudioCtx();
+
   if(timerRunning) {
-    // Pausar
     clearInterval(timerInterval);
     timerRunning = false;
-    document.getElementById('timer-btn-start').textContent = 'RESUME';
+    document.getElementById('timer-btn-start').textContent = 'CONTINUAR';
     return;
   }
 
-  // Inicializar si es primer start
-  if(timerSeconds === 0 && timerPhase === 'work' && timerRound === 1) {
-    if(!audioCtx) audioCtx = new AudioCtx();
-    switch(timerMode) {
-      case 'fortime':
-      case 'amrap':
-        timerLimitSecs = parseInt(document.getElementById('ft-min').value||0)*60 + parseInt(document.getElementById('ft-sec').value||0);
-        break;
-      case 'emom':
-        timerWorkSecs    = parseInt(document.getElementById('emom-interval').value||1)*60;
-        timerTotalRounds = parseInt(document.getElementById('emom-rounds').value||10);
-        timerPhaseSeconds = 0;
-        break;
-      case 'tabata':
-        timerWorkSecs    = 20;
-        timerRestSecs    = 10;
-        timerTotalRounds = 8;
-        timerPhaseSeconds = 0;
-        break;
-      case 'interval':
-        timerWorkSecs    = parseInt(document.getElementById('int-work').value||30);
-        timerRestSecs    = parseInt(document.getElementById('int-rest').value||30);
-        timerTotalRounds = parseInt(document.getElementById('int-rounds').value||5);
-        timerPhaseSeconds = 0;
-        break;
+  if(timerMode === 'compound') {
+    if(!wodBlocks.length) return alert('Agregá al menos un bloque.');
+    if(timerSeconds === 0 && !timerCountdown && currentBlockIdx === 0) {
+      iniciarCuentaRegresiva(() => iniciarBloqueCompuesto(0));
+      return;
     }
+    timerRunning = true;
+    document.getElementById('timer-btn-start').textContent = 'PAUSAR';
+    timerInterval = setInterval(tickCompuesto, 1000);
+    return;
+  }
+
+  if(timerSeconds === 0 && timerPhase === 'work' && timerRound === 1 && !timerCountdown) {
+    iniciarCuentaRegresiva(() => {
+      configurarModoSimple();
+      timerRunning = true;
+      document.getElementById('timer-btn-start').textContent = 'PAUSAR';
+      const display = document.getElementById('timer-display');
+      display.classList.remove('timer-work','timer-rest','timer-finish');
+      timerInterval = setInterval(tickSimple, 1000);
+    });
+    return;
   }
 
   timerRunning = true;
-  document.getElementById('timer-btn-start').textContent = 'PAUSE';
-  const display = document.getElementById('timer-display');
-  display.classList.remove('timer-work','timer-rest','timer-finish');
+  document.getElementById('timer-btn-start').textContent = 'PAUSAR';
+  timerInterval = setInterval(tickSimple, 1000);
+}
 
-  timerInterval = setInterval(() => {
-    timerSeconds++;
+function iniciarCuentaRegresiva(callback) {
+  timerCountdown = true;
+  timerCountdownSec = 10;
+  document.getElementById('timer-phase-label').textContent = 'PREPARATE';
+  document.getElementById('timer-clock').textContent = '00:10';
+  document.getElementById('timer-clock').style.color = 'var(--warning, #F5A623)';
+  beepTen();
 
-    switch(timerMode) {
-      case 'fortime':
-      case 'amrap':
-        updateClockSimple();
-        break;
-      case 'emom':
-        updateClockEmom();
-        break;
-      case 'tabata':
-      case 'interval':
-        updateClockInterval();
-        break;
+  const cdInterval = setInterval(() => {
+    timerCountdownSec--;
+    document.getElementById('timer-clock').textContent = '00:' + String(timerCountdownSec).padStart(2,'0');
+
+    if(timerCountdownSec <= 3 && timerCountdownSec > 0) beepCountdown();
+    if(timerCountdownSec === 0) {
+      clearInterval(cdInterval);
+      timerCountdown = false;
+      document.getElementById('timer-clock').style.color = '';
+      beepStart();
+      callback();
     }
   }, 1000);
 }
 
-function updateClockSimple() {
-  document.getElementById('timer-clock').textContent = formatTime(timerSeconds);
-  document.getElementById('timer-phase-label').textContent = timerMode === 'amrap' ? 'AMRAP' : 'FOR TIME';
-  if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) {
-    timerStop('¡TIEMPO!');
-    beepFinish();
+function configurarModoSimple() {
+  switch(timerMode) {
+    case 'fortime':
+    case 'amrap':
+      timerLimitSecs = parseInt(document.getElementById('ft-min').value||0)*60 + parseInt(document.getElementById('ft-sec').value||0);
+      break;
+    case 'emom':
+      timerWorkSecs    = parseInt(document.getElementById('emom-interval').value||1)*60;
+      timerTotalRounds = parseInt(document.getElementById('emom-rounds').value||10);
+      timerPhaseSeconds = 0;
+      break;
+    case 'tabata':
+      timerWorkSecs = 20; timerRestSecs = 10; timerTotalRounds = 8; timerPhaseSeconds = 0;
+      break;
+    case 'interval':
+      timerWorkSecs    = parseInt(document.getElementById('int-work').value||30);
+      timerRestSecs    = parseInt(document.getElementById('int-rest').value||30);
+      timerTotalRounds = parseInt(document.getElementById('int-rounds').value||5);
+      timerPhaseSeconds = 0;
+      break;
   }
 }
 
-function updateClockEmom() {
+// ─── TICK SIMPLE ─────────────────────────────────────────────────────────────
+function tickSimple() {
+  timerSeconds++;
+  switch(timerMode) {
+    case 'fortime': case 'amrap': tickForTime(); break;
+    case 'emom':    tickEmom();    break;
+    case 'tabata':  case 'interval': tickInterval(); break;
+  }
+}
+
+function tickForTime() {
+  document.getElementById('timer-clock').textContent = formatTime(timerSeconds);
+  document.getElementById('timer-phase-label').textContent = timerMode === 'amrap' ? 'AMRAP' : 'FOR TIME';
+  const remaining = timerLimitSecs - timerSeconds;
+  if(remaining === 10) beepTen();
+  if(remaining <= 3 && remaining > 0) beepCountdown();
+  if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) { timerStop('¡TIEMPO!'); beepVictory(); }
+}
+
+function tickEmom() {
   timerPhaseSeconds++;
   const remaining = timerWorkSecs - timerPhaseSeconds;
   document.getElementById('timer-clock').textContent = formatTime(timerPhaseSeconds);
   document.getElementById('timer-phase-label').textContent = 'EMOM';
-  document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds;
 
+  // Mostrar ejercicio del minuto actual si hay descripción
+  const exIdx = (timerRound - 1) % emomExercises.length;
+  const exLabel = emomExercises.length ? (emomExercises[exIdx] || '') : '';
+  document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds + (exLabel ? '  —  ' + exLabel : '');
+
+  if(remaining === 10) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
-
   if(timerPhaseSeconds >= timerWorkSecs) {
-    timerRound++;
-    timerPhaseSeconds = 0;
-    if(timerRound > timerTotalRounds) {
-      timerStop('¡COMPLETADO!');
-      beepFinish();
-    } else {
-      beepNewRound();
-    }
+    timerRound++; timerPhaseSeconds = 0;
+    if(timerRound > timerTotalRounds) { timerStop('¡COMPLETADO!'); beepVictory(); }
+    else beepStart();
   }
 }
 
-function updateClockInterval() {
+function tickInterval() {
   timerPhaseSeconds++;
-  const isTabata  = timerMode === 'tabata';
-  const workSecs  = isTabata ? 20 : timerWorkSecs;
-  const restSecs  = isTabata ? 10 : timerRestSecs;
+  const isTabata = timerMode === 'tabata';
+  const workSecs = isTabata ? 20 : timerWorkSecs;
+  const restSecs = isTabata ? 10 : timerRestSecs;
   const phaseSecs = timerPhase === 'work' ? workSecs : restSecs;
   const remaining = phaseSecs - timerPhaseSeconds;
+  const display = document.getElementById('timer-display');
 
   document.getElementById('timer-clock').textContent = formatTime(timerPhaseSeconds);
-
-  const display = document.getElementById('timer-display');
   if(timerPhase === 'work') {
-    display.classList.add('timer-work');
-    display.classList.remove('timer-rest');
+    display.classList.add('timer-work'); display.classList.remove('timer-rest');
     document.getElementById('timer-phase-label').textContent = 'TRABAJO';
   } else {
-    display.classList.add('timer-rest');
-    display.classList.remove('timer-work');
+    display.classList.add('timer-rest'); display.classList.remove('timer-work');
     document.getElementById('timer-phase-label').textContent = 'DESCANSO';
   }
   document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds;
 
+  if(remaining === 10) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
 
   if(timerPhaseSeconds >= phaseSecs) {
     timerPhaseSeconds = 0;
     if(timerPhase === 'work') {
-      timerPhase = 'rest';
-      beepNewRound();
+      timerPhase = 'rest'; beepNewRound();
     } else {
-      timerPhase = 'work';
-      timerRound++;
-      if(timerRound > timerTotalRounds) {
-        timerStop('¡COMPLETADO!');
-        beepFinish();
-        return;
-      }
-      beepNewRound();
+      timerPhase = 'work'; timerRound++;
+      if(timerRound > timerTotalRounds) { timerStop('¡COMPLETADO!'); beepVictory(); return; }
+      beepStart();
     }
+  }
+}
+
+// ─── WOD COMPUESTO TICK ──────────────────────────────────────────────────────
+let compSeconds      = 0;
+let compPhase        = 'work';
+let compRound        = 1;
+let compPhaseSeconds = 0;
+
+function iniciarBloqueCompuesto(idx) {
+  currentBlockIdx  = idx;
+  compSeconds      = 0;
+  compPhase        = 'work';
+  compRound        = 1;
+  compPhaseSeconds = 0;
+  const b = wodBlocks[idx];
+  const display = document.getElementById('timer-display');
+  display.classList.remove('timer-work','timer-rest','timer-finish');
+  document.getElementById('timer-phase-label').textContent = b.tipo.toUpperCase();
+  document.getElementById('timer-round-label').textContent = 'Bloque ' + (idx+1) + ' / ' + wodBlocks.length;
+  timerRunning = true;
+  document.getElementById('timer-btn-start').textContent = 'PAUSAR';
+  timerInterval = setInterval(tickCompuesto, 1000);
+}
+
+function tickCompuesto() {
+  compSeconds++;
+  const b = wodBlocks[currentBlockIdx];
+  const display = document.getElementById('timer-display');
+
+  if(b.tipo === 'rest') {
+    const total = b.min*60 + b.sec;
+    const remaining = total - compSeconds;
+    document.getElementById('timer-clock').textContent = formatTime(remaining > 0 ? remaining : 0);
+    document.getElementById('timer-phase-label').textContent = 'REST';
+    display.classList.add('timer-rest'); display.classList.remove('timer-work');
+    if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
+    if(compSeconds >= total) { clearInterval(timerInterval); siguienteBloque(); }
+
+  } else if(b.tipo === 'amrap' || b.tipo === 'fortime') {
+    const total = b.min*60 + b.sec;
+    const remaining = total - compSeconds;
+    document.getElementById('timer-clock').textContent = formatTime(compSeconds);
+    document.getElementById('timer-phase-label').textContent = b.tipo.toUpperCase();
+    if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
+    if(compSeconds >= total) { clearInterval(timerInterval); siguienteBloque(); }
+
+  } else if(b.tipo === 'emom') {
+    compPhaseSeconds++;
+    const intervalSecs = b.interval * 60;
+    const remaining = intervalSecs - compPhaseSeconds;
+    document.getElementById('timer-clock').textContent = formatTime(compPhaseSeconds);
+    document.getElementById('timer-phase-label').textContent = 'EMOM';
+    document.getElementById('timer-round-label').textContent = 'Ronda ' + compRound + ' / ' + b.rounds + ' — Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
+    if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
+    if(compPhaseSeconds >= intervalSecs) {
+      compPhaseSeconds = 0; compRound++;
+      if(compRound > b.rounds) { clearInterval(timerInterval); siguienteBloque(); }
+      else beepStart();
+    }
+
+  } else if(b.tipo === 'interval') {
+    compPhaseSeconds++;
+    const phaseSecs = compPhase === 'work' ? b.work : b.rest;
+    const remaining = phaseSecs - compPhaseSeconds;
+    document.getElementById('timer-clock').textContent = formatTime(compPhaseSeconds);
+    if(compPhase === 'work') {
+      display.classList.add('timer-work'); display.classList.remove('timer-rest');
+      document.getElementById('timer-phase-label').textContent = 'TRABAJO';
+    } else {
+      display.classList.add('timer-rest'); display.classList.remove('timer-work');
+      document.getElementById('timer-phase-label').textContent = 'DESCANSO';
+    }
+    document.getElementById('timer-round-label').textContent = 'Ronda ' + compRound + ' / ' + b.rounds + ' — Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
+    if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
+    if(compPhaseSeconds >= phaseSecs) {
+      compPhaseSeconds = 0;
+      if(compPhase === 'work') { compPhase = 'rest'; beepNewRound(); }
+      else { compPhase = 'work'; compRound++; if(compRound > b.rounds) { clearInterval(timerInterval); siguienteBloque(); } else beepStart(); }
+    }
+  }
+}
+
+function siguienteBloque() {
+  timerRunning = false;
+  const nextIdx = currentBlockIdx + 1;
+  if(nextIdx >= wodBlocks.length) {
+    document.getElementById('timer-phase-label').textContent = '¡WOD COMPLETADO!';
+    document.getElementById('timer-display').classList.add('timer-finish');
+    document.getElementById('timer-btn-start').textContent = 'INICIAR';
+    beepVictory();
+  } else {
+    beepStart();
+    setTimeout(() => iniciarBloqueCompuesto(nextIdx), 500);
   }
 }
 
 function timerStop(msg) {
   clearInterval(timerInterval);
   timerRunning = false;
-  document.getElementById('timer-btn-start').textContent = 'START';
+  document.getElementById('timer-btn-start').textContent = 'INICIAR';
   document.getElementById('timer-phase-label').textContent = msg || '¡LISTO!';
   document.getElementById('timer-display').classList.add('timer-finish');
   document.getElementById('timer-display').classList.remove('timer-work','timer-rest');
@@ -1664,18 +1882,16 @@ function timerStop(msg) {
 
 function timerReset() {
   clearInterval(timerInterval);
-  timerRunning      = false;
-  timerSeconds      = 0;
-  timerPhase        = 'work';
-  timerRound        = 1;
-  timerPhaseSeconds = 0;
-  document.getElementById('timer-clock').textContent      = '00:00';
+  timerRunning = false; timerSeconds = 0; timerPhase = 'work';
+  timerRound = 1; timerPhaseSeconds = 0; timerCountdown = false;
+  compSeconds = 0; compPhase = 'work'; compRound = 1; compPhaseSeconds = 0; currentBlockIdx = 0;
+  document.getElementById('timer-clock').textContent       = '00:00';
   document.getElementById('timer-phase-label').textContent = '';
   document.getElementById('timer-round-label').textContent = '';
-  document.getElementById('timer-btn-start').textContent  = 'START';
+  document.getElementById('timer-btn-start').textContent   = 'INICIAR';
+  document.getElementById('timer-clock').style.color       = '';
   const display = document.getElementById('timer-display');
   display.classList.remove('timer-work','timer-rest','timer-finish');
-  document.getElementById('timer-clock').style.color = '';
 }
 
 // Exponer funciones al scope global para los onclick del HTML
@@ -1728,3 +1944,11 @@ window.guardarEdicionEvento   = guardarEdicionEvento;
 window.setTimerMode = setTimerMode;
 window.timerStart   = timerStart;
 window.timerReset   = timerReset;
+window.setTimerMode          = setTimerMode;
+window.timerStart            = timerStart;
+window.timerReset            = timerReset;
+window.agregarEjercicioEmom  = agregarEjercicioEmom;
+window.eliminarEjercicioEmom = eliminarEjercicioEmom;
+window.agregarBloqueWod      = agregarBloqueWod;
+window.eliminarBloqueWod     = eliminarBloqueWod;
+window.toggleCompoundTipo    = toggleCompoundTipo;
