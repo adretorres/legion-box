@@ -968,15 +968,7 @@
             >
               Seleccioná los días que quieras eliminar
             </p>
-            <div
-              id="reset-day-selector"
-              style="
-                display: flex;
-                gap: 6px;
-                flex-wrap: wrap;
-                margin-bottom: 12px;
-              "
-            >
+            <div id="reset-day-selector" style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:12px;">
               <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">
                 LUN
               </button>
@@ -1471,9 +1463,8 @@
                 </div>
               </div>
               <div class="form-row">
-                <label>Tipo de Entr.</label>
-                <select id="filter-discipline" onchange="renderUserList()">
-                  <option value="all">Todas</option>
+                <select id="filter-discipline" onchange="renderUserList()" style="margin-top:0;">
+  <option value="all">Disciplina: Todas</option>
                   <option value="crossfit">CrossFit</option>
                   <option value="funcional">Funcional</option>
                   <option value="planificacion">Planificación</option>
