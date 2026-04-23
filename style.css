@@ -599,13 +599,13 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 8px 4px;
+  padding: 10px 4px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
   background: var(--card);
   color: var(--text-tertiary);
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
