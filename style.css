@@ -580,6 +580,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   letter-spacing: 2px;
   color: var(--text);
   margin-bottom: 20px;
+  margin-top: 8px;
   line-height: 1;
 }
 
