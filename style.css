@@ -503,6 +503,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 .status-pill {
   padding: 3px 9px;
   border-radius: 4px;
+  min-width: 68px;
+  text-align: center;
+  white-space: nowrap;
+  display: inline-block;
   font-family: "Barlow Condensed", sans-serif;
   font-size: 0.65rem;
   font-weight: 700;
@@ -578,8 +582,8 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* ─── CHECKBOX CUSTOM ────────────────────────────── */
 .plan-check-group {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   background: var(--surface);
   padding: 12px;
