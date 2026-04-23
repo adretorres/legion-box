@@ -965,17 +965,16 @@ async function guardarCompetencia() {
   const nombre = document.getElementById('comp-nombre').value.trim();
   const fecha  = document.getElementById('comp-fecha').value;
   const desc   = document.getElementById('comp-desc').value.trim();
-  const pass   = document.getElementById('comp-pass').value.trim();
+  
   if(!nombre) return alert('El nombre es obligatorio.');
 
   if(!cacheComp) {
-    cacheComp = { nombre, fecha, desc, pass, activa: true,
+    cacheComp = { nombre, fecha, desc, activa: true,
       categorias: [], eventos: [], participantes: [], resultados: {} };
   } else {
     cacheComp.nombre = nombre;
     cacheComp.fecha  = fecha;
     cacheComp.desc   = desc;
-    cacheComp.pass   = pass;
   }
 
   await fsSet('competencia', cacheComp);
@@ -1282,7 +1281,7 @@ function renderCompAdmin() {
   document.getElementById('comp-nombre').value = cacheComp.nombre || '';
   document.getElementById('comp-fecha').value  = cacheComp.fecha  || '';
   document.getElementById('comp-desc').value   = cacheComp.desc   || '';
-  document.getElementById('comp-pass').value   = cacheComp.pass   || '';
+
 
   // Lista categorías
   const catList = document.getElementById('comp-cat-list');
