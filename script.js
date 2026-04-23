@@ -214,9 +214,13 @@ async function showApp(isCoach, userData = null) {
     syncAdminView();
    document.getElementById('tab-link-comp').classList.remove('hidden');
     await cargarCompetencia();
+    await cargarCompetencia();
     if (cacheComp && cacheComp.activa) {
       mostrarFormComp();
       renderCompAdmin();
+    } else {
+      document.getElementById('comp-empty').classList.remove('hidden');
+      document.getElementById('comp-form').classList.add('hidden');
     }
   } else {
     currentViewPlan =
@@ -733,17 +737,15 @@ function switchTab(id, btn) {
   }
 
   if(id === 'comp') {
-    if(!cacheComp) {
-      cargarCompetencia().then(() => {
-        if(cacheComp && cacheComp.activa) {
-          mostrarFormComp();
-          renderCompAdmin();
-        }
-      });
-    } else {
-      mostrarFormComp();
-      renderCompAdmin();
-    }
+    cargarCompetencia().then(() => {
+      if(cacheComp && cacheComp.activa) {
+        mostrarFormComp();
+        renderCompAdmin();
+      } else {
+        document.getElementById('comp-empty').classList.remove('hidden');
+        document.getElementById('comp-form').classList.add('hidden');
+      }
+    });
   }
   if(id === 'comp-public') renderRankingPublico();
 }
