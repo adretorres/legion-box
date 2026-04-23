@@ -1501,7 +1501,7 @@ let currentBlockIdx   = 0;
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 
-function beep(freq = 880, duration = 0.15, vol = 0.4) {
+function beep(freq = 880, duration = 0.15, vol = 1.0) {
   try {
     if(!audioCtx) audioCtx = new AudioCtx();
     const osc  = audioCtx.createOscillator();
@@ -1516,15 +1516,15 @@ function beep(freq = 880, duration = 0.15, vol = 0.4) {
   } catch(e) {}
 }
 
-function beepFinish()    { beep(660,0.12); setTimeout(()=>beep(880,0.12),150); setTimeout(()=>beep(1100,0.3),300); }
-function beepVictory()   { beep(880,0.15); setTimeout(()=>beep(1100,0.15),200); setTimeout(()=>beep(1320,0.4),400); }
-function beepCountdown() { beep(440, 0.08, 0.3); }
-function beepTen()       { beep(660, 0.12, 0.4); }
-function beepStart()     { beep(1100, 0.25, 0.6); }
+function beepFinish()    { beep(660,0.15); setTimeout(()=>beep(880,0.15),150); setTimeout(()=>beep(1100,0.4),300); }
+function beepVictory()   { beep(880,0.2); setTimeout(()=>beep(1100,0.2),200); setTimeout(()=>beep(1320,0.5),400); }
+function beepCountdown() { beep(440, 0.12, 1.0); }
+function beepTen()       { beep(660, 0.2, 1.0); }
+function beepStart()     { beep(1100, 0.35, 1.0); }
 function beepNewRound() {
-  beep(880, 0.08);
-  setTimeout(() => beep(880, 0.08), 100);
-  setTimeout(() => beep(1100, 0.35), 200);
+  beep(880, 0.1);
+  setTimeout(() => beep(880, 0.1), 120);
+  setTimeout(() => beep(1100, 0.45), 240);
 }
 
 function formatTime(s) {
