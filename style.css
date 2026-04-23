@@ -503,10 +503,13 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 .status-pill {
   padding: 3px 9px;
   border-radius: 4px;
-  min-width: 68px;
+  min-width: 72px;
+  min-height: 26px;
   text-align: center;
   white-space: nowrap;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Barlow Condensed", sans-serif;
   font-size: 0.65rem;
   font-weight: 700;
@@ -591,16 +594,12 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   border: 1px solid var(--border-strong);
 }
 
-/* Ocultamos el checkbox nativo */
-.plan-check-group input[type="checkbox"] {
-  display: none !important;
-}
-
-/* Cada label se convierte en un botón toggle */
 .plan-check-group label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: 6px 14px;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 4px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
   background: var(--card);
@@ -620,12 +619,15 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   color: var(--text);
 }
 
-/* Cuando el checkbox está marcado, el label se pinta */
 .plan-check-group input[type="checkbox"]:checked + label,
 .plan-check-group label:has(input[type="checkbox"]:checked) {
   background: var(--accent);
   border-color: var(--accent);
   color: #000;
+}
+
+.plan-check-group input[type="checkbox"] {
+  display: none !important;
 }
 
 /* ─── PAYMENT HISTORY ────────────────────────────── */
