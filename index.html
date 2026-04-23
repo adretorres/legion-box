@@ -299,7 +299,7 @@
             <div
               style="
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
                 gap: 10px;
                 margin-bottom: 12px;
               "
@@ -456,7 +456,7 @@
       <!-- ── CRONÓMETRO ─────────────────────────────── -->
       <div id="tab-timer" class="tab-content">
         <div id="timer-mode-selector" style="margin-bottom: 20px">
-          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
             <button
               class="timer-mode-btn active"
               onclick="setTimerMode('fortime')"
@@ -1431,7 +1431,7 @@
             />
 
             <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px"
+              style="display:flex; flex-direction:column; gap:12px;"
             >
               <div class="form-row">
                 <label>Estado</label>
