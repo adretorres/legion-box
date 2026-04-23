@@ -1505,6 +1505,7 @@ function beep(freq = 880, duration = 0.15, vol = 2.0) {
   try {
     if(!audioCtx) audioCtx = new AudioCtx();
     const osc  = audioCtx.createOscillator();
+    osc.type = 'square';
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
