@@ -731,6 +731,21 @@ function switchTab(id, btn) {
     loadBoxInfo();
     renderBirthdays();
   }
+
+  if(id === 'comp') {
+    if(!cacheComp) {
+      cargarCompetencia().then(() => {
+        if(cacheComp && cacheComp.activa) {
+          mostrarFormComp();
+          renderCompAdmin();
+        }
+      });
+    } else {
+      mostrarFormComp();
+      renderCompAdmin();
+    }
+  }
+  if(id === 'comp-public') renderRankingPublico();
 }
 
 function changeViewDay(d, btn) {
@@ -1631,8 +1646,12 @@ function toggleCompoundTipo() {
 // ─── INICIO ──────────────────────────────────────────────────────────────────
 function timerStart() {
   // Sonido para el celular
-  if(!audioCtx) audioCtx = new AudioCtx();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
+  if(!audioCtx) {
+    audioCtx = new AudioCtx();
+  } else if(audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  beep(440, 0.05, 0.1);
   // Mantener pantalla encendida
   if('wakeLock' in navigator && !timerRunning) {
     navigator.wakeLock.request('screen').then(lock => { window._wakeLock = lock; }).catch(() => {});
@@ -1737,7 +1756,7 @@ function tickForTime() {
   document.getElementById('timer-clock').textContent = formatTime(timerSeconds);
   document.getElementById('timer-phase-label').textContent = timerMode === 'amrap' ? 'AMRAP' : 'FOR TIME';
   const remaining = timerLimitSecs - timerSeconds;
-  if(remaining === 10) beepTen();
+  if(remaining === 10 && timerSeconds > 3) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
   if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) { timerStop('¡TIEMPO!'); beepVictory(); }
 }
@@ -1756,7 +1775,7 @@ function tickEmom() {
     '<span style="color:var(--text-tertiary); font-size:0.85rem;">Min ' + timerRound + ' / ' + timerTotalRounds + '</span>' +
     (exLabel ? '<br><span style="color:var(--text); font-size:1.1rem; font-weight:600; letter-spacing:0.5px;">' + exLabel + '</span>' : '');
 
-  if(remaining === 10) beepTen();
+  if(remaining === 10 && timerSeconds > 3) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
   if(timerPhaseSeconds >= timerWorkSecs) {
     timerRound++; timerPhaseSeconds = 0;
@@ -1784,7 +1803,7 @@ function tickInterval() {
   }
   document.getElementById('timer-round-label').textContent = 'Ronda ' + timerRound + ' / ' + timerTotalRounds;
 
-  if(remaining === 10) beepTen();
+  if(remaining === 10 && timerSeconds > 3) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
 
   if(timerPhaseSeconds >= phaseSecs) {
@@ -1832,7 +1851,7 @@ function tickCompuesto() {
     document.getElementById('timer-clock').textContent = formatTime(remaining > 0 ? remaining : 0);
     document.getElementById('timer-phase-label').textContent = 'REST';
     display.classList.add('timer-rest'); display.classList.remove('timer-work');
-    if(remaining === 10) beepTen();
+    if(remaining === 10 && timerSeconds > 3) beepTen();
     if(remaining <= 3 && remaining > 0) beepCountdown();
     if(compSeconds >= total) { clearInterval(timerInterval); siguienteBloque(); }
 
@@ -1841,7 +1860,7 @@ function tickCompuesto() {
     const remaining = total - compSeconds;
     document.getElementById('timer-clock').textContent = formatTime(compSeconds);
     document.getElementById('timer-phase-label').textContent = b.tipo.toUpperCase();
-    if(remaining === 10) beepTen();
+    if(remaining === 10 && timerSeconds > 3) beepTen();
     if(remaining <= 3 && remaining > 0) beepCountdown();
     if(compSeconds >= total) { clearInterval(timerInterval); siguienteBloque(); }
 
@@ -1858,7 +1877,7 @@ function tickCompuesto() {
       (cExLabel ? '  —  ' + cExLabel : '') +
       '  ·  Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
       
-    if(remaining === 10) beepTen();
+    if(remaining === 10 && timerSeconds > 3) beepTen();
     if(remaining <= 3 && remaining > 0) beepCountdown();
     if(compPhaseSeconds >= intervalSecs) {
       compPhaseSeconds = 0; compRound++;
@@ -1879,7 +1898,7 @@ function tickCompuesto() {
       document.getElementById('timer-phase-label').textContent = 'DESCANSO';
     }
     document.getElementById('timer-round-label').textContent = 'Ronda ' + compRound + ' / ' + b.rounds + ' — Bloque ' + (currentBlockIdx+1) + '/' + wodBlocks.length;
-    if(remaining === 10) beepTen();
+    if(remaining === 10 && timerSeconds > 3) beepTen();
     if(remaining <= 3 && remaining > 0) beepCountdown();
     if(compPhaseSeconds >= phaseSecs) {
       compPhaseSeconds = 0;
