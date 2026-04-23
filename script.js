@@ -1746,9 +1746,9 @@ function tickEmom() {
   const exIdx   = emomExercises.length ? (timerRound - 1) % emomExercises.length : -1;
   const exLabel = exIdx >= 0 ? (emomExercises[exIdx] || '') : '';
 
-  document.getElementById('timer-round-label').textContent =
-    'Min ' + timerRound + ' / ' + timerTotalRounds +
-    (exLabel ? '  —  ' + exLabel : '');
+ document.getElementById('timer-round-label').innerHTML =
+    '<span style="color:var(--text-tertiary); font-size:0.85rem;">Min ' + timerRound + ' / ' + timerTotalRounds + '</span>' +
+    (exLabel ? '<br><span style="color:var(--text); font-size:1.1rem; font-weight:600; letter-spacing:0.5px;">' + exLabel + '</span>' : '');
 
   if(remaining === 10) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
