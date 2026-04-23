@@ -844,15 +844,16 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text-tertiary);
-  padding: 8px 16px;
+  padding: 8px 6px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   transition: all 0.18s;
+  text-align: center;
 }
 
 .timer-mode-btn:hover { border-color: var(--border-strong); color: var(--text); }
@@ -866,3 +867,17 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 .timer-work #timer-clock { color: #2ecc71; }
 .timer-rest #timer-clock { color: var(--danger); }
 .timer-finish #timer-clock { color: var(--accent); }
+
+#reset-day-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+#reset-day-selector .day-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 4px;
+  font-size: 0.68rem;
+}
