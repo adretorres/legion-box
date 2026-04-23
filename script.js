@@ -214,7 +214,7 @@ async function showApp(isCoach, userData = null) {
     syncAdminView();
    document.getElementById('tab-link-comp').classList.remove('hidden');
     await cargarCompetencia();
-    if (cacheComp && cacheComp.activa) {
+      if (cacheComp && cacheComp.activa) {
       mostrarFormComp();
       renderCompAdmin();
     } else {
