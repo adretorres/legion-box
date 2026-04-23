@@ -1536,6 +1536,10 @@ function setTimerMode(mode) {
 let emomExercises = [];
 
 function agregarEjercicioEmom() {
+  // Guardar valores actuales antes de re-renderizar
+  document.querySelectorAll('#emom-exercises input').forEach((input, i) => {
+    emomExercises[i] = input.value;
+  });
   emomExercises.push('');
   renderEjerciciosEmom();
 }
@@ -1544,16 +1548,22 @@ function renderEjerciciosEmom() {
   const cont = document.getElementById('emom-exercises');
   cont.innerHTML = '';
   emomExercises.forEach((ex, i) => {
-    cont.innerHTML += `
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; color:var(--accent); min-width:40px;">MIN ${i+1}</span>
-        <input type="text" value="${ex}" oninput="emomExercises[${i}]=this.value" placeholder="Ej: 10 Burpees" style="flex:1; padding:8px 12px; font-size:0.82rem;">
-        <button onclick="eliminarEjercicioEmom(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;">✕</button>
-      </div>`;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+    div.innerHTML = `
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; color:var(--accent); min-width:40px;">MIN ${i+1}</span>
+      <input type="text" placeholder="Ej: 10 Burpees" style="flex:1; padding:8px 12px; font-size:0.82rem;">
+      <button onclick="eliminarEjercicioEmom(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;">✕</button>`;
+    div.querySelector('input').value = ex;
+    div.querySelector('input').addEventListener('input', e => { emomExercises[i] = e.target.value; });
+    cont.appendChild(div);
   });
 }
 
 function eliminarEjercicioEmom(i) {
+  document.querySelectorAll('#emom-exercises input').forEach((input, idx) => {
+    emomExercises[idx] = input.value;
+  });
   emomExercises.splice(i, 1);
   renderEjerciciosEmom();
 }
@@ -1735,14 +1745,10 @@ function tickEmom() {
   // Mostrar ejercicio del minuto actual si hay descripción
   const exIdx   = emomExercises.length ? (timerRound - 1) % emomExercises.length : -1;
   const exLabel = exIdx >= 0 ? (emomExercises[exIdx] || '') : '';
-  const ciclo   = emomExercises.length ? Math.floor((timerRound - 1) / emomExercises.length) + 1 : null;
-  const totalCiclos = emomExercises.length ? Math.ceil(timerTotalRounds / emomExercises.length) : null;
 
-  let roundText = 'Min ' + timerRound + ' / ' + timerTotalRounds;
-  if(ciclo) roundText += '  ·  Ciclo ' + ciclo + '/' + totalCiclos;
-  if(exLabel) roundText += '  —  ' + exLabel;
-
-  document.getElementById('timer-round-label').textContent = roundText;
+  document.getElementById('timer-round-label').textContent =
+    'Min ' + timerRound + ' / ' + timerTotalRounds +
+    (exLabel ? '  —  ' + exLabel : '');
 
   if(remaining === 10) beepTen();
   if(remaining <= 3 && remaining > 0) beepCountdown();
