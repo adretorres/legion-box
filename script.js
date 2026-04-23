@@ -1630,7 +1630,13 @@ function toggleCompoundTipo() {
 
 // ─── INICIO ──────────────────────────────────────────────────────────────────
 function timerStart() {
+  // Sonido para el celular
   if(!audioCtx) audioCtx = new AudioCtx();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  // Mantener pantalla encendida
+  if('wakeLock' in navigator && !timerRunning) {
+    navigator.wakeLock.request('screen').then(lock => { window._wakeLock = lock; }).catch(() => {});
+  }
 
   if(timerRunning) {
     clearInterval(timerInterval);
@@ -1918,6 +1924,8 @@ function timerReset() {
   document.getElementById('timer-clock').style.color       = '';
   const display = document.getElementById('timer-display');
   display.classList.remove('timer-work','timer-rest','timer-finish');
+
+  if(window._wakeLock) { window._wakeLock.release(); window._wakeLock = null; }
 }
 
 // Exponer funciones al scope global para los onclick del HTML
