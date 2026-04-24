@@ -265,6 +265,8 @@ function renderUserList() {
       if (diff >= 60) isInactive = true;
     }
 
+    console.log(id, 'expiry:', u.expiry, 'isInactive:', isInactive, 'isVencido:', isVencido);
+
     if (currentSocioStatusFilter === "inactive") {
       if (!isInactive) continue;
     } else {
