@@ -211,6 +211,7 @@ async function showApp(isCoach, userData = null) {
     document.getElementById("score-upload-container").classList.add("hidden");
     renderUserList();
     syncAdminView();
+    renderVencimientos();
    document.getElementById('tab-link-comp').classList.remove('hidden');
     await cargarCompetencia();
       if (cacheComp && cacheComp.activa) {
@@ -393,6 +394,7 @@ async function addPaymentRecord() {
 
   renderPaymentHistory(cacheUsers[editingUserId].payments, 'payment-history-list', true);
   renderUserList();
+  renderVencimientos();
   alert("Pago registrado. Nuevo vencimiento: " + nuevoVenc.split('-').reverse().join('/'));
 }
 
@@ -2074,6 +2076,64 @@ function renderRMChart(ex) {
     </div>`;
 }
 
+// ─── PANEL VENCIMIENTOS ──────────────────────────────────────────────────────
+function renderVencimientos() {
+  const panel = document.getElementById('vencimientos-panel');
+  const cont  = document.getElementById('vencimientos-proximos');
+  if(!panel || !cont) return;
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const en7  = new Date(hoy); en7.setDate(hoy.getDate() + 7);
+  const hace7 = new Date(hoy); hace7.setDate(hoy.getDate() - 7);
+
+  const proximos  = []; // vencen en los próximos 7 días
+  const vencidos  = []; // vencieron hace menos de 7 días
+  const hoyVencen = []; // vencen hoy
+
+  for(let id in cacheUsers) {
+    const u = cacheUsers[id];
+    if(!u.expiry) continue;
+    const fv = new Date(u.expiry + 'T00:00:00');
+    const diff = Math.round((fv - hoy) / (1000*60*60*24));
+
+    if(diff === 0) hoyVencen.push({ id, name: u.name, expiry: u.expiry, diff });
+    else if(diff > 0 && diff <= 7) proximos.push({ id, name: u.name, expiry: u.expiry, diff });
+    else if(diff < 0 && diff >= -7) vencidos.push({ id, name: u.name, expiry: u.expiry, diff });
+  }
+
+  const total = hoyVencen.length + proximos.length + vencidos.length;
+  if(!total) { panel.classList.add('hidden'); return; }
+
+  panel.classList.remove('hidden');
+  cont.innerHTML = '';
+
+  const fila = (a, color, texto) => `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+      <div>
+        <b style="font-size:0.88rem;">${a.name}</b>
+        <small style="color:var(--text-tertiary); margin-left:6px;">DNI: ${a.id}</small>
+      </div>
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1px; color:${color}; white-space:nowrap;">${texto}</span>
+    </div>`;
+
+  if(hoyVencen.length) {
+    cont.innerHTML += `<p style="font-size:0.68rem; font-weight:700; letter-spacing:2px; color:var(--danger); margin:8px 0 4px; text-transform:uppercase;">Vence Hoy</p>`;
+    hoyVencen.forEach(a => cont.innerHTML += fila(a, 'var(--danger)', 'HOY'));
+  }
+
+  if(proximos.length) {
+    cont.innerHTML += `<p style="font-size:0.68rem; font-weight:700; letter-spacing:2px; color:var(--warning); margin:12px 0 4px; text-transform:uppercase;">Próximos 7 días</p>`;
+    proximos.sort((a,b) => a.diff - b.diff);
+    proximos.forEach(a => cont.innerHTML += fila(a, 'var(--warning)', `en ${a.diff} día${a.diff !== 1 ? 's' : ''}`));
+  }
+
+  if(vencidos.length) {
+    cont.innerHTML += `<p style="font-size:0.68rem; font-weight:700; letter-spacing:2px; color:#e74c3c; margin:12px 0 4px; text-transform:uppercase;">Vencidos Recientemente</p>`;
+    vencidos.sort((a,b) => a.diff - b.diff);
+    vencidos.forEach(a => cont.innerHTML += fila(a, '#e74c3c', `hace ${Math.abs(a.diff)} día${Math.abs(a.diff) !== 1 ? 's' : ''}`));
+  }
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2129,3 +2189,4 @@ window.eliminarBloqueWod     = eliminarBloqueWod;
 window.toggleCompoundTipo    = toggleCompoundTipo;
 window.seleccionarTipoPago = seleccionarTipoPago;
 window.renderRMChart       = renderRMChart;
+window.renderVencimientos = renderVencimientos;
