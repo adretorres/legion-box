@@ -671,10 +671,8 @@ async function saveRM() {
   if (!cacheUsers[currentUser.id].rmHistory) cacheUsers[currentUser.id].rmHistory = {};
   if (!cacheUsers[currentUser.id].rmHistory[ex]) cacheUsers[currentUser.id].rmHistory[ex] = [];
   cacheUsers[currentUser.id].rms[ex] = valor;
-  // Guardar en historial con fecha
   const hoy = new Date().toISOString().split('T')[0];
   const hist = cacheUsers[currentUser.id].rmHistory[ex];
-  // Evitar duplicado del mismo día
   const yaHoy = hist.find(h => h.date === hoy);
   if(yaHoy) yaHoy.value = valor;
   else hist.push({ date: hoy, value: valor });
