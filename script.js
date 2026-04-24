@@ -276,7 +276,7 @@ function renderUserList() {
       if (currentSocioStatusFilter === "expired" && !isVencido) continue;
     }
 
-    if (disc !== "all" && (!u.plans || !u.plans.includes(disc))) continue;
+    if (disc && disc !== "all" && (!u.plans || !u.plans.includes(disc))) continue;
     if (
       search &&
       !u.name.toLowerCase().includes(search) &&
