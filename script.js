@@ -246,6 +246,7 @@ function setSocioFilter(f, btn) {
 }
 
 function renderUserList() {
+  console.log('cacheUsers en renderUserList:', cacheUsers);
   const users = cacheUsers || {};
   const cont = document.getElementById("user-list-container");
   const search = document.getElementById("user-search").value.toLowerCase();
