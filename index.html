@@ -1302,51 +1302,38 @@
               "
             ></div>
 
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 10px;
-              "
-            >
-              <div class="form-row">
-                <label>Fecha</label><input type="date" id="pay-date" />
-              </div>
-              <div class="form-row">
-                <label>Método</label>
-                <select id="pay-method">
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Transferencia">Transferencia</option>
-                  <option value="Mixto">Mixto</option>
-                </select>
-              </div>
-            </div>
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-            >
-              <div class="form-row">
-                <label>Monto $</label
-                ><input type="number" id="pay-amount" placeholder="8500" />
-              </div>
-              <div class="form-row">
-                <label>Observación</label
-                ><input type="text" id="pay-obs" placeholder="Opcional" />
-              </div>
-            </div>
-            <button
-              class="btn-save"
-              onclick="addPaymentRecord()"
-              style="
-                width: 100%;
-                margin-top: 10px;
-                background: var(--warning);
-                color: #000;
-              "
-            >
-              REGISTRAR PAGO
-            </button>
-          </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+  <div class="form-row"><label>Fecha de Pago</label><input type="date" id="pay-date"></div>
+  <div class="form-row">
+    <label>Método</label>
+    <select id="pay-method">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Transferencia">Transferencia</option>
+      <option value="Mixto">Mixto</option>
+    </select>
+  </div>
+</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+  <div class="form-row"><label>Monto $</label><input type="number" id="pay-amount" placeholder="8500"></div>
+  <div class="form-row"><label>Observación</label><input type="text" id="pay-obs" placeholder="Opcional"></div>
+</div>
+
+<div class="form-row" style="margin-bottom:10px;">
+  <label>Tipo de Pago</label>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+    <button id="pay-tipo-renovacion" onclick="seleccionarTipoPago('renovacion')"
+      class="btn-save" style="background:var(--accent); color:#000;">RENOVACIÓN</button>
+    <button id="pay-tipo-reincorporacion" onclick="seleccionarTipoPago('reincorporacion')"
+      class="btn-save" style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary);">REINCORPORACIÓN</button>
+  </div>
+</div>
+
+<div class="form-row" id="pay-nuevo-venc-row">
+  <label>Nuevo Vencimiento</label>
+  <input type="date" id="pay-nuevo-venc" disabled style="opacity:0.6;">
+</div>
+
+<button class="btn-save" onclick="addPaymentRecord()" style="width:100%; margin-top:10px; background:var(--warning); color:#000;">REGISTRAR PAGO</button>
 
           <!-- Buscador y filtros -->
           <div
