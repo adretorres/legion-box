@@ -667,15 +667,22 @@ async function saveRM() {
   if (!ex) return alert("Selecciona ejercicio");
   const valor = document.getElementById("input-rm").value;
   if(!valor) return alert("Ingresá un peso.");
+
+  // Recargar usuarios desde Firebase para no perder historial
+  const usersActualizados = await fsGet('users');
+  if(usersActualizados) cacheUsers = usersActualizados;
+
   if (!cacheUsers[currentUser.id].rms) cacheUsers[currentUser.id].rms = {};
   if (!cacheUsers[currentUser.id].rmHistory) cacheUsers[currentUser.id].rmHistory = {};
   if (!cacheUsers[currentUser.id].rmHistory[ex]) cacheUsers[currentUser.id].rmHistory[ex] = [];
+
   cacheUsers[currentUser.id].rms[ex] = valor;
   const hoy = new Date().toISOString().split('T')[0];
   const hist = cacheUsers[currentUser.id].rmHistory[ex];
   const yaHoy = hist.find(h => h.date === hoy);
   if(yaHoy) yaHoy.value = valor;
   else hist.push({ date: hoy, value: valor });
+
   await fsSet('users', cacheUsers);
   alert("PR guardado.");
   renderRMChart(ex);
