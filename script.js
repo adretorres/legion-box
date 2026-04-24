@@ -116,8 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
           cacheResults = {};
           await fsSet('results', {});
           localStorage.setItem(clave, '1');
-          renderRanking();
-          console.log('Ranking reseteado automáticamente.');
+          renderRanking();          
         }
       }
     }
@@ -246,12 +245,10 @@ function setSocioFilter(f, btn) {
 }
 
 function renderUserList() {
-  console.log('cacheUsers en renderUserList:', cacheUsers);
   const users = cacheUsers || {};
   const cont = document.getElementById("user-list-container");
   const search = document.getElementById("user-search").value.toLowerCase();
   const disc = document.getElementById("filter-discipline").value;
-  console.log('filtro status:', currentSocioStatusFilter, 'disc:', disc, 'search:', search);
   cont.innerHTML = "";
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -265,8 +262,6 @@ function renderUserList() {
       const diff = (hoy - fv) / (1000 * 60 * 60 * 24);
       if (diff >= 60) isInactive = true;
     }
-
-    console.log(id, 'expiry:', u.expiry, 'isInactive:', isInactive, 'isVencido:', isVencido, 'plans:', u.plans, 'disc:', disc);
 
     if (currentSocioStatusFilter === "inactive") {
       if (!isInactive) continue;
@@ -664,15 +659,28 @@ function loadRMValue() {
   document.getElementById("input-rm").value =
     cacheUsers[currentUser.id]?.rms?.[ex] || "";
   calculate();
+  renderRMChart(ex);
 }
 
 async function saveRM() {
   const ex = document.getElementById("rm-exercise").value;
   if (!ex) return alert("Selecciona ejercicio");
+  const valor = document.getElementById("input-rm").value;
+  if(!valor) return alert("Ingresá un peso.");
   if (!cacheUsers[currentUser.id].rms) cacheUsers[currentUser.id].rms = {};
-  cacheUsers[currentUser.id].rms[ex] = document.getElementById("input-rm").value;
+  if (!cacheUsers[currentUser.id].rmHistory) cacheUsers[currentUser.id].rmHistory = {};
+  if (!cacheUsers[currentUser.id].rmHistory[ex]) cacheUsers[currentUser.id].rmHistory[ex] = [];
+  cacheUsers[currentUser.id].rms[ex] = valor;
+  // Guardar en historial con fecha
+  const hoy = new Date().toISOString().split('T')[0];
+  const hist = cacheUsers[currentUser.id].rmHistory[ex];
+  // Evitar duplicado del mismo día
+  const yaHoy = hist.find(h => h.date === hoy);
+  if(yaHoy) yaHoy.value = valor;
+  else hist.push({ date: hoy, value: valor });
   await fsSet('users', cacheUsers);
   alert("PR guardado.");
+  renderRMChart(ex);
 }
 
 function calculate() {
@@ -2002,6 +2010,65 @@ function seleccionarTipoPago(tipo) {
   }
 }
 
+// ─── HISTORIAL DE PRs ────────────────────────────────────────────────────────
+function renderRMChart(ex) {
+  const cont = document.getElementById('rm-chart-container');
+  if(!cont || !ex) { if(cont) cont.innerHTML = ''; return; }
+
+  const hist = cacheUsers[currentUser.id]?.rmHistory?.[ex] || [];
+  if(hist.length < 2) {
+    cont.innerHTML = hist.length === 1
+      ? `<p style="color:var(--text-tertiary); font-size:0.82rem; text-align:center; padding:12px;">Registrá más PRs para ver tu progreso.</p>`
+      : '';
+    return;
+  }
+
+  const sorted = [...hist].sort((a,b) => a.date.localeCompare(b.date));
+  const maxVal = Math.max(...sorted.map(h => parseFloat(h.value)));
+  const minVal = Math.min(...sorted.map(h => parseFloat(h.value)));
+  const range  = maxVal - minVal || 1;
+  const W = 100, H = 60, pad = 8;
+
+  const pts = sorted.map((h, i) => {
+    const x = pad + (i / (sorted.length - 1)) * (W - pad*2);
+    const y = H - pad - ((parseFloat(h.value) - minVal) / range) * (H - pad*2);
+    return { x, y, ...h };
+  });
+
+  const polyline = pts.map(p => `${p.x},${p.y}`).join(' ');
+  const area = `${pts[0].x},${H} ` + pts.map(p => `${p.x},${p.y}`).join(' ') + ` ${pts[pts.length-1].x},${H}`;
+
+  const ejercicioNombre = document.getElementById('rm-exercise').options[document.getElementById('rm-exercise').selectedIndex].text;
+
+  cont.innerHTML = `
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Progreso — ${ejercicioNombre}</span>
+        <span style="font-size:0.78rem; color:var(--text-tertiary);">${sorted.length} registros</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:80px; overflow:visible;">
+        <defs>
+          <linearGradient id="rmGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C8F135" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#C8F135" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${area}" fill="url(#rmGrad)"/>
+        <polyline points="${polyline}" fill="none" stroke="#C8F135" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+        ${pts.map((p,i) => `
+          <circle cx="${p.x}" cy="${p.y}" r="2" fill="#C8F135"/>
+          ${i === pts.length-1 ? `
+            <text x="${p.x}" y="${p.y - 4}" text-anchor="middle" fill="#C8F135" font-size="5" font-weight="bold">${p.value}kg</text>
+          ` : ''}
+        `).join('')}
+      </svg>
+      <div style="display:flex; justify-content:space-between; margin-top:4px;">
+        <span style="font-size:0.68rem; color:var(--text-tertiary);">${sorted[0].date.split('-').reverse().join('/')}</span>
+        <span style="font-size:0.68rem; color:var(--text-tertiary);">${sorted[sorted.length-1].date.split('-').reverse().join('/')}</span>
+      </div>
+    </div>`;
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2042,16 +2109,11 @@ window.finalizarCompetencia     = finalizarCompetencia;
 window.actualizarTamEquipo = function(){};
 window.entrarLeaderboard    = entrarLeaderboard;
 window.toggleAccesoPublico  = toggleAccesoPublico;
-window.entrarLeaderboard    = entrarLeaderboard;
-window.toggleAccesoPublico  = toggleAccesoPublico;
 window.editarParticipante          = editarParticipante;
 window.cancelarEdicionParticipante = cancelarEdicionParticipante;
 window.guardarEdicionParticipante  = guardarEdicionParticipante;
 window.editarEvento           = editarEvento;
 window.guardarEdicionEvento   = guardarEdicionEvento;
-window.setTimerMode = setTimerMode;
-window.timerStart   = timerStart;
-window.timerReset   = timerReset;
 window.setTimerMode          = setTimerMode;
 window.timerStart            = timerStart;
 window.timerReset            = timerReset;
@@ -2061,3 +2123,4 @@ window.agregarBloqueWod      = agregarBloqueWod;
 window.eliminarBloqueWod     = eliminarBloqueWod;
 window.toggleCompoundTipo    = toggleCompoundTipo;
 window.seleccionarTipoPago = seleccionarTipoPago;
+window.renderRMChart       = renderRMChart;
