@@ -354,6 +354,8 @@ function editUser(id) {
   document.getElementById("pay-amount").value = "";
   document.getElementById("pay-obs").value = "";
   document.getElementById("pay-date").valueAsDate = new Date();
+  tipoPagoSeleccionado = 'renovacion';
+  seleccionarTipoPago('renovacion');
 
   renderPaymentHistory(u.payments || [], "payment-history-list", true);
   document.querySelector('#tab-users .admin-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -361,33 +363,38 @@ function editUser(id) {
 
 // --- PAGOS ---
 async function addPaymentRecord() {
-  const amount = document.getElementById("pay-amount").value;
-  const obs = document.getElementById("pay-obs").value;
-  const date = document.getElementById("pay-date").value;
-  const method = document.getElementById("pay-method").value;
+  const amount = document.getElementById('pay-amount').value;
+  const obs    = document.getElementById('pay-obs').value;
+  const date   = document.getElementById('pay-date').value;
+  const method = document.getElementById('pay-method').value;
+  const nuevoVenc = document.getElementById('pay-nuevo-venc').value;
 
-  if (!amount || !editingUserId || !date)
-    return alert("Ingrese monto y fecha.");
+  if(!amount || !editingUserId || !date) return alert("Ingrese monto y fecha.");
+  if(!nuevoVenc) return alert("Calculá el nuevo vencimiento seleccionando el tipo de pago.");
 
-  if (!cacheUsers[editingUserId].payments) cacheUsers[editingUserId].payments = [];
+  if(!cacheUsers[editingUserId].payments) cacheUsers[editingUserId].payments = [];
 
-  const dateParts = date.split("-");
-  const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
+  const parts = date.split('-');
   cacheUsers[editingUserId].payments.push({
     id: Date.now(),
-    date: formattedDate,
-    amount,
-    method,
+    date: `${parts[2]}/${parts[1]}/${parts[0]}`,
+    amount, method,
     obs: obs || "S/O",
+    tipo: tipoPagoSeleccionado
   });
 
-  await fsSet('users', cacheUsers);
-  document.getElementById("pay-amount").value = "";
-  document.getElementById("pay-obs").value = "";
+  // Actualizar vencimiento
+  cacheUsers[editingUserId].expiry = nuevoVenc;
 
-  renderPaymentHistory(cacheUsers[editingUserId].payments, "payment-history-list", true);
-  alert("Pago registrado.");
+  await fsSet('users', cacheUsers);
+  document.getElementById('pay-amount').value = '';
+  document.getElementById('pay-obs').value    = '';
+  document.getElementById('pay-nuevo-venc').value = '';
+  tipoPagoSeleccionado = 'renovacion';
+
+  renderPaymentHistory(cacheUsers[editingUserId].payments, 'payment-history-list', true);
+  renderUserList();
+  alert("Pago registrado. Nuevo vencimiento: " + nuevoVenc.split('-').reverse().join('/'));
 }
 
 function renderPaymentHistory(payments, containerId, canDelete = false) {
@@ -1948,6 +1955,48 @@ function timerReset() {
   if(window._wakeLock) { window._wakeLock.release(); window._wakeLock = null; }
 }
 
+let tipoPagoSeleccionado = 'renovacion';
+
+function seleccionarTipoPago(tipo) {
+  tipoPagoSeleccionado = tipo;
+  const btnRen  = document.getElementById('pay-tipo-renovacion');
+  const btnRein = document.getElementById('pay-tipo-reincorporacion');
+  const inputVenc = document.getElementById('pay-nuevo-venc');
+
+  if(tipo === 'renovacion') {
+    btnRen.style.background  = 'var(--accent)';
+    btnRen.style.color       = '#000';
+    btnRen.style.border      = 'none';
+    btnRein.style.background = 'none';
+    btnRein.style.color      = 'var(--text-secondary)';
+    btnRein.style.border     = '1px solid var(--border-strong)';
+
+    // Calcular nuevo vencimiento: vencimiento actual + 30 días
+    const u = cacheUsers[editingUserId];
+    if(u?.expiry) {
+      const fv = new Date(u.expiry + 'T00:00:00');
+      fv.setDate(fv.getDate() + 30);
+      inputVenc.value    = fv.toISOString().split('T')[0];
+      inputVenc.disabled = true;
+      inputVenc.style.opacity = '0.6';
+    }
+  } else {
+    btnRein.style.background = 'var(--accent)';
+    btnRein.style.color      = '#000';
+    btnRein.style.border     = 'none';
+    btnRen.style.background  = 'none';
+    btnRen.style.color       = 'var(--text-secondary)';
+    btnRen.style.border      = '1px solid var(--border-strong)';
+
+    // Calcular nuevo vencimiento: hoy + 30 días, editable
+    const hoy = new Date();
+    hoy.setDate(hoy.getDate() + 30);
+    inputVenc.value    = hoy.toISOString().split('T')[0];
+    inputVenc.disabled = false;
+    inputVenc.style.opacity = '1';
+  }
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2006,3 +2055,4 @@ window.eliminarEjercicioEmom = eliminarEjercicioEmom;
 window.agregarBloqueWod      = agregarBloqueWod;
 window.eliminarBloqueWod     = eliminarBloqueWod;
 window.toggleCompoundTipo    = toggleCompoundTipo;
+window.seleccionarTipoPago = seleccionarTipoPago;
