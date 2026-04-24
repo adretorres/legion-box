@@ -251,6 +251,7 @@ function renderUserList() {
   const cont = document.getElementById("user-list-container");
   const search = document.getElementById("user-search").value.toLowerCase();
   const disc = document.getElementById("filter-discipline").value;
+  console.log('filtro status:', currentSocioStatusFilter, 'disc:', disc, 'search:', search);
   cont.innerHTML = "";
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -265,7 +266,7 @@ function renderUserList() {
       if (diff >= 60) isInactive = true;
     }
 
-    console.log(id, 'expiry:', u.expiry, 'isInactive:', isInactive, 'isVencido:', isVencido);
+    console.log(id, 'expiry:', u.expiry, 'isInactive:', isInactive, 'isVencido:', isVencido, 'plans:', u.plans, 'disc:', disc);
 
     if (currentSocioStatusFilter === "inactive") {
       if (!isInactive) continue;
