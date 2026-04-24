@@ -355,7 +355,7 @@ function editUser(id) {
   document.getElementById("pay-obs").value = "";
   document.getElementById("pay-date").valueAsDate = new Date();
   tipoPagoSeleccionado = 'renovacion';
-  seleccionarTipoPago('renovacion');
+  setTimeout(() => seleccionarTipoPago('renovacion'), 0);
 
   renderPaymentHistory(u.payments || [], "payment-history-list", true);
   document.querySelector('#tab-users .admin-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1962,6 +1962,7 @@ function seleccionarTipoPago(tipo) {
   const btnRen  = document.getElementById('pay-tipo-renovacion');
   const btnRein = document.getElementById('pay-tipo-reincorporacion');
   const inputVenc = document.getElementById('pay-nuevo-venc');
+  if(!btnRen || !btnRein || !inputVenc) return;
 
   if(tipo === 'renovacion') {
     btnRen.style.background  = 'var(--accent)';
