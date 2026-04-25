@@ -602,6 +602,7 @@ async function saveNews() {
   cacheInfo.news = text;
   await fsSet('info', cacheInfo);
   document.getElementById("news-text").textContent = text;
+  enviarNotificacion('comunicado');
   alert("Comunicado actualizado.");
 }
 
@@ -632,6 +633,7 @@ async function saveClass() {
     wod: document.getElementById('edit-wod').value
   };
   await fsSet('programs', cachePrograms);
+  enviarNotificacion('clases');
   alert("Clase publicada.");
   syncAdminView();
 }
@@ -2109,6 +2111,7 @@ function renderVencimientos() {
   if(!total) { panel.classList.add('hidden'); return; }
 
   panel.classList.remove('hidden');
+  if(hoyVencen.length) enviarNotificacion('vencimiento');
   cont.innerHTML = '';
 
   const fila = (a, color, texto) => `
@@ -2180,32 +2183,19 @@ function mostrarNotificacionInApp(title, body) {
   setTimeout(() => notif.remove(), 5000);
 }
 
-async function enviarNotificacion(tipo) {
+async function enviarNotificacion(tipo, textoCustom = null) {
   const mensajes = {
     clases:      { title: '💪 Nueva clase disponible', body: 'Ya podés ver la programación de hoy en la app.' },
     comunicado:  { title: '📢 Nuevo comunicado', body: document.getElementById('edit-news')?.value || 'Revisá los últimos avisos del box.' },
     vencimiento: { title: '⏰ Recordatorio de cuota', body: 'Tu cuota está próxima a vencer. Contactá al coach para renovar.' },
-    general:     { title: '🔔 Legión Box', body: 'Tenés un nuevo mensaje del box.' }
+    general:     { title: '🔔 Legión Box', body: textoCustom || 'Tenés un nuevo mensaje del box.' }
   };
 
-  const { title, body } = mensajes[tipo];
-
-  // Recopilar tokens de todos los atletas
-  const tokens = [];
-  for(let id in cacheUsers) {
-    if(cacheUsers[id].fcmToken && id !== 'coach') {
-      tokens.push(cacheUsers[id].fcmToken);
-    }
-  }
-
-  if(!tokens.length) {
-    alert('No hay atletas con notificaciones habilitadas aún. Los atletas deben abrir la app y aceptar los permisos primero.');
-    return;
-  }
-
-  // Guardar la notificación pendiente en Firebase para que cada cliente la reciba
-  await fsSet('notificacion', { title, body, tipo, timestamp: Date.now(), tokens });
-  alert(`Notificación "${title}" enviada a ${tokens.length} atleta(s).`);
+async function enviarNotificacionGeneral() {
+  const texto = document.getElementById('notif-general-texto')?.value?.trim();
+  if(!texto) return alert('Escribí un mensaje primero.');
+  await enviarNotificacion('general', texto);
+  document.getElementById('notif-general-texto').value = '';
 }
 
 // Exponer funciones al scope global para los onclick del HTML
@@ -2265,3 +2255,4 @@ window.seleccionarTipoPago = seleccionarTipoPago;
 window.renderRMChart       = renderRMChart;
 window.renderVencimientos = renderVencimientos;
 window.enviarNotificacion = enviarNotificacion;
+window.enviarNotificacionGeneral = enviarNotificacionGeneral;
