@@ -88,9 +88,10 @@
   <button id="tab-link-timer" class="tab-btn" onclick="switchTab('timer', this)">Cronómetro</button>
 </div>
 
-      <!-- ── COMPETENCIA (COACH) ────────────────────── -->
-      <div id="tab-comp" class="tab-content">
-        <div class="page-title" style="margin-top:24px;">Competencia</div>
+    <main>
+        <!-- ── COMPETENCIA (COACH) ────────────────────── -->
+        <div id="tab-comp" class="tab-content">
+          <div class="page-title" style="margin-top:24px;">Competencia</div>
 
         <div
           id="comp-empty"
@@ -735,7 +736,6 @@
         </div>
       </div>
 
-      <main>
         <!-- ── DASHBOARD ─────────────────────────────── -->
         <div id="tab-dashboard" class="tab-content active">
           <div id="news-banner" class="news-banner">
@@ -1333,6 +1333,12 @@
 <button class="btn-save" onclick="addPaymentRecord()" style="width:100%; margin-top:10px; background:var(--warning); color:#000;">REGISTRAR PAGO</button>
 </div>
 
+          <!-- PANEL VENCIMIENTOS PRÓXIMOS -->
+          <div id="vencimientos-panel" class="admin-section hidden" style="margin-top:20px; border-left:3px solid var(--warning);">
+            <div class="admin-title" style="color:var(--warning);">Vencimientos</div>
+            <div id="vencimientos-proximos"></div>
+          </div>
+
           <!-- Buscador y filtros -->
           <div
             style="
@@ -1344,14 +1350,6 @@
             "
           >
 
-           <!-- PANEL VENCIMIENTOS PRÓXIMOS -->
-          <div id="vencimientos-panel" class="admin-section hidden" style="margin-top:20px; border-left:3px solid var(--warning);">
-            <div class="admin-title" style="color:var(--warning);">Vencimientos</div>
-            <div id="vencimientos-proximos"></div>
-          </div>
-
-        </div>
-        
             <input
               type="text"
               id="user-search"
