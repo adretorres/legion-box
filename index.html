@@ -897,14 +897,12 @@
             >
               PUBLICAR
             </button>
-            <hr class="divider" style="margin-top:16px;">
-    <div class="admin-title">Notificaciones Push</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-      <button class="btn-save" onclick="enviarNotificacion('clases')" style="background:none; border:1px solid var(--accent); color:var(--accent); font-size:0.78rem;">📋 Nueva Clase</button>
-      <button class="btn-save" onclick="enviarNotificacion('comunicado')" style="background:none; border:1px solid var(--accent); color:var(--accent); font-size:0.78rem;">📢 Comunicado</button>
-      <button class="btn-save" onclick="enviarNotificacion('vencimiento')" style="background:none; border:1px solid var(--warning); color:var(--warning); font-size:0.78rem;">⏰ Vencimientos</button>
-      <button class="btn-save" onclick="enviarNotificacion('general')" style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary); font-size:0.78rem;">🔔 General</button>
-    </div>
+    <hr class="divider" style="margin-top:16px;">
+<div class="admin-title">Notificación General</div>
+<div class="form-row" style="margin-top:8px;">
+  <input type="text" id="notif-general-texto" placeholder="Mensaje para todos los atletas...">
+</div>
+<button class="btn-save" onclick="enviarNotificacionGeneral()" style="width:100%; background:none; border:1px solid var(--border-strong); color:var(--text-secondary); margin-top:8px;">🔔 ENVIAR A TODOS</button>
             <hr class="divider" style="margin-top: 24px" />
             <div
               class="admin-title"
