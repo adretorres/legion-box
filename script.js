@@ -1,7 +1,7 @@
 // ─── FIREBASE ────────────────────────────────────────────────────────────────
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",
@@ -13,6 +13,8 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+const messaging = getMessaging(app);
+const VAPID_KEY = 'BEGpwN4-q-JlAufpo4ROWVPboSqdTMys39ikJHD-VOUPVx1eTN1bWuFLOq2-aGHyCW0Vlx5hPlJeyaOvkD1IPEM';
 
 async function fsGet(doc_id) {
   const snap = await getDoc(doc(db, 'legion', doc_id));
@@ -232,6 +234,7 @@ async function showApp(isCoach, userData = null) {
     setupPlanSwitcher(userData.plans);
     const btnH = document.getElementById("btn-" + selectedViewDay);
     if (btnH) changeViewDay(selectedViewDay, btnH);
+    setTimeout(() => inicializarNotificaciones(), 2000);
   }
 }
 
@@ -2135,6 +2138,76 @@ function renderVencimientos() {
   }
 }
 
+// ─── NOTIFICACIONES PUSH ─────────────────────────────────────────────────────
+async function inicializarNotificaciones() {
+  try {
+    const permiso = await Notification.requestPermission();
+    if(permiso !== 'granted') return;
+
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    if(!token || !currentUser?.id) return;
+
+    // Guardar token en Firebase asociado al usuario
+    if(!cacheUsers[currentUser.id]) return;
+    cacheUsers[currentUser.id].fcmToken = token;
+    await fsSet('users', cacheUsers);
+
+    // Escuchar notificaciones con app abierta
+    onMessage(messaging, payload => {
+      const { title, body } = payload.notification;
+      mostrarNotificacionInApp(title, body);
+    });
+  } catch(e) {
+    console.log('Notificaciones no disponibles:', e);
+  }
+}
+
+function mostrarNotificacionInApp(title, body) {
+  const notif = document.createElement('div');
+  notif.style.cssText = `
+    position:fixed; top:70px; right:16px; z-index:9999;
+    background:var(--card); border:1px solid var(--accent);
+    border-left:4px solid var(--accent);
+    border-radius:var(--radius); padding:14px 16px;
+    max-width:300px; box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    animation: slideIn 0.3s ease;
+  `;
+  notif.innerHTML = `
+    <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.5px; color:var(--accent); margin-bottom:4px;">${title}</div>
+    <div style="font-size:0.82rem; color:var(--text-secondary);">${body}</div>
+  `;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 5000);
+}
+
+async function enviarNotificacion(tipo) {
+  const mensajes = {
+    clases:      { title: '💪 Nueva clase disponible', body: 'Ya podés ver la programación de hoy en la app.' },
+    comunicado:  { title: '📢 Nuevo comunicado', body: document.getElementById('edit-news')?.value || 'Revisá los últimos avisos del box.' },
+    vencimiento: { title: '⏰ Recordatorio de cuota', body: 'Tu cuota está próxima a vencer. Contactá al coach para renovar.' },
+    general:     { title: '🔔 Legión Box', body: 'Tenés un nuevo mensaje del box.' }
+  };
+
+  const { title, body } = mensajes[tipo];
+
+  // Recopilar tokens de todos los atletas
+  const tokens = [];
+  for(let id in cacheUsers) {
+    if(cacheUsers[id].fcmToken && id !== 'coach') {
+      tokens.push(cacheUsers[id].fcmToken);
+    }
+  }
+
+  if(!tokens.length) {
+    alert('No hay atletas con notificaciones habilitadas aún. Los atletas deben abrir la app y aceptar los permisos primero.');
+    return;
+  }
+
+  // Guardar la notificación pendiente en Firebase para que cada cliente la reciba
+  await fsSet('notificacion', { title, body, tipo, timestamp: Date.now(), tokens });
+  alert(`Notificación "${title}" enviada a ${tokens.length} atleta(s).`);
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2191,3 +2264,4 @@ window.toggleCompoundTipo    = toggleCompoundTipo;
 window.seleccionarTipoPago = seleccionarTipoPago;
 window.renderRMChart       = renderRMChart;
 window.renderVencimientos = renderVencimientos;
+window.enviarNotificacion = enviarNotificacion;
