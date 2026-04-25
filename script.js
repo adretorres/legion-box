@@ -760,6 +760,7 @@ function switchTab(id, btn) {
     loadBoxInfo();
     renderBirthdays();
   }
+  if (id === "users") { renderUserList(); renderVencimientos(); }
 
   if(id === 'comp') {
     cargarCompetencia().then(() => {
