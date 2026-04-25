@@ -10,6 +10,8 @@
     />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
   </head>
   <body>
     <!-- ─── LOGIN ──────────────────────────────────────── -->
@@ -895,6 +897,14 @@
             >
               PUBLICAR
             </button>
+            <hr class="divider" style="margin-top:16px;">
+    <div class="admin-title">Notificaciones Push</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+      <button class="btn-save" onclick="enviarNotificacion('clases')" style="background:none; border:1px solid var(--accent); color:var(--accent); font-size:0.78rem;">📋 Nueva Clase</button>
+      <button class="btn-save" onclick="enviarNotificacion('comunicado')" style="background:none; border:1px solid var(--accent); color:var(--accent); font-size:0.78rem;">📢 Comunicado</button>
+      <button class="btn-save" onclick="enviarNotificacion('vencimiento')" style="background:none; border:1px solid var(--warning); color:var(--warning); font-size:0.78rem;">⏰ Vencimientos</button>
+      <button class="btn-save" onclick="enviarNotificacion('general')" style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary); font-size:0.78rem;">🔔 General</button>
+    </div>
             <hr class="divider" style="margin-top: 24px" />
             <div
               class="admin-title"
