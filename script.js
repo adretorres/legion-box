@@ -2197,6 +2197,7 @@ async function enviarNotificacionGeneral() {
   await enviarNotificacion('general', texto);
   document.getElementById('notif-general-texto').value = '';
 }
+}
 
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
