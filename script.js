@@ -2187,16 +2187,33 @@ async function enviarNotificacion(tipo, textoCustom = null) {
   const mensajes = {
     clases:      { title: '💪 Nueva clase disponible', body: 'Ya podés ver la programación de hoy en la app.' },
     comunicado:  { title: '📢 Nuevo comunicado', body: document.getElementById('edit-news')?.value || 'Revisá los últimos avisos del box.' },
-    vencimiento: { title: '⏰ Recordatorio de cuota', body: 'Tu cuota está próxima a vencer. Contactá al coach para renovar.' },
+    vencimiento: { title: '⏰ Recordatorio de cuota', body: 'Tu cuota está próxima a vencer. No te olvides de renovar para seguir entrenando.' },
     general:     { title: '🔔 Legión Box', body: textoCustom || 'Tenés un nuevo mensaje del box.' }
   };
+
+  const { title, body } = mensajes[tipo];
+
+  const tokens = [];
+  for(let id in cacheUsers) {
+    if(cacheUsers[id].fcmToken && id !== 'coach') {
+      tokens.push(cacheUsers[id].fcmToken);
+    }
+  }
+
+  if(!tokens.length) {
+    alert('No hay atletas con notificaciones habilitadas aún.');
+    return;
+  }
+
+  await fsSet('notificacion', { title, body, tipo, timestamp: Date.now() });
+  alert(`Notificación enviada a ${tokens.length} atleta(s).`);
+}
 
 async function enviarNotificacionGeneral() {
   const texto = document.getElementById('notif-general-texto')?.value?.trim();
   if(!texto) return alert('Escribí un mensaje primero.');
   await enviarNotificacion('general', texto);
   document.getElementById('notif-general-texto').value = '';
-}
 }
 
 // Exponer funciones al scope global para los onclick del HTML
