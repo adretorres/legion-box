@@ -165,7 +165,7 @@ async function doLogin() {
   await cargarCompetencia();
   await cargarDatos();
 
-  if (role === "admin" && userIn === "coach" && passIn === "coach123") {
+  if (role === "admin" && userIn === "coach" && passIn === "lgn2620") {
     currentUser = { id: "coach", role: "coach", name: "Coach" };
     showApp(true);
     return;
