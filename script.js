@@ -259,6 +259,7 @@ function renderUserList() {
   hoy.setHours(0, 0, 0, 0);
 
   for (let id in users) {
+    if(id === 'coach') continue;
     const u = users[id];
     const fv = u.expiry ? new Date(u.expiry + "T00:00:00") : null;
     const isVencido = fv && fv < hoy;
