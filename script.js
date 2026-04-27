@@ -297,6 +297,7 @@ function renderUserList() {
         <div style="display:flex; align-items:center; gap:10px;">
           <span class="status-pill" style="background:${color}20; color:${color}; border:1px solid ${color}40;">${label}</span>
           <button onclick="editUser('${id}')" style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary); padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.75rem; letter-spacing:0.5px;">Editar</button>
+<button onclick="eliminarAtleta('${id}')" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.75rem;">Borrar</button>
         </div>
       </div>`;
   }
@@ -2218,6 +2219,16 @@ async function enviarNotificacionGeneral() {
   document.getElementById('notif-general-texto').value = '';
 }
 
+async function eliminarAtleta(id) {
+  const u = cacheUsers[id];
+  if(!confirm(`¿Eliminar a ${u.name}?\n\nEsta acción no se puede deshacer.`)) return;
+  delete cacheUsers[id];
+  await fsSet('users', cacheUsers);
+  renderUserList();
+  renderVencimientos();
+  alert('Atleta eliminado.');
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2276,3 +2287,4 @@ window.renderRMChart       = renderRMChart;
 window.renderVencimientos = renderVencimientos;
 window.enviarNotificacion = enviarNotificacion;
 window.enviarNotificacionGeneral = enviarNotificacionGeneral;
+window.eliminarAtleta = eliminarAtleta;
