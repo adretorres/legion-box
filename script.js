@@ -484,7 +484,7 @@ function renderRanking() {
     const day = document.getElementById("rank-day-select").value;
     const plan = document.getElementById("rank-plan-select").value;
     const list = results[day]?.[plan] || {};
-    const entries = Object.values(list);
+    const entries = Object.entries(list).map(([uid, data]) => ({ uid, ...data }));
 
     if (entries.length === 0) {
       cont.innerHTML =
@@ -514,11 +514,14 @@ function renderRanking() {
     entries.forEach((r, idx) => {
       cont.innerHTML += `
         <div class="ranking-row">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span class="rank-num">#${idx + 1}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="rank-num">#${idx+1}</span>
             <span style="font-size:0.9rem;">${r.name}</span>
           </div>
-          <span class="rank-score">${r.score}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="rank-score">${r.score}</span>
+            ${currentUser?.role === 'coach' ? `<button onclick="editarResultadoRanking('${day}','${plan}','${r.uid}')" style="background:none;border:1px solid var(--border-strong);color:var(--text-secondary);padding:3px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.7rem;">Editar</button>` : ''}
+          </div>
         </div>`;
     });
   } else {
@@ -2238,6 +2241,20 @@ async function eliminarAtleta(id) {
   alert('Atleta eliminado.');
 }
 
+async function editarResultadoRanking(day, plan, uid) {
+  const scoreActual = cacheResults[day]?.[plan]?.[uid]?.score || '';
+  const nuevoScore = prompt(`Editar resultado de ${cacheResults[day][plan][uid].name}:`, scoreActual);
+  if(nuevoScore === null) return;
+  if(!nuevoScore.trim()) {
+    if(!confirm('¿Eliminar este resultado del ranking?')) return;
+    delete cacheResults[day][plan][uid];
+  } else {
+    cacheResults[day][plan][uid].score = nuevoScore.trim();
+  }
+  await fsSet('results', cacheResults);
+  renderRanking();
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2297,3 +2314,4 @@ window.renderVencimientos = renderVencimientos;
 window.enviarNotificacion = enviarNotificacion;
 window.enviarNotificacionGeneral = enviarNotificacionGeneral;
 window.eliminarAtleta = eliminarAtleta;
+window.editarResultadoRanking = editarResultadoRanking;
