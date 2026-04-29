@@ -37,33 +37,18 @@ async function cargarDatos() {
   cacheUsers    = users    || {};
   cachePrograms = programs || { lunes:{}, martes:{}, miercoles:{}, jueves:{}, viernes:{}, sabado:{} };
   cacheResults  = results  || {};
-  cacheInfo     = info     || { news: "Bienvenidos Atletas al Centro de Entrenamiento.", prices: "Membresías y Planes actualizados..." };
+  cacheInfo = info || { news: "Bienvenidos al Centro de Entrenamiento.", prices: "Membresías y Planes actualizados..." };
+  if(cacheInfo.schedules) SCHEDULES = { ...SCHEDULES, ...cacheInfo.schedules };
   if(!programs) await fsSet('programs', cachePrograms);
   if(!results)  await fsSet('results',  cacheResults);
   if(!info)     await fsSet('info',     cacheInfo);
 }
 
-const SCHEDULES = {
-  crossfit: [
-    "9:00 hs",
-    "13:00 hs",
-    "14:00 hs",
-    "15:00 hs",
-    "16:00 hs",
-    "19:00 hs",
-    "20:00 hs",
-    "21:00 hs",
-    "22:00 hs",
-  ],
-  funcional: [
-    "9:00 hs",
-    "13:00 hs",
-    "15:00 hs",
-    "16:00 hs",
-    "19:00 hs",
-    "22:00 hs",
-  ],
+let SCHEDULES = {
+  crossfit:      ["9:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","20:00 hs","21:00 hs","22:00 hs"],
+  funcional:     ["9:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","22:00 hs"],
   planificacion: ["Libre"],
+  openbox:       ["15:30 - 18:00 hs"]
 };
 
 let selectedViewDay = "lunes";
@@ -214,6 +199,7 @@ async function showApp(isCoach, userData = null) {
     document.getElementById("score-upload-container").classList.add("hidden");
     renderUserList();
     syncAdminView();
+    renderHorariosAdmin();
     renderVencimientos();
    document.getElementById('tab-link-comp').classList.remove('hidden');
     await cargarCompetencia();
@@ -853,6 +839,7 @@ function loadBoxInfo() {
   document.getElementById("display-prices").textContent = cacheInfo.prices || '';
   if (currentUser.role === "coach")
     document.getElementById("edit-prices").value = cacheInfo.prices || '';
+  renderHorariosPublico();
 }
 
 async function savePrices() {
@@ -2255,6 +2242,75 @@ async function editarResultadoRanking(day, plan, uid) {
   renderRanking();
 }
 
+// ─── GESTIÓN DE HORARIOS ─────────────────────────────────────────────────────
+function renderHorariosAdmin() {
+  const cont = document.getElementById('horarios-admin-cont');
+  if(!cont) return;
+  cont.innerHTML = '';
+
+  ['crossfit', 'funcional', 'openbox'].forEach(disc => {
+    const label = { crossfit:'CrossFit', funcional:'Funcional', openbox:'Open Box (Sábado)' }[disc];
+    const horarios = SCHEDULES[disc] || [];
+
+    cont.innerHTML += `
+      <div style="margin-bottom:16px;">
+        <p style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:8px;">${label}</p>
+        <div id="horarios-${disc}" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+          ${horarios.map(h => `
+            <span style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:4px 10px; font-size:0.8rem; display:flex; align-items:center; gap:6px;">
+              ${h}
+              <button onclick="eliminarHorario('${disc}','${h}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;padding:0;line-height:1;">✕</button>
+            </span>`).join('')}
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="nuevo-horario-${disc}" placeholder="Ej: 10:00 hs" style="flex:1; padding:8px 12px; font-size:0.82rem;">
+          <button onclick="agregarHorario('${disc}')" class="btn-save" style="padding:8px 16px; background:none; border:1px solid var(--accent); color:var(--accent); white-space:nowrap;">+ Agregar</button>
+        </div>
+      </div>`;
+  });
+}
+
+async function agregarHorario(disc) {
+  const input = document.getElementById(`nuevo-horario-${disc}`);
+  const valor = input.value.trim();
+  if(!valor) return alert('Ingresá un horario.');
+  if(!SCHEDULES[disc]) SCHEDULES[disc] = [];
+  if(SCHEDULES[disc].includes(valor)) return alert('Ese horario ya existe.');
+  SCHEDULES[disc].push(valor);
+  SCHEDULES[disc].sort();
+  if(!cacheInfo.schedules) cacheInfo.schedules = {};
+  cacheInfo.schedules = { ...SCHEDULES };
+  await fsSet('info', cacheInfo);
+  input.value = '';
+  renderHorariosAdmin();
+  refreshScheduleUI();
+}
+
+async function eliminarHorario(disc, horario) {
+  if(!confirm(`¿Eliminar el horario "${horario}" de ${disc}?`)) return;
+  SCHEDULES[disc] = SCHEDULES[disc].filter(h => h !== horario);
+  if(!cacheInfo.schedules) cacheInfo.schedules = {};
+  cacheInfo.schedules = { ...SCHEDULES };
+  await fsSet('info', cacheInfo);
+  renderHorariosAdmin();
+  refreshScheduleUI();
+}
+
+function renderHorariosPublico() {
+  const cont = document.getElementById('horarios-publico-cont');
+  if(!cont) return;
+  cont.innerHTML = '';
+  const labels = { crossfit:'CrossFit', funcional:'Funcional', openbox:'Open Box (Sábado)' };
+  ['crossfit', 'funcional', 'openbox'].forEach(disc => {
+    const horarios = SCHEDULES[disc] || [];
+    cont.innerHTML += `
+      <div style="margin-bottom:12px;">
+        <p style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">${labels[disc]}</p>
+        <p style="font-size:0.88rem; color:var(--text-secondary);">${horarios.join(' · ')}</p>
+      </div>`;
+  });
+}
+
 // Exponer funciones al scope global para los onclick del HTML
 window.doLogin         = doLogin;
 window.switchTab       = switchTab;
@@ -2315,3 +2371,6 @@ window.enviarNotificacion = enviarNotificacion;
 window.enviarNotificacionGeneral = enviarNotificacionGeneral;
 window.eliminarAtleta = eliminarAtleta;
 window.editarResultadoRanking = editarResultadoRanking;
+window.agregarHorario    = agregarHorario;
+window.eliminarHorario   = eliminarHorario;
+window.renderHorariosAdmin = renderHorariosAdmin;
