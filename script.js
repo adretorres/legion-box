@@ -45,8 +45,8 @@ async function cargarDatos() {
 }
 
 let SCHEDULES = {
-  crossfit:      ["9:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","20:00 hs","21:00 hs","22:00 hs"],
-  funcional:     ["9:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","22:00 hs"],
+  crossfit:      ["09:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","20:00 hs","21:00 hs","22:00 hs"],
+  funcional:     ["09:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","22:00 hs"],
   planificacion: ["Libre"],
   openbox:       ["15:30 - 18:00 hs"]
 };
