@@ -258,8 +258,11 @@ function renderUserList() {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  for (let id in users) {
-    if(id === 'coach') continue;
+  const idsOrdenados = Object.keys(users)
+    .filter(id => id !== 'coach')
+    .sort((a, b) => (users[a].name || '').localeCompare(users[b].name || '', 'es'));
+
+  for (const id of idsOrdenados) {
     const u = users[id];
     const fv = u.expiry ? new Date(u.expiry + "T00:00:00") : null;
     const isVencido = fv && fv < hoy;
@@ -578,25 +581,31 @@ function renderRanking() {
 
 // --- CUMPLEAÑOS ---
 function renderBirthdays() {
-  const users = cacheUsers || {};
   const cont = document.getElementById("info-birthday-list");
-  if (!cont) return;
+  if(!cont) return;
   const mesHoy = new Date().getMonth();
-  cont.innerHTML = "";
-  let hay = false;
-  for (let id in users) {
-    const u = users[id];
-    if (u.birth) {
+  cont.innerHTML = '';
+
+  const cumples = [];
+  for(let id in cacheUsers) {
+    const u = cacheUsers[id];
+    if(u.birth) {
       const fb = new Date(u.birth + "T00:00:00");
-      if (fb.getMonth() === mesHoy) {
-        hay = true;
-        cont.innerHTML += `<span class="birthday-chip"> ${u.name.split(" ")[0]} (${fb.getDate()})</span>`;
+      if(fb.getMonth() === mesHoy) {
+        cumples.push({ name: u.name, dia: fb.getDate() });
       }
     }
   }
-  if (!hay)
-    cont.innerHTML =
-      "<small style='color:var(--muted)'>No hay cumpleaños este mes.</small>";
+
+  if(!cumples.length) {
+    cont.innerHTML = "<small style='color:var(--text-tertiary)'>No hay cumpleaños este mes.</small>";
+    return;
+  }
+
+  cumples.sort((a, b) => a.dia - b.dia);
+  cumples.forEach(c => {
+    cont.innerHTML += `<span class="birthday-chip"> ${c.name.split(' ')[0]} (${c.dia})</span>`;
+  });
 }
 
 // --- PROGRAMACIÓN ---
