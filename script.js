@@ -1,62 +1,25 @@
-// ─── FIREBASE ────────────────────────────────────────────────────────────────
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+// ─── IMPORTS ──────────────────────────────────────────────────────────────────
+import {
+  messaging, VAPID_KEY,
+  fsGet, fsSet,
+  cargarDatos, cargarCompetencia,
+  getToken, onMessage,
+  cacheUsers,    setCacheUsers,
+  cachePrograms, setCachePrograms,
+  cacheResults,  setCacheResults,
+  cacheInfo,     setCacheInfo,
+  cacheComp,     setCacheComp,
+  currentUser,   setCurrentUser,
+  SCHEDULES,     setSchedules
+} from './js/firebase.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",
-  authDomain: "legion-box.firebaseapp.com",
-  projectId: "legion-box",
-  storageBucket: "legion-box.firebasestorage.app",
-  messagingSenderId: "466827904574",
-  appId: "1:466827904574:web:abb454a6f79f00517ff36f"
-};
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-const messaging = getMessaging(app);
-const VAPID_KEY = 'BEGpwN4-q-JlAufpo4ROWVPboSqdTMys39ikJHD-VOUPVx1eTN1bWuFLOq2-aGHyCW0Vlx5hPlJeyaOvkD1IPEM';
-
-async function fsGet(doc_id) {
-  const snap = await getDoc(doc(db, 'legion', doc_id));
-  return snap.exists() ? snap.data() : null;
-}
-async function fsSet(doc_id, data) {
-  await setDoc(doc(db, 'legion', doc_id), data);
-}
-
-// Cache en memoria
-let cacheUsers    = null;
-let cachePrograms = null;
-let cacheResults  = null;
-let cacheInfo     = null;
-
-async function cargarDatos() {
-  const [users, programs, results, info] = await Promise.all([
-    fsGet('users'), fsGet('programs'), fsGet('results'), fsGet('info')
-  ]);
-  cacheUsers    = users    || {};
-  cachePrograms = programs || { lunes:{}, martes:{}, miercoles:{}, jueves:{}, viernes:{}, sabado:{} };
-  cacheResults  = results  || {};
-  cacheInfo = info || { news: "Bienvenidos al Centro de Entrenamiento.", prices: "Membresías y Planes actualizados..." };
-  if(cacheInfo.schedules) SCHEDULES = { ...SCHEDULES, ...cacheInfo.schedules };
-  if(!programs) await fsSet('programs', cachePrograms);
-  if(!results)  await fsSet('results',  cacheResults);
-  if(!info)     await fsSet('info',     cacheInfo);
-}
-
-let SCHEDULES = {
-  crossfit:      ["09:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","20:00 hs","21:00 hs","22:00 hs"],
-  funcional:     ["09:00 hs","13:00 hs","14:00 hs","15:00 hs","16:00 hs","19:00 hs","22:00 hs"],
-  planificacion: ["Libre"],
-  openbox:       ["15:30 - 18:00 hs"]
-};
-
-let selectedViewDay = "lunes";
-let currentUser = null;
-let currentViewPlan = "crossfit";
+// ─── Estado local ─────────────────────────────────────────────────────────────
+let selectedViewDay          = "lunes";
+let currentViewPlan          = "crossfit";
 let currentSocioStatusFilter = "all";
-let editingUserId = null;
-let currentRankingMode = "day";
+let editingUserId            = null;
+let currentRankingMode       = "day";
+let tipoPagoSeleccionado     = 'renovacion';
 
 document.addEventListener("DOMContentLoaded", () => {
   const dias = [
@@ -152,7 +115,7 @@ async function doLogin() {
 
   const coachData = cacheUsers['coach'];
   if (role === "admin" && coachData && passIn === coachData.pass) {
-    currentUser = { id: "coach", role: "coach", name: "Coach" };
+    setCurrentUser = ({ id: "coach", role: "coach", name: "Coach" });
     showApp(true);
     return;
   }
@@ -167,7 +130,7 @@ async function doLogin() {
         "CUOTA VENCIDA.<br>Comunicate con el Coach.";
       return;
     }
-    currentUser = { id: userIn, ...u, role: "atleta" };
+    setCurrentUser({ id: userIn, ...u, role: "atleta" });
     showApp(false, u);
   } else {
     document.getElementById("login-error").textContent =
@@ -983,12 +946,6 @@ function cerrarSesion() {
 
 // ─── COMPETENCIA ─────────────────────────────────────────────────────────────
 
-let cacheComp = null;
-
-async function cargarCompetencia() {
-  cacheComp = await fsGet('competencia') || null;
-}
-
 function mostrarFormComp() {
   document.getElementById('comp-empty').classList.add('hidden');
   document.getElementById('comp-form').classList.remove('hidden');
@@ -1002,8 +959,8 @@ async function guardarCompetencia() {
   if(!nombre) return alert('El nombre es obligatorio.');
 
   if(!cacheComp) {
-    cacheComp = { nombre, fecha, desc, activa: true,
-      categorias: [], eventos: [], participantes: [], resultados: {} };
+    setCacheComp ({ nombre, fecha, desc, activa: true,
+      categorias: [], eventos: [], participantes: [], resultados: {} });
   } else {
     cacheComp.nombre = nombre;
     cacheComp.fecha  = fecha;
@@ -1413,7 +1370,7 @@ async function finalizarCompetencia() {
   if(!confirm('¿Finalizar y archivar la competencia?\n\nQuedará guardada pero ya no estará activa.')) return;
   cacheComp.activa = false;
   await fsSet('competencia', cacheComp);
-  cacheComp = null;
+  setCacheComp(null);
   alert('Competencia finalizada.');
   switchTab('comp', document.getElementById('tab-link-comp'));
   renderCompAdmin();
@@ -1981,8 +1938,6 @@ function timerReset() {
 
   if(window._wakeLock) { window._wakeLock.release(); window._wakeLock = null; }
 }
-
-let tipoPagoSeleccionado = 'renovacion';
 
 function seleccionarTipoPago(tipo) {
   tipoPagoSeleccionado = tipo;

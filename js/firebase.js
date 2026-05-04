@@ -1,4 +1,4 @@
-// ─── js/firebase.js ──────────────────────────────────────────────────────────
+// ─── js/firebase.js ───────────────────────────────────────────────────────────
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
@@ -41,16 +41,16 @@ export let SCHEDULES = {
   openbox:       ["15:30 - 18:00 hs"]
 };
 
-// ─── Setters para mutar el estado desde otros módulos ─────────────────────────
+// ─── Setters ──────────────────────────────────────────────────────────────────
 export function setCacheUsers(v)    { cacheUsers    = v; }
 export function setCachePrograms(v) { cachePrograms = v; }
 export function setCacheResults(v)  { cacheResults  = v; }
 export function setCacheInfo(v)     { cacheInfo     = v; }
 export function setCacheComp(v)     { cacheComp     = v; }
 export function setCurrentUser(v)   { currentUser   = v; }
-export function setSchedules(v)     { SCHEDULES     = v; }
+export function setSchedules(v)     { SCHEDULES     = { ...SCHEDULES, ...v }; }
 
-// ─── Carga inicial de datos ───────────────────────────────────────────────────
+// ─── Carga de datos ───────────────────────────────────────────────────────────
 export async function cargarDatos() {
   const [users, programs, results, info] = await Promise.all([
     fsGet('users'), fsGet('programs'), fsGet('results'), fsGet('info')
