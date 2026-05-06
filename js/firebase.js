@@ -14,7 +14,12 @@ const firebaseConfig = {
 
 export const app       = initializeApp(firebaseConfig);
 export const db        = getFirestore(app);
-export const messaging = getMessaging(app);
+export let messaging = null;
+try {
+  messaging = getMessaging(app);
+} catch(e) {
+  console.log('Messaging no disponible en este navegador:', e.message);
+}
 export const VAPID_KEY = 'BEGpwN4-q-JlAufpo4ROWVPboSqdTMys39ikJHD-VOUPVx1eTN1bWuFLOq2-aGHyCW0Vlx5hPlJeyaOvkD1IPEM';
 
 // ─── CRUD genérico ────────────────────────────────────────────────────────────

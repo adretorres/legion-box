@@ -226,18 +226,17 @@ main {
 
 /* ─── DAY SELECTOR ───────────────────────────────── */
 .day-selector {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   margin-bottom: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
 }
 
 .day-btn {
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text-tertiary);
-  padding: 7px 14px;
+  padding: 7px 4px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: "Barlow Condensed", sans-serif;
@@ -247,6 +246,8 @@ main {
   text-transform: uppercase;
   transition: all 0.18s;
   white-space: nowrap;
+  text-align: center;
+  width: 100%;
 }
 
 .day-btn:hover {
@@ -887,4 +888,41 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   min-width: 0;
   padding: 7px 4px;
   font-size: 0.68rem;
+}
+
+/* ─── ACORDEÓN ────────────────────────────────────────────────────────────── */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 0;
+}
+
+.accordion-header:hover .admin-title {
+  color: var(--accent);
+}
+
+.accordion-arrow {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.accordion-arrow.open {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.accordion-body.open {
+  max-height: 2000px;
+  opacity: 1;
 }

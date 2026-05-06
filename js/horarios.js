@@ -89,11 +89,11 @@ export function renderHorariosPublico() {
         <p style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700;
           letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">
           ${labels[disc]}</p>
-        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:6px;">
           ${horarios.map(h => `
-            <span style="white-space:nowrap; font-size:0.85rem; color:var(--text-secondary);
-              background:var(--card); border:1px solid var(--border);
-              border-radius:var(--radius-sm); padding:3px 10px;">${h}</span>`).join('')}
+            <span style="font-size:0.82rem; color:var(--text-secondary); background:var(--card);
+              border:1px solid var(--border); border-radius:var(--radius-sm);
+              padding:5px 8px; text-align:center;">${h}</span>`).join('')}
         </div>
       </div>`;
   });

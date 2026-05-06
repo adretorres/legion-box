@@ -2,7 +2,10 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>LEGIÓN BOX</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&family=Josefin+Sans:wght@700&display=swap"
@@ -10,7 +13,7 @@
     />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link rel="icon" href="img/logo-legion.png">
+    <link rel="icon" href="img/logo-legion.png" />
   </head>
   <body>
     <!-- ─── LOGIN ──────────────────────────────────────── -->
@@ -78,664 +81,844 @@
       </nav>
 
       <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('dashboard', this)">Clases</button>
-  <button class="tab-btn" onclick="switchTab('ranking', this)">Ranking</button>
-  <button id="tab-link-calc" class="tab-btn" onclick="switchTab('calc', this)">Calculadora RM</button>
-  <button class="tab-btn" onclick="switchTab('info', this)">Info Box</button>
-  <button id="tab-link-profile" class="tab-btn" onclick="switchTab('profile', this)">Mi Perfil</button>
-  <button id="tab-link-users" class="tab-btn hidden" onclick="switchTab('users', this)">Atletas</button>
-  <button id="tab-link-comp" class="tab-btn hidden" onclick="switchTab('comp', this)">Competencia</button>
-  <button id="tab-link-comp-public" class="tab-btn hidden" onclick="switchTab('comp-public', this)">Leaderboard</button>
-  <button id="tab-link-timer" class="tab-btn" onclick="switchTab('timer', this)">Cronómetro</button>
-</div>
-
-    <main>
-      <!-- ── COMPETENCIA (COACH) ────────────────────── -->
-      <div id="tab-comp" class="tab-content">
-        <div class="page-title" style="margin-top:24px;">Competencia</div>
-
-        <div
-          id="comp-empty"
-          class="admin-section"
-          style="text-align: center; padding: 40px"
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">
+          Clases
+        </button>
+        <button class="tab-btn" onclick="switchTab('ranking', this)">
+          Ranking
+        </button>
+        <button
+          id="tab-link-calc"
+          class="tab-btn"
+          onclick="switchTab('calc', this)"
         >
-          <p
-            style="
-              color: var(--text-tertiary);
-              margin-bottom: 20px;
-              font-size: 0.9rem;
-            "
+          Calculadora RM
+        </button>
+        <button class="tab-btn" onclick="switchTab('info', this)">
+          Info Box
+        </button>
+        <button
+          id="tab-link-profile"
+          class="tab-btn"
+          onclick="switchTab('profile', this)"
+        >
+          Mi Perfil
+        </button>
+        <button
+          id="tab-link-users"
+          class="tab-btn hidden"
+          onclick="switchTab('users', this)"
+        >
+          Atletas
+        </button>
+        <button
+          id="tab-link-comp"
+          class="tab-btn hidden"
+          onclick="switchTab('comp', this)"
+        >
+          Competencia
+        </button>
+        <button
+          id="tab-link-comp-public"
+          class="tab-btn hidden"
+          onclick="switchTab('comp-public', this)"
+        >
+          Leaderboard
+        </button>
+        <button
+          id="tab-link-timer"
+          class="tab-btn"
+          onclick="switchTab('timer', this)"
+        >
+          Cronómetro
+        </button>
+      </div>
+
+      <main>
+        <!-- ── COMPETENCIA (COACH) ────────────────────── -->
+        <div id="tab-comp" class="tab-content">
+          <div class="page-title" style="margin-top: 24px">Competencia</div>
+
+          <div
+            id="comp-empty"
+            class="admin-section"
+            style="text-align: center; padding: 40px"
           >
-            No hay ninguna competencia activa.
-          </p>
-          <button class="btn-save" onclick="mostrarFormComp()">
-            + CREAR COMPETENCIA
-          </button>
-        </div>
-
-        <div id="comp-form" class="hidden">
-          <div class="admin-section">
-            <div class="admin-title">Datos de la Competencia</div>
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            <p
+              style="
+                color: var(--text-tertiary);
+                margin-bottom: 20px;
+                font-size: 0.9rem;
+              "
             >
-              <div class="form-row">
-                <label>Nombre</label><input type="text" id="comp-nombre" />
-              </div>
-              <div class="form-row">
-                <label>Fecha</label><input type="date" id="comp-fecha" />
-              </div>
-            </div>
-            <div class="form-row">
-              <label>Descripción / Info</label
-              ><textarea id="comp-desc" rows="3"></textarea>
-            </div>
-
-            <button
-              class="btn-save"
-              onclick="guardarCompetencia()"
-              style="width: 100%; margin-top: 8px"
-            >
-              GUARDAR
+              No hay ninguna competencia activa.
+            </p>
+            <button class="btn-save" onclick="mostrarFormComp()">
+              + CREAR COMPETENCIA
             </button>
           </div>
 
-          <div class="admin-section" style="margin-top: 16px">
-            <div class="admin-title">Categorías</div>
+          <div id="comp-form" class="hidden">
+            <!-- DATOS DE LA COMPETENCIA -->
+            <div class="admin-section">
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-datos')"
+              >
+                <div class="admin-title">Datos de la Competencia</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-datos">▼</span>
+              </div>
+              <div class="accordion-body" id="acc-body-comp-datos">
+                <div
+                  style="
+                    padding-top: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                  "
+                >
+                  <div class="form-row">
+                    <label>Nombre</label><input type="text" id="comp-nombre" />
+                  </div>
+                  <div class="form-row">
+                    <label>Fecha</label><input type="date" id="comp-fecha" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label>Descripción / Info</label>
+                  <textarea id="comp-desc" rows="3"></textarea>
+                </div>
+                <button
+                  class="btn-save"
+                  onclick="guardarCompetencia()"
+                  style="width: 100%; margin-top: 8px"
+                >
+                  GUARDAR
+                </button>
+              </div>
+            </div>
+
+            <!-- CATEGORÍAS -->
+            <div class="admin-section" style="margin-top: 16px">
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-cats')"
+              >
+                <div class="admin-title">Categorías</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-cats">▼</span>
+              </div>
+              <div class="accordion-body" id="acc-body-comp-cats">
+                <div
+                  style="
+                    padding-top: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <div class="form-row">
+                    <label>Nivel</label>
+                    <select id="cat-nivel">
+                      <option value="RX">RX</option>
+                      <option value="Advanced">Advanced</option>
+                      <option value="Scaled">Scaled</option>
+                      <option value="Principiante">Principiante</option>
+                    </select>
+                  </div>
+                  <div class="form-row">
+                    <label>Modalidad</label>
+                    <select id="cat-modalidad">
+                      <option value="Individual">Individual</option>
+                      <option value="Duplas">Duplas</option>
+                      <option value="Tríos">Tríos</option>
+                      <option value="Cuarteto">Cuarteto</option>
+                    </select>
+                  </div>
+                  <div class="form-row">
+                    <label>Sexo</label>
+                    <select id="cat-sexo">
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Mixto">Mixto</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  class="btn-save"
+                  onclick="agregarCategoria()"
+                  style="
+                    background: none;
+                    border: 1px solid var(--accent);
+                    color: var(--accent);
+                  "
+                >
+                  + AGREGAR CATEGORÍA
+                </button>
+                <div id="comp-cat-list" style="margin-top: 16px"></div>
+              </div>
+            </div>
+
+            <!-- EVENTOS / WODs -->
+            <div class="admin-section" style="margin-top: 16px">
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-eventos')"
+              >
+                <div class="admin-title">Eventos / WODs</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-eventos"
+                  >▼</span
+                >
+              </div>
+              <div class="accordion-body" id="acc-body-comp-eventos">
+                <div
+                  style="
+                    padding-top: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <div class="form-row">
+                    <label>Nombre del Evento</label>
+                    <input
+                      type="text"
+                      id="evento-nombre"
+                      placeholder="Ej: WOD 1"
+                    />
+                  </div>
+                  <div class="form-row" style="grid-column: 1/-1">
+                    <label>Descripción del WOD</label>
+                    <textarea
+                      id="evento-desc"
+                      rows="2"
+                      placeholder="Ej: 21-15-9 Thrusters + Pull-ups"
+                    ></textarea>
+                  </div>
+                  <div class="form-row">
+                    <label>Tipo de Resultado</label>
+                    <select id="evento-tipo">
+                      <option value="time">Tiempo</option>
+                      <option value="reps">Repeticiones</option>
+                      <option value="weight">Peso</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  class="btn-save"
+                  onclick="agregarEvento()"
+                  style="
+                    background: none;
+                    border: 1px solid var(--accent);
+                    color: var(--accent);
+                  "
+                >
+                  + AGREGAR EVENTO
+                </button>
+                <div id="comp-evento-list" style="margin-top: 16px"></div>
+              </div>
+            </div>
+
+            <!-- PARTICIPANTES -->
+            <div class="admin-section" style="margin-top: 16px">
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-partic')"
+              >
+                <div class="admin-title">Atletas</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-partic"
+                  >▼</span
+                >
+              </div>
+              <div class="accordion-body" id="acc-body-comp-partic">
+                <div
+                  style="
+                    padding-top: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                  "
+                >
+                  <div class="form-row">
+                    <label>Categoría</label>
+                    <select id="part-cat"></select>
+                  </div>
+                  <div class="form-row">
+                    <label>Nombre Atleta / Equipo</label>
+                    <input type="text" id="part-nombre" />
+                  </div>
+                  <div class="form-row">
+                    <label>Box</label>
+                    <input type="text" id="part-box" />
+                  </div>
+                  <div class="form-row">
+                    <label>Integrantes (separados por coma)</label>
+                    <input
+                      type="text"
+                      id="part-integrantes"
+                      placeholder="Opcional para individual"
+                    />
+                  </div>
+                </div>
+                <button
+                  class="btn-save"
+                  onclick="agregarParticipante()"
+                  style="
+                    background: none;
+                    border: 1px solid var(--accent);
+                    color: var(--accent);
+                  "
+                >
+                  + AGREGAR PARTICIPANTE
+                </button>
+                <div id="comp-part-list" style="margin-top: 16px"></div>
+              </div>
+            </div>
+
+            <!-- CARGAR RESULTADOS -->
+            <div class="admin-section" style="margin-top: 16px">
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-resultados')"
+              >
+                <div class="admin-title">Cargar Resultados</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-resultados"
+                  >▼</span
+                >
+              </div>
+              <div class="accordion-body" id="acc-body-comp-resultados">
+                <div
+                  style="
+                    padding-top: 12px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    margin-bottom: 16px;
+                  "
+                >
+                  <div class="form-row">
+                    <label>Categoría</label>
+                    <select
+                      id="res-cat"
+                      onchange="renderParticipantesResultado()"
+                    ></select>
+                  </div>
+                  <div class="form-row">
+                    <label>Evento</label>
+                    <select
+                      id="res-evento"
+                      onchange="renderParticipantesResultado()"
+                    ></select>
+                  </div>
+                </div>
+                <div id="res-inputs"></div>
+                <button
+                  class="btn-save"
+                  onclick="guardarResultados()"
+                  style="width: 100%; margin-top: 12px"
+                >
+                  GUARDAR RESULTADOS
+                </button>
+              </div>
+            </div>
+
+            <!-- ACCESO PÚBLICO -->
+            <div
+              class="admin-section"
+              style="margin-top: 16px; border-left: 3px solid var(--accent)"
+            >
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-acceso')"
+              >
+                <div class="admin-title">Acceso Público</div>
+                <span class="accordion-arrow" id="acc-arrow-comp-acceso"
+                  >▼</span
+                >
+              </div>
+              <div class="accordion-body" id="acc-body-comp-acceso">
+                <div style="padding-top: 12px">
+                  <div class="form-row">
+                    <label>Nombre del Botón</label>
+                    <input
+                      type="text"
+                      id="comp-btn-label"
+                      placeholder="Ver Competencia"
+                    />
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 8px">
+                    <button
+                      class="btn-save"
+                      onclick="toggleAccesoPublico(true)"
+                      style="flex: 1"
+                    >
+                      HABILITAR ACCESO
+                    </button>
+                    <button
+                      class="btn-save"
+                      onclick="toggleAccesoPublico(false)"
+                      style="
+                        flex: 1;
+                        background: none;
+                        border: 1px solid var(--danger);
+                        color: var(--danger);
+                      "
+                    >
+                      DESHABILITAR
+                    </button>
+                  </div>
+                  <p
+                    id="comp-acceso-status"
+                    style="
+                      font-size: 0.78rem;
+                      margin-top: 10px;
+                      color: var(--text-tertiary);
+                    "
+                  ></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ZONA DE PELIGRO -->
+            <div
+              class="admin-section"
+              style="margin-top: 16px; border-left: 3px solid var(--danger)"
+            >
+              <div
+                class="accordion-header"
+                onclick="toggleAccordion('comp-danger')"
+              >
+                <div class="admin-title" style="color: var(--danger)">
+                  Zona de Peligro
+                </div>
+                <span class="accordion-arrow" id="acc-arrow-comp-danger"
+                  >▼</span
+                >
+              </div>
+              <div class="accordion-body" id="acc-body-comp-danger">
+                <div style="padding-top: 12px">
+                  <button
+                    class="btn-save"
+                    onclick="finalizarCompetencia()"
+                    style="
+                      width: 100%;
+                      background: none;
+                      border: 1px solid var(--danger);
+                      color: var(--danger);
+                    "
+                  >
+                    FINALIZAR Y ARCHIVAR COMPETENCIA
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+<!-- ── RANKING PÚBLICO ────────────────────────── -->
+<div id="tab-comp-public" class="tab-content">
+  <div style="padding:12px 16px 0;">
+  <button onclick="volverAlInicio()"
+    style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary);
+    padding:6px 14px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.78rem;">
+    ← Volver
+  </button>
+</div>
+  <div style="text-align:center; padding:24px 0 8px;">
+    <img src="img/logo-legion.png" alt="Legión Box"
+      style="height:60px; margin-bottom:8px; display:block; margin-left:auto; margin-right:auto;">
+    <div id="public-comp-nombre"
+      style="font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:3px; color:var(--accent);"></div>
+    <div id="public-comp-fecha"
+      style="font-size:0.78rem; color:var(--text-tertiary); margin-top:2px;"></div>
+  </div>
+
+  <div class="admin-section" style="margin-top:12px;">
+    <div class="form-row" style="margin-bottom:16px;">
+      <label>Categoría</label>
+      <select id="public-cat-select" onchange="renderRankingPublico()">
+        <option value="">— Todas las categorías —</option>
+      </select>
+    </div>
+    <div id="public-ranking-cont"></div>
+  </div>
+
+  <div style="text-align:center; padding:24px 0; color:var(--text-tertiary); font-size:0.75rem;">
+    Legión Box · Centro de Entrenamiento · Formosa Capital
+  </div>
+</div>
+
+        <!-- ── CRONÓMETRO ─────────────────────────────── -->
+        <div id="tab-timer" class="tab-content">
+          <div
+            id="timer-mode-selector"
+            style="margin-bottom: 20px; margin-top: 8px"
+          >
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+              "
+            >
+              <button
+                class="timer-mode-btn active"
+                onclick="setTimerMode('fortime')"
+              >
+                FOR TIME
+              </button>
+              <button class="timer-mode-btn" onclick="setTimerMode('amrap')">
+                AMRAP
+              </button>
+              <button class="timer-mode-btn" onclick="setTimerMode('emom')">
+                EMOM
+              </button>
+              <button class="timer-mode-btn" onclick="setTimerMode('tabata')">
+                TABATA
+              </button>
+              <button class="timer-mode-btn" onclick="setTimerMode('interval')">
+                INTERVALOS
+              </button>
+              <button class="timer-mode-btn" onclick="setTimerMode('compound')">
+                WOD COMPUESTO
+              </button>
+            </div>
+          </div>
+
+          <!-- Config FOR TIME / AMRAP -->
+          <div
+            id="timer-config-fortime"
+            class="timer-config-panel admin-section"
+          >
+            <div class="admin-title" id="timer-mode-label">For Time</div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Minutos</label
+                ><input type="number" id="ft-min" value="10" min="0" max="99" />
+              </div>
+              <div class="form-row">
+                <label>Segundos</label
+                ><input type="number" id="ft-sec" value="0" min="0" max="59" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Config EMOM con ejercicios -->
+          <div
+            id="timer-config-emom"
+            class="timer-config-panel admin-section hidden"
+          >
+            <div class="admin-title">EMOM</div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 12px;
+              "
+            >
+              <div class="form-row">
+                <label>Cada (minutos)</label
+                ><input
+                  type="number"
+                  id="emom-interval"
+                  value="1"
+                  min="1"
+                  max="10"
+                />
+              </div>
+              <div class="form-row">
+                <label>Rondas</label
+                ><input
+                  type="number"
+                  id="emom-rounds"
+                  value="10"
+                  min="1"
+                  max="60"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <label>Ejercicios por minuto (opcional)</label>
+              <div id="emom-exercises" style="margin-bottom: 8px"></div>
+              <button
+                class="btn-save"
+                onclick="agregarEjercicioEmom()"
+                style="
+                  background: none;
+                  border: 1px solid var(--border-strong);
+                  color: var(--text-secondary);
+                  width: 100%;
+                "
+              >
+                + AGREGAR MINUTO
+              </button>
+            </div>
+          </div>
+
+          <!-- Config TABATA -->
+          <div
+            id="timer-config-tabata"
+            class="timer-config-panel admin-section hidden"
+          >
+            <div class="admin-title">Tabata</div>
+            <p
+              style="
+                font-size: 0.82rem;
+                color: var(--text-tertiary);
+                margin-bottom: 12px;
+              "
+            >
+              20 seg trabajo · 10 seg descanso · 8 rondas
+            </p>
+          </div>
+
+          <!-- Config INTERVALOS -->
+          <div
+            id="timer-config-interval"
+            class="timer-config-panel admin-section hidden"
+          >
+            <div class="admin-title">Intervalos</div>
             <div
               style="
                 display: grid;
                 grid-template-columns: 1fr 1fr 1fr;
                 gap: 10px;
-                margin-bottom: 12px;
               "
             >
               <div class="form-row">
-                <label>Nivel</label>
-                <select id="cat-nivel">
-                  <option value="RX">RX</option>
-                  <option value="Advanced">Advanced</option>
-                  <option value="Scaled">Scaled</option>
-                  <option value="Principiante">Principiante</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>Modalidad</label>
-                <select id="cat-modalidad">
-                  <option value="Individual">Individual</option>
-                  <option value="Duplas">Duplas</option>
-                  <option value="Tríos">Tríos</option>
-                  <option value="Cuarteto">Cuarteto</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>Sexo</label>
-                <select id="cat-sexo">
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
-                  <option value="Mixto">Mixto</option>
-                </select>
-              </div>
-            </div>
-            <button
-              class="btn-save"
-              onclick="agregarCategoria()"
-              style="
-                background: none;
-                border: 1px solid var(--accent);
-                color: var(--accent);
-              "
-            >
-              + AGREGAR CATEGORÍA
-            </button>
-            <div id="comp-cat-list" style="margin-top: 16px"></div>
-          </div>
-
-          <div class="admin-section" style="margin-top: 16px">
-            <div class="admin-title">Eventos / WODs</div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 12px;
-              "
-            >
-              <div class="form-row">
-                <label>Nombre del Evento</label
+                <label>Trabajo (seg)</label
                 ><input
-                  type="text"
-                  id="evento-nombre"
-                  placeholder="Ej: WOD 1"
+                  type="number"
+                  id="int-work"
+                  value="30"
+                  min="1"
+                  max="600"
                 />
               </div>
-              <div class="form-row" style="grid-column: 1/-1">
-                <label>Descripción del WOD</label
-                ><textarea
-                  id="evento-desc"
-                  rows="2"
-                  placeholder="Ej: 21-15-9 Thrusters + Pull-ups"
-                ></textarea>
-              </div>
               <div class="form-row">
-                <label>Tipo de Resultado</label>
-                <select id="evento-tipo">
-                  <option value="time">Tiempo</option>
-                  <option value="reps">Repeticiones</option>
-                  <option value="weight">Peso</option>
-                </select>
-              </div>
-            </div>
-            <button
-              class="btn-save"
-              onclick="agregarEvento()"
-              style="
-                background: none;
-                border: 1px solid var(--accent);
-                color: var(--accent);
-              "
-            >
-              + AGREGAR EVENTO
-            </button>
-            <div id="comp-evento-list" style="margin-top: 16px"></div>
-          </div>
-
-          <div class="admin-section" style="margin-top: 16px">
-            <div class="admin-title">Participantes</div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 10px;
-                margin-bottom: 12px;
-              "
-            >
-              <div class="form-row">
-                <label>Categoría</label
-                ><select id="part-cat"></select>
-              </div>
-              <div class="form-row">
-                <label>Nombre Atleta / Equipo</label
-                ><input type="text" id="part-nombre" />
-              </div>
-              <div class="form-row">
-                <label>Box</label><input type="text" id="part-box" />
-              </div>
-              <div class="form-row">
-                <label>Integrantes (separados por coma)</label
+                <label>Descanso (seg)</label
                 ><input
-                  type="text"
-                  id="part-integrantes"
-                  placeholder="Opcional para individual"
+                  type="number"
+                  id="int-rest"
+                  value="30"
+                  min="0"
+                  max="600"
+                />
+              </div>
+              <div class="form-row">
+                <label>Rondas</label
+                ><input
+                  type="number"
+                  id="int-rounds"
+                  value="5"
+                  min="1"
+                  max="99"
                 />
               </div>
             </div>
-            <button
-              class="btn-save"
-              onclick="agregarParticipante()"
-              style="
-                background: none;
-                border: 1px solid var(--accent);
-                color: var(--accent);
-              "
-            >
-              + AGREGAR PARTICIPANTE
-            </button>
-            <div id="comp-part-list" style="margin-top: 16px"></div>
           </div>
 
-          <div class="admin-section" style="margin-top: 16px">
-            <div class="admin-title">Cargar Resultados</div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 16px;
-              "
-            >
-              <div class="form-row">
-                <label>Categoría</label
-                ><select
-                  id="res-cat"
-                  onchange="renderParticipantesResultado()"
-                ></select>
-              </div>
-              <div class="form-row">
-                <label>Evento</label
-                ><select
-                  id="res-evento"
-                  onchange="renderParticipantesResultado()"
-                ></select>
-              </div>
-            </div>
-            <div id="res-inputs"></div>
-            <button
-              class="btn-save"
-              onclick="guardarResultados()"
-              style="width: 100%; margin-top: 12px"
-            >
-              GUARDAR RESULTADOS
-            </button>
-          </div>
-
+          <!-- Config WOD COMPUESTO -->
           <div
-            class="admin-section"
-            style="margin-top: 16px; border-left: 3px solid var(--accent)"
+            id="timer-config-compound"
+            class="timer-config-panel admin-section hidden"
           >
-            <div class="admin-title">Acceso Público</div>
+            <div class="admin-title">WOD Compuesto</div>
             <div class="form-row">
-              <label>Nombre del Botón</label>
-              <input
-                type="text"
-                id="comp-btn-label"
-                placeholder="Ver Competencia"
-              />
+              <label>Tipo de bloque</label>
+              <select id="compound-tipo" onchange="toggleCompoundTipo()">
+                <option value="fortime">For Time</option>
+                <option value="amrap">AMRAP</option>
+                <option value="emom">EMOM</option>
+                <option value="interval">Intervalos</option>
+                <option value="rest">REST</option>
+              </select>
             </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px">
+            <div
+              id="compound-config-time"
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Minutos</label
+                ><input
+                  type="number"
+                  id="compound-min"
+                  value="10"
+                  min="0"
+                  max="99"
+                />
+              </div>
+              <div class="form-row">
+                <label>Segundos</label
+                ><input
+                  type="number"
+                  id="compound-sec"
+                  value="0"
+                  min="0"
+                  max="59"
+                />
+              </div>
+            </div>
+            <div
+              id="compound-config-emom"
+              class="hidden"
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-row">
+                <label>Cada (min)</label
+                ><input
+                  type="number"
+                  id="compound-emom-interval"
+                  value="1"
+                  min="1"
+                  max="10"
+                />
+              </div>
+              <div class="form-row">
+                <label>Rondas</label
+                ><input
+                  type="number"
+                  id="compound-emom-rounds"
+                  value="10"
+                  min="1"
+                  max="60"
+                />
+              </div>
+            </div>
+            <div
+              id="compound-config-interval"
+              class="hidden"
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+              "
+            >
+              <div class="form-row">
+                <label>Trabajo (seg)</label
+                ><input
+                  type="number"
+                  id="compound-int-work"
+                  value="30"
+                  min="1"
+                />
+              </div>
+              <div class="form-row">
+                <label>Descanso (seg)</label
+                ><input
+                  type="number"
+                  id="compound-int-rest"
+                  value="30"
+                  min="0"
+                />
+              </div>
+              <div class="form-row">
+                <label>Rondas</label
+                ><input
+                  type="number"
+                  id="compound-int-rounds"
+                  value="5"
+                  min="1"
+                />
+              </div>
+            </div>
+            <button
+              class="btn-save"
+              onclick="agregarBloqueWod()"
+              style="
+                width: 100%;
+                margin-top: 12px;
+                background: none;
+                border: 1px solid var(--accent);
+                color: var(--accent);
+              "
+            >
+              + AGREGAR BLOQUE
+            </button>
+            <div id="compound-blocks-list" style="margin-top: 12px"></div>
+          </div>
+
+          <!-- Display -->
+          <div
+            id="timer-display"
+            class="admin-section"
+            style="text-align: center; margin-top: 16px; padding: 40px 20px"
+          >
+            <div
+              id="timer-phase-label"
+              style="
+                font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                font-size: 0.8rem;
+                font-weight: 700;
+                letter-spacing: 3px;
+                color: var(--text-tertiary);
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                min-height: 20px;
+              "
+            ></div>
+            <div
+              id="timer-clock"
+              style="
+                font-family: &quot;Bebas Neue&quot;, sans-serif;
+                font-size: 6rem;
+                line-height: 1;
+                color: var(--text);
+                letter-spacing: 4px;
+              "
+            >
+              00:00
+            </div>
+            <div
+              id="timer-round-label"
+              style="
+                font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                font-size: 0.9rem;
+                letter-spacing: 2px;
+                color: var(--text-tertiary);
+                margin-top: 10px;
+                min-height: 22px;
+              "
+            ></div>
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+                margin-top: 28px;
+              "
+            >
               <button
+                id="timer-btn-start"
                 class="btn-save"
-                onclick="toggleAccesoPublico(true)"
-                style="flex: 1"
+                onclick="timerStart()"
+                style="min-width: 100px; font-size: 0.9rem; padding: 14px 24px"
               >
-                HABILITAR ACCESO
+                INICIAR
               </button>
               <button
+                id="timer-btn-reset"
                 class="btn-save"
-                onclick="toggleAccesoPublico(false)"
+                onclick="timerReset()"
                 style="
-                  flex: 1;
+                  min-width: 80px;
                   background: none;
-                  border: 1px solid var(--danger);
-                  color: var(--danger);
+                  border: 1px solid var(--border-strong);
+                  color: var(--text-secondary);
+                  font-size: 0.9rem;
+                  padding: 14px 24px;
                 "
               >
-                DESHABILITAR
+                RESTABLECER
               </button>
             </div>
-            <p
-              id="comp-acceso-status"
-              style="
-                font-size: 0.78rem;
-                margin-top: 10px;
-                color: var(--text-tertiary);
-              "
-            ></p>
-          </div>
-          <div
-            class="admin-section"
-            style="margin-top: 16px; border-left: 3px solid var(--danger)"
-          >
-            <div class="admin-title" style="color: var(--danger)">
-              Zona de Peligro
-            </div>
-            <button
-              class="btn-save"
-              onclick="finalizarCompetencia()"
-              style="
-                width: 100%;
-                background: none;
-                border: 1px solid var(--danger);
-                color: var(--danger);
-              "
-            >
-              FINALIZAR Y ARCHIVAR COMPETENCIA
-            </button>
           </div>
         </div>
-      </div>
-
-      <!-- ── RANKING PÚBLICO ────────────────────────── -->
-      <div id="tab-comp-public" class="tab-content">
-        <div class="page-title">Leaderboard</div>
-        <div class="admin-section">
-          <div class="form-row">
-            <label>Categoría</label>
-            <select id="public-cat-select" onchange="renderRankingPublico()">
-              <option value="">— Seleccionar —</option>
-            </select>
-          </div>
-          <div id="public-ranking-container" style="margin-top: 16px"></div>
-        </div>
-      </div>
-
-      <!-- ── CRONÓMETRO ─────────────────────────────── -->
-      <div id="tab-timer" class="tab-content">
-        <div id="timer-mode-selector" style="margin-bottom:20px; margin-top:8px;">
-          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
-            <button
-              class="timer-mode-btn active"
-              onclick="setTimerMode('fortime')"
-            >
-              FOR TIME
-            </button>
-            <button class="timer-mode-btn" onclick="setTimerMode('amrap')">
-              AMRAP
-            </button>
-            <button class="timer-mode-btn" onclick="setTimerMode('emom')">
-              EMOM
-            </button>
-            <button class="timer-mode-btn" onclick="setTimerMode('tabata')">
-              TABATA
-            </button>
-            <button class="timer-mode-btn" onclick="setTimerMode('interval')">
-              INTERVALOS
-            </button>
-            <button class="timer-mode-btn" onclick="setTimerMode('compound')">
-              WOD COMPUESTO
-            </button>
-          </div>
-        </div>
-
-        <!-- Config FOR TIME / AMRAP -->
-        <div id="timer-config-fortime" class="timer-config-panel admin-section">
-          <div class="admin-title" id="timer-mode-label">For Time</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-            <div class="form-row">
-              <label>Minutos</label
-              ><input type="number" id="ft-min" value="10" min="0" max="99" />
-            </div>
-            <div class="form-row">
-              <label>Segundos</label
-              ><input type="number" id="ft-sec" value="0" min="0" max="59" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Config EMOM con ejercicios -->
-        <div
-          id="timer-config-emom"
-          class="timer-config-panel admin-section hidden"
-        >
-          <div class="admin-title">EMOM</div>
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 10px;
-              margin-bottom: 12px;
-            "
-          >
-            <div class="form-row">
-              <label>Cada (minutos)</label
-              ><input
-                type="number"
-                id="emom-interval"
-                value="1"
-                min="1"
-                max="10"
-              />
-            </div>
-            <div class="form-row">
-              <label>Rondas</label
-              ><input
-                type="number"
-                id="emom-rounds"
-                value="10"
-                min="1"
-                max="60"
-              />
-            </div>
-          </div>
-          <div class="form-row">
-            <label>Ejercicios por minuto (opcional)</label>
-            <div id="emom-exercises" style="margin-bottom: 8px"></div>
-            <button
-              class="btn-save"
-              onclick="agregarEjercicioEmom()"
-              style="
-                background: none;
-                border: 1px solid var(--border-strong);
-                color: var(--text-secondary);
-                width: 100%;
-              "
-            >
-              + AGREGAR MINUTO
-            </button>
-          </div>
-        </div>
-
-        <!-- Config TABATA -->
-        <div
-          id="timer-config-tabata"
-          class="timer-config-panel admin-section hidden"
-        >
-          <div class="admin-title">Tabata</div>
-          <p
-            style="
-              font-size: 0.82rem;
-              color: var(--text-tertiary);
-              margin-bottom: 12px;
-            "
-          >
-            20 seg trabajo · 10 seg descanso · 8 rondas
-          </p>
-        </div>
-
-        <!-- Config INTERVALOS -->
-        <div
-          id="timer-config-interval"
-          class="timer-config-panel admin-section hidden"
-        >
-          <div class="admin-title">Intervalos</div>
-          <div
-            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px"
-          >
-            <div class="form-row">
-              <label>Trabajo (seg)</label
-              ><input
-                type="number"
-                id="int-work"
-                value="30"
-                min="1"
-                max="600"
-              />
-            </div>
-            <div class="form-row">
-              <label>Descanso (seg)</label
-              ><input
-                type="number"
-                id="int-rest"
-                value="30"
-                min="0"
-                max="600"
-              />
-            </div>
-            <div class="form-row">
-              <label>Rondas</label
-              ><input
-                type="number"
-                id="int-rounds"
-                value="5"
-                min="1"
-                max="99"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Config WOD COMPUESTO -->
-        <div
-          id="timer-config-compound"
-          class="timer-config-panel admin-section hidden"
-        >
-          <div class="admin-title">WOD Compuesto</div>
-          <div class="form-row">
-            <label>Tipo de bloque</label>
-            <select id="compound-tipo" onchange="toggleCompoundTipo()">
-              <option value="fortime">For Time</option>
-              <option value="amrap">AMRAP</option>
-              <option value="emom">EMOM</option>
-              <option value="interval">Intervalos</option>
-              <option value="rest">REST</option>
-            </select>
-          </div>
-          <div
-            id="compound-config-time"
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-          >
-            <div class="form-row">
-              <label>Minutos</label
-              ><input
-                type="number"
-                id="compound-min"
-                value="10"
-                min="0"
-                max="99"
-              />
-            </div>
-            <div class="form-row">
-              <label>Segundos</label
-              ><input
-                type="number"
-                id="compound-sec"
-                value="0"
-                min="0"
-                max="59"
-              />
-            </div>
-          </div>
-          <div
-            id="compound-config-emom"
-            class="hidden"
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-          >
-            <div class="form-row">
-              <label>Cada (min)</label
-              ><input
-                type="number"
-                id="compound-emom-interval"
-                value="1"
-                min="1"
-                max="10"
-              />
-            </div>
-            <div class="form-row">
-              <label>Rondas</label
-              ><input
-                type="number"
-                id="compound-emom-rounds"
-                value="10"
-                min="1"
-                max="60"
-              />
-            </div>
-          </div>
-          <div
-            id="compound-config-interval"
-            class="hidden"
-            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px"
-          >
-            <div class="form-row">
-              <label>Trabajo (seg)</label
-              ><input type="number" id="compound-int-work" value="30" min="1" />
-            </div>
-            <div class="form-row">
-              <label>Descanso (seg)</label
-              ><input type="number" id="compound-int-rest" value="30" min="0" />
-            </div>
-            <div class="form-row">
-              <label>Rondas</label
-              ><input
-                type="number"
-                id="compound-int-rounds"
-                value="5"
-                min="1"
-              />
-            </div>
-          </div>
-          <button
-            class="btn-save"
-            onclick="agregarBloqueWod()"
-            style="
-              width: 100%;
-              margin-top: 12px;
-              background: none;
-              border: 1px solid var(--accent);
-              color: var(--accent);
-            "
-          >
-            + AGREGAR BLOQUE
-          </button>
-          <div id="compound-blocks-list" style="margin-top: 12px"></div>
-        </div>
-
-        <!-- Display -->
-        <div
-          id="timer-display"
-          class="admin-section"
-          style="text-align: center; margin-top: 16px; padding: 40px 20px"
-        >
-          <div
-            id="timer-phase-label"
-            style="
-              font-family: &quot;Barlow Condensed&quot;, sans-serif;
-              font-size: 0.8rem;
-              font-weight: 700;
-              letter-spacing: 3px;
-              color: var(--text-tertiary);
-              margin-bottom: 8px;
-              text-transform: uppercase;
-              min-height: 20px;
-            "
-          ></div>
-          <div
-            id="timer-clock"
-            style="
-              font-family: &quot;Bebas Neue&quot;, sans-serif;
-              font-size: 6rem;
-              line-height: 1;
-              color: var(--text);
-              letter-spacing: 4px;
-            "
-          >
-            00:00
-          </div>
-          <div
-            id="timer-round-label"
-            style="
-              font-family: &quot;Barlow Condensed&quot;, sans-serif;
-              font-size: 0.9rem;
-              letter-spacing: 2px;
-              color: var(--text-tertiary);
-              margin-top: 10px;
-              min-height: 22px;
-            "
-          ></div>
-          <div
-            style="
-              display: flex;
-              gap: 12px;
-              justify-content: center;
-              margin-top: 28px;
-            "
-          >
-            <button
-              id="timer-btn-start"
-              class="btn-save"
-              onclick="timerStart()"
-              style="min-width: 100px; font-size: 0.9rem; padding: 14px 24px"
-            >
-              INICIAR
-            </button>
-            <button
-              id="timer-btn-reset"
-              class="btn-save"
-              onclick="timerReset()"
-              style="
-                min-width: 80px;
-                background: none;
-                border: 1px solid var(--border-strong);
-                color: var(--text-secondary);
-                font-size: 0.9rem;
-                padding: 14px 24px;
-              "
-            >
-              RESTABLECER
-            </button>
-          </div>
-        </div>
-      </div>
         <!-- ── DASHBOARD ─────────────────────────────── -->
         <div id="tab-dashboard" class="tab-content active">
           <div id="news-banner" class="news-banner">
@@ -804,33 +987,88 @@
               <h2 id="class-title-display">Selecciona un día</h2>
               <div id="class-blocks-display"></div>
 
-              <div id="score-upload-container" class="hidden score-upload-container">
+              <div
+                id="score-upload-container"
+                class="hidden score-upload-container"
+              >
                 <span class="score-upload-label">Registrar mi resultado</span>
 
                 <!-- Selector RX / Scaled -->
-                <div style="margin-bottom:12px;">
-                  <div style="display:flex; gap:8px; margin-bottom:8px;">
-                    <button id="btn-rx" onclick="seleccionarModalidad('rx')"
-                      class="btn-save" style="flex:1; background:var(--accent); color:#000;">
+                <div style="margin-bottom: 12px">
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px">
+                    <button
+                      id="btn-rx"
+                      onclick="seleccionarModalidad('rx')"
+                      class="btn-save"
+                      style="flex: 1; background: var(--accent); color: #000"
+                    >
                       RX
                     </button>
-                    <button id="btn-scaled" onclick="seleccionarModalidad('scaled')"
-                      class="btn-save" style="flex:1; background:none; border:1px solid var(--border-strong); color:var(--text-secondary);">
+                    <button
+                      id="btn-scaled"
+                      onclick="seleccionarModalidad('scaled')"
+                      class="btn-save"
+                      style="
+                        flex: 1;
+                        background: none;
+                        border: 1px solid var(--border-strong);
+                        color: var(--text-secondary);
+                      "
+                    >
                       SCALED
                     </button>
                   </div>
-                  <div id="modalidad-info" style="font-size:0.75rem; color:var(--text-tertiary); line-height:1.5; padding:8px 10px; background:var(--surface); border-radius:var(--radius-sm); border:1px solid var(--border); display:none;">
-                    <b style="color:var(--accent);">RX</b> — Completaste el WOD exactamente como fue programado, sin modificar pesos, movimientos ni repeticiones.<br>
-                    <b style="color:var(--text-secondary);">SCALED (SC)</b> — Modificaste algún aspecto del WOD: bajaste el peso, cambiaste un movimiento o ajustaste las repeticiones. Cualquier adaptación cuenta como Scaled.
+                  <div
+                    id="modalidad-info"
+                    style="
+                      font-size: 0.75rem;
+                      color: var(--text-tertiary);
+                      line-height: 1.5;
+                      padding: 8px 10px;
+                      background: var(--surface);
+                      border-radius: var(--radius-sm);
+                      border: 1px solid var(--border);
+                      display: none;
+                    "
+                  >
+                    <b style="color: var(--accent)">RX</b> — Completaste el WOD
+                    exactamente como fue programado, sin modificar pesos,
+                    movimientos ni repeticiones.<br />
+                    <b style="color: var(--text-secondary)">SCALED (SC)</b> —
+                    Modificaste algún aspecto del WOD: bajaste el peso,
+                    cambiaste un movimiento o ajustaste las repeticiones.
+                    Cualquier adaptación cuenta como Scaled.
                   </div>
                 </div>
 
                 <div class="score-upload-row">
-                  <input type="text" id="input-score" placeholder="" style="flex:1;" />
-                  <button class="btn-save" onclick="saveWodScore()">Subir</button>
+                  <input
+                    type="text"
+                    id="input-score"
+                    placeholder=""
+                    style="flex: 1"
+                  />
+                  <button class="btn-save" onclick="saveWodScore()">
+                    Subir
+                  </button>
                 </div>
-                <div id="score-format-hint" style="font-size:0.72rem; color:var(--text-tertiary); margin-top:6px;"></div>
-                <div id="score-error" style="font-size:0.75rem; color:var(--danger); margin-top:6px; display:none;"></div>
+                <div
+                  id="score-format-hint"
+                  style="
+                    font-size: 0.72rem;
+                    color: var(--text-tertiary);
+                    margin-top: 6px;
+                  "
+                ></div>
+                <div
+                  id="score-error"
+                  style="
+                    font-size: 0.75rem;
+                    color: var(--danger);
+                    margin-top: 6px;
+                    display: none;
+                  "
+                ></div>
               </div>
             </div>
           </div>
@@ -906,15 +1144,31 @@
             >
               PUBLICAR
             </button>
-            <hr class="divider" style="margin-top:16px;">
-<div class="admin-title">Gestión de Horarios</div>
-<div id="horarios-admin-cont"></div>
-    <hr class="divider" style="margin-top:16px;">
-<div class="admin-title">Notificación General</div>
-<div class="form-row" style="margin-top:8px;">
-  <input type="text" id="notif-general-texto" placeholder="Mensaje para todos los atletas...">
-</div>
-<button class="btn-save" onclick="enviarNotificacionGeneral()" style="width:100%; background:none; border:1px solid var(--border-strong); color:var(--text-secondary); margin-top:8px;">🔔 ENVIAR A TODOS</button>
+            <hr class="divider" style="margin-top: 16px" />
+            <div class="admin-title">Gestión de Horarios</div>
+            <div id="horarios-admin-cont"></div>
+            <hr class="divider" style="margin-top: 16px" />
+            <div class="admin-title">Notificación General</div>
+            <div class="form-row" style="margin-top: 8px">
+              <input
+                type="text"
+                id="notif-general-texto"
+                placeholder="Mensaje para todos los atletas..."
+              />
+            </div>
+            <button
+              class="btn-save"
+              onclick="enviarNotificacionGeneral()"
+              style="
+                width: 100%;
+                background: none;
+                border: 1px solid var(--border-strong);
+                color: var(--text-secondary);
+                margin-top: 8px;
+              "
+            >
+              🔔 ENVIAR A TODOS
+            </button>
             <hr class="divider" style="margin-top: 24px" />
             <div
               class="admin-title"
@@ -931,7 +1185,15 @@
             >
               Seleccioná los días que quieras eliminar
             </p>
-            <div id="reset-day-selector" style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:12px;">
+            <div
+              id="reset-day-selector"
+              style="
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                gap: 6px;
+                margin-bottom: 12px;
+              "
+            >
               <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">
                 LUN
               </button>
@@ -974,19 +1236,69 @@
           <div class="page-title">Ranking</div>
 
           <div class="admin-section">
-            <div id="rank-filters-row" style="margin-bottom:16px;">
-              <label style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:8px;">Día</label>
-              <div style="display:flex; gap:6px; flex-wrap:wrap;" id="rank-day-btns">
-                <button class="day-btn" onclick="cambiarDiaRanking('lunes', this)">Lun</button>
-                <button class="day-btn" onclick="cambiarDiaRanking('martes', this)">Mar</button>
-                <button class="day-btn" onclick="cambiarDiaRanking('miercoles', this)">Mié</button>
-                <button class="day-btn" onclick="cambiarDiaRanking('jueves', this)">Jue</button>
-                <button class="day-btn" onclick="cambiarDiaRanking('viernes', this)">Vie</button>
-                <button class="day-btn" onclick="cambiarDiaRanking('sabado', this)">Sáb</button>
+            <div id="rank-filters-row" style="margin-bottom: 16px">
+              <label
+                style="
+                  font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                  font-size: 0.72rem;
+                  font-weight: 700;
+                  letter-spacing: 2px;
+                  color: var(--accent);
+                  text-transform: uppercase;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >Día</label
+              >
+              <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;" id="rank-day-btns">
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('lunes', this)"
+                >
+                  Lun
+                </button>
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('martes', this)"
+                >
+                  Mar
+                </button>
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('miercoles', this)"
+                >
+                  Mié
+                </button>
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('jueves', this)"
+                >
+                  Jue
+                </button>
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('viernes', this)"
+                >
+                  Vie
+                </button>
+                <button
+                  class="day-btn"
+                  onclick="cambiarDiaRanking('sabado', this)"
+                >
+                  Sáb
+                </button>
               </div>
             </div>
 
-            <div id="ranking-list-container" style="background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden;"></div>
+            <div
+              id="ranking-list-container"
+              style="
+                background: var(--surface);
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+                overflow: hidden;
+              "
+            ></div>
           </div>
         </div>
 
@@ -1081,8 +1393,8 @@
 
           <div class="admin-section">
             <div class="admin-title">Nuestros Horarios</div>
-<div id="horarios-publico-cont" style="margin-bottom:20px;"></div>
-<hr class="divider">
+            <div id="horarios-publico-cont" style="margin-bottom: 20px"></div>
+            <hr class="divider" />
             <div class="admin-title">Membresías y Planes</div>
             <div
               id="display-prices"
@@ -1111,6 +1423,13 @@
               </button>
             </div>
           </div>
+          <div id="info-comp-btn-wrap" class="hidden" style="margin-top:16px;">
+  <button onclick="entrarLeaderboard('infobox')"
+    class="btn-save"
+    style="width:100%; background:none; border:1px solid var(--accent); color:var(--accent);">
+    🏆 VER COMPETENCIA
+  </button>
+</div>
         </div>
 
         <!-- ── MI PERFIL ──────────────────────────────── -->
@@ -1136,7 +1455,10 @@
               <div class="form-row">
                 <label>Celular</label><input type="text" id="prof-phone" />
               </div>
-              <div class="form-row"><label>Emergencia</label><input type="text" id="prof-emergency"></div>
+              <div class="form-row">
+                <label>Emergencia</label
+                ><input type="text" id="prof-emergency" />
+              </div>
               <div class="form-row" style="grid-column: 1/-1">
                 <label>Nueva Contraseña</label
                 ><input
@@ -1282,43 +1604,110 @@
               "
             ></div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-  <div class="form-row"><label>Fecha de Pago</label><input type="date" id="pay-date"></div>
-  <div class="form-row">
-    <label>Método</label>
-    <select id="pay-method">
-      <option value="Efectivo">Efectivo</option>
-      <option value="Transferencia">Transferencia</option>
-      <option value="Mixto">Mixto</option>
-    </select>
-  </div>
-</div>
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-  <div class="form-row"><label>Monto $</label><input type="number" id="pay-amount" placeholder="8500"></div>
-  <div class="form-row"><label>Observación</label><input type="text" id="pay-obs" placeholder="Opcional"></div>
-</div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 10px;
+              "
+            >
+              <div class="form-row">
+                <label>Fecha de Pago</label><input type="date" id="pay-date" />
+              </div>
+              <div class="form-row">
+                <label>Método</label>
+                <select id="pay-method">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Mixto">Mixto</option>
+                </select>
+              </div>
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 10px;
+              "
+            >
+              <div class="form-row">
+                <label>Monto $</label
+                ><input type="number" id="pay-amount" placeholder="8500" />
+              </div>
+              <div class="form-row">
+                <label>Observación</label
+                ><input type="text" id="pay-obs" placeholder="Opcional" />
+              </div>
+            </div>
 
-<div class="form-row" style="margin-bottom:10px;">
-  <label>Tipo de Pago</label>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
-    <button id="pay-tipo-renovacion" onclick="seleccionarTipoPago('renovacion')"
-      class="btn-save" style="background:var(--accent); color:#000;">RENOVACIÓN</button>
-    <button id="pay-tipo-reincorporacion" onclick="seleccionarTipoPago('reincorporacion')"
-      class="btn-save" style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary);">REINCORPORACIÓN</button>
-  </div>
-</div>
+            <div class="form-row" style="margin-bottom: 10px">
+              <label>Tipo de Pago</label>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 8px;
+                  margin-top: 6px;
+                "
+              >
+                <button
+                  id="pay-tipo-renovacion"
+                  onclick="seleccionarTipoPago('renovacion')"
+                  class="btn-save"
+                  style="background: var(--accent); color: #000"
+                >
+                  RENOVACIÓN
+                </button>
+                <button
+                  id="pay-tipo-reincorporacion"
+                  onclick="seleccionarTipoPago('reincorporacion')"
+                  class="btn-save"
+                  style="
+                    background: none;
+                    border: 1px solid var(--border-strong);
+                    color: var(--text-secondary);
+                  "
+                >
+                  REINCORPORACIÓN
+                </button>
+              </div>
+            </div>
 
-<div class="form-row" id="pay-nuevo-venc-row">
-  <label>Nuevo Vencimiento</label>
-  <input type="date" id="pay-nuevo-venc" disabled style="opacity:0.6;">
-</div>
+            <div class="form-row" id="pay-nuevo-venc-row">
+              <label>Nuevo Vencimiento</label>
+              <input
+                type="date"
+                id="pay-nuevo-venc"
+                disabled
+                style="opacity: 0.6"
+              />
+            </div>
 
-<button class="btn-save" onclick="addPaymentRecord()" style="width:100%; margin-top:10px; background:var(--warning); color:#000;">REGISTRAR PAGO</button>
-</div>
+            <button
+              class="btn-save"
+              onclick="addPaymentRecord()"
+              style="
+                width: 100%;
+                margin-top: 10px;
+                background: var(--warning);
+                color: #000;
+              "
+            >
+              REGISTRAR PAGO
+            </button>
+          </div>
 
           <!-- PANEL VENCIMIENTOS PRÓXIMOS -->
-          <div id="vencimientos-panel" class="admin-section hidden" style="margin-top:20px; border-left:3px solid var(--warning);">
-            <div class="admin-title" style="color:var(--warning);">Vencimientos</div>
+          <div
+            id="vencimientos-panel"
+            class="admin-section hidden"
+            style="margin-top: 20px; border-left: 3px solid var(--warning)"
+          >
+            <div class="admin-title" style="color: var(--warning)">
+              Vencimientos
+            </div>
             <div id="vencimientos-proximos"></div>
           </div>
 
@@ -1332,7 +1721,6 @@
               border: 1px solid var(--border);
             "
           >
-
             <input
               type="text"
               id="user-search"
@@ -1341,9 +1729,7 @@
               style="margin-bottom: 14px"
             />
 
-            <div
-              style="display:flex; flex-direction:column; gap:12px;"
-            >
+            <div style="display: flex; flex-direction: column; gap: 12px">
               <div class="form-row">
                 <label>Estado</label>
                 <div class="filter-bar">
@@ -1382,8 +1768,12 @@
                 </div>
               </div>
               <div class="form-row">
-                <select id="filter-discipline" onchange="renderUserList()" style="margin-top:0;">
-  <option value="all">Tipo de Entrenamiento</option>
+                <select
+                  id="filter-discipline"
+                  onchange="renderUserList()"
+                  style="margin-top: 0"
+                >
+                  <option value="all">Tipo de Entrenamiento</option>
                   <option value="crossfit">CrossFit</option>
                   <option value="funcional">Funcional</option>
                   <option value="planificacion">Planificación</option>

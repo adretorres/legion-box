@@ -38,6 +38,7 @@ import { inicializarNotificaciones, enviarNotificacion,
          enviarNotificacionGeneral }      from './notificaciones.js';
 import { renderHorariosAdmin, agregarHorario,
          eliminarHorario, renderHorariosPublico } from './horarios.js';
+import { toggleAccordion } from './ui.js';
 
 // ─── ESTADO LOCAL ─────────────────────────────────────────────────────────────
 export let selectedViewDay          = "lunes";
@@ -118,7 +119,19 @@ export function switchTab(id, btn) {
 
   if(id === "profile")     loadProfileData();
   if(id === "ranking")     renderRanking();
-  if(id === "info")        { loadBoxInfo(); renderBirthdays(); }
+  if(id === "info") {
+  loadBoxInfo();
+  renderBirthdays();
+  // Mostrar botón competencia si hay una activa y pública
+  const wrap = document.getElementById('info-comp-btn-wrap');
+  if(wrap) {
+    if(cacheComp?.activa && cacheComp?.accesoPublico) {
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
+    }
+  }
+}
   if(id === "users")       { renderUserList(); renderVencimientos(); }
   if(id === 'comp') {
     cargarCompetencia().then(() => {
@@ -206,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   setInterval(checkAutoReset, 30000);
 
-  // Restaurar sesión
+// Restaurar sesión
   const sesionGuardada = localStorage.getItem('legion_session');
   if(sesionGuardada) {
     const s = JSON.parse(sesionGuardada);
@@ -214,12 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(s.role === 'espectador') {
       cargarCompetencia().then(() => {
         if(cacheComp && cacheComp.activa) {
-          document.getElementById('screen-login').classList.add('hidden');
-          document.getElementById('screen-app').classList.remove('hidden');
-          document.getElementById('tab-link-comp-public').classList.remove('hidden');
-          document.getElementById('nav-username').textContent = cacheComp.nombre;
-          renderCompAdmin();
-          switchTab('comp-public', document.getElementById('tab-link-comp-public'));
+          entrarLeaderboard();
         } else {
           localStorage.removeItem('legion_session');
         }
@@ -297,3 +305,4 @@ window.renderVencimientos    = renderVencimientos;
 window.renderBirthdays       = renderBirthdays;
 window.editarResultadoRanking = editarResultadoRanking;
 window.actualizarTamEquipo   = function(){};
+window.toggleAccordion = toggleAccordion;

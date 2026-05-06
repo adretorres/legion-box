@@ -344,15 +344,38 @@ export function actualizarBotonLeaderboard() {
   }
 }
 
-export function entrarLeaderboard() {
+export function entrarLeaderboard(origen = 'login') {
+  // Guardar desde dónde vino
+  sessionStorage.setItem('leaderboard_origen', origen);
+  
   setCurrentUser({ id: 'espectador', role: 'espectador', name: 'Espectador' });
+
   document.getElementById('screen-login').classList.add('hidden');
   document.getElementById('screen-app').classList.remove('hidden');
-  document.getElementById('tab-link-comp-public').classList.remove('hidden');
-  document.getElementById('nav-username').textContent = cacheComp?.nombre || 'Competencia';
-  renderCompAdmin();
-  switchTab('comp-public', document.getElementById('tab-link-comp-public'));
-  localStorage.setItem('legion_session', JSON.stringify({ id: 'espectador', role: 'espectador', name: 'Espectador' }));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.add('hidden'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('nav').classList.add('hidden');
+  document.querySelector('.tabs').classList.add('hidden');
+  document.getElementById('tab-comp-public').classList.add('active');
+
+  if(cacheComp) {
+    const nombreEl = document.getElementById('public-comp-nombre');
+    const fechaEl  = document.getElementById('public-comp-fecha');
+    if(nombreEl) nombreEl.textContent = cacheComp.nombre || '';
+    if(fechaEl && cacheComp.fecha) {
+      fechaEl.textContent = new Date(cacheComp.fecha + 'T00:00:00')
+        .toLocaleDateString('es-AR', { day:'numeric', month:'long', year:'numeric' });
+    }
+  }
+
+  renderRankingPublico();
+  
+  // Solo guardar sesión si viene del login (espectador puro)
+  if(origen === 'login') {
+    localStorage.setItem('legion_session', JSON.stringify(
+      { id: 'espectador', role: 'espectador', name: 'Espectador' }
+    ));
+  }
 }
 
 export async function finalizarCompetencia() {
@@ -482,6 +505,31 @@ export function renderCompAdmin() {
   });
 }
 
+export function volverAlInicio() {
+  const origen = sessionStorage.getItem('leaderboard_origen') || 'login';
+  sessionStorage.removeItem('leaderboard_origen');
+
+  if(origen === 'infobox') {
+    // Restaurar app del atleta y volver a Info Box
+    document.querySelector('nav').classList.remove('hidden');
+    document.querySelector('.tabs').classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('hidden'));
+    document.getElementById('tab-comp-public').classList.remove('active');
+    // Restaurar tabs según rol
+    const sesion = JSON.parse(localStorage.getItem('legion_session'));
+    if(sesion?.role === 'atleta') {
+      document.getElementById('tab-link-users').classList.add('hidden');
+      document.getElementById('tab-link-comp').classList.add('hidden');
+      document.getElementById('tab-link-comp-public').classList.add('hidden');
+    }
+    switchTab('info', document.querySelector('[onclick="switchTab(\'info\', this)"]'));
+  } else {
+    // Espectador puro, volver al login
+    localStorage.removeItem('legion_session');
+    location.reload();
+  }
+}
+
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.mostrarFormComp             = mostrarFormComp;
 window.guardarCompetencia          = guardarCompetencia;
@@ -505,3 +553,4 @@ window.entrarLeaderboard           = entrarLeaderboard;
 window.finalizarCompetencia        = finalizarCompetencia;
 window.renderCompAdmin             = renderCompAdmin;
 window.actualizarTamEquipo         = function(){};
+window.volverAlInicio = volverAlInicio;
