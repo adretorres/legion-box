@@ -15,8 +15,9 @@ import { renderUserList, renderBirthdays, renderVencimientos,
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
          resetProgramacion, toggleResetDay }  from './clases.js';
-import { renderRanking, setRankingMode,
-         saveWodScore, editarResultadoRanking } from './ranking.js';
+import { renderRanking, saveWodScore,
+         editarResultadoRanking, cargarResultadoCoach,
+         seleccionarModalidad } from './ranking.js';
 import { renderCompAdmin, mostrarFormComp, guardarCompetencia,
          agregarCategoria, eliminarCategoria,
          agregarEvento, eliminarEvento, editarEvento, guardarEdicionEvento,
@@ -91,8 +92,17 @@ export async function showApp(isCoach, userData = null) {
   } else {
     currentViewPlan = userData.plans && userData.plans.length > 0
       ? userData.plans[0] : "crossfit";
-    document.getElementById("score-upload-container").classList.remove("hidden");
-    setupPlanSwitcher(userData.plans);
+      const esSoloCrossFit = userData.plans?.includes('crossfit');
+      const esSoloFuncional = !esSoloCrossFit && userData.plans?.includes('funcional');
+
+      if(esSoloCrossFit) {
+        document.getElementById("score-upload-container").classList.remove("hidden");
+        document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.remove("hidden");
+      } else {
+        document.getElementById("score-upload-container").classList.add("hidden");
+        document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.add("hidden");
+      }
+      setupPlanSwitcher(userData.plans);
     const btnH = document.getElementById("btn-" + selectedViewDay);
     if(btnH) changeViewDay(selectedViewDay, btnH);
     setTimeout(() => inicializarNotificaciones(), 2000);
@@ -164,19 +174,15 @@ export function seleccionarTipoPago(tipo) {
 
 // ─── DOMContentLoaded ─────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  const dias    = ["domingo","lunes","martes","miercoles","jueves","viernes","sabado"];
-  const hoyIdx  = new Date().getDay();
-  selectedViewDay = hoyIdx === 0 ? "lunes" : dias[hoyIdx];
+  const dias   = ["domingo","lunes","martes","miercoles","jueves","viernes","sabado"];
+  const hoyIdx = new Date().getDay();
+  setSelectedViewDay(hoyIdx === 0 ? "lunes" : dias[hoyIdx]);
 
-  // Poblar select ranking
-  const rSelect = document.getElementById("rank-day-select");
-  ["lunes","martes","miercoles","jueves","viernes","sabado"].forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d;
-    opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
-    rSelect.appendChild(opt);
+  // Marcar día actual en botones del ranking
+  document.querySelectorAll('#rank-day-btns .day-btn').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    if(onclick.includes(selectedViewDay)) btn.classList.add('active');
   });
-  rSelect.value = selectedViewDay;
 
   const payDateInput = document.getElementById("pay-date");
   if(payDateInput) payDateInput.valueAsDate = new Date();
@@ -248,7 +254,6 @@ window.loadRMValue          = loadRMValue;
 window.updateOwnProfile     = updateOwnProfile;
 window.addPaymentRecord     = addPaymentRecord;
 window.deletePayment        = deletePayment;
-window.setRankingMode       = setRankingMode;
 window.renderRanking        = renderRanking;
 window.refreshScheduleUI    = refreshScheduleUI;
 window.syncAdminView        = syncAdminView;

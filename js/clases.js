@@ -76,7 +76,7 @@ export function setupPlanSwitcher(plans) {
     b.className = "day-btn " + (currentViewPlan === p ? "active" : "");
     b.textContent = p.toUpperCase();
     b.onclick = () => {
-      currentViewPlan = p;
+      setCurrentViewPlan(p);
       document.querySelectorAll("#user-plan-switcher .day-btn")
         .forEach(btn => btn.classList.remove("active"));
       b.classList.add("active");

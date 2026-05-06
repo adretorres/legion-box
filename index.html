@@ -10,6 +10,7 @@
     />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="icon" href="img/logo-legion.png">
   </head>
   <body>
     <!-- ─── LOGIN ──────────────────────────────────────── -->
@@ -803,23 +804,33 @@
               <h2 id="class-title-display">Selecciona un día</h2>
               <div id="class-blocks-display"></div>
 
-              <div
-                id="score-upload-container"
-                class="hidden score-upload-container"
-              >
+              <div id="score-upload-container" class="hidden score-upload-container">
                 <span class="score-upload-label">Registrar mi resultado</span>
-                <div class="score-upload-row">
-                  <input
-                    type="text"
-                    id="input-score"
-                    id="input-score"
-                    placeholder=""
-                    style="flex: 1"
-                  />
-                  <button class="btn-save" onclick="saveWodScore()">
-                    Subir
-                  </button>
+
+                <!-- Selector RX / Scaled -->
+                <div style="margin-bottom:12px;">
+                  <div style="display:flex; gap:8px; margin-bottom:8px;">
+                    <button id="btn-rx" onclick="seleccionarModalidad('rx')"
+                      class="btn-save" style="flex:1; background:var(--accent); color:#000;">
+                      RX
+                    </button>
+                    <button id="btn-scaled" onclick="seleccionarModalidad('scaled')"
+                      class="btn-save" style="flex:1; background:none; border:1px solid var(--border-strong); color:var(--text-secondary);">
+                      SCALED
+                    </button>
+                  </div>
+                  <div id="modalidad-info" style="font-size:0.75rem; color:var(--text-tertiary); line-height:1.5; padding:8px 10px; background:var(--surface); border-radius:var(--radius-sm); border:1px solid var(--border); display:none;">
+                    <b style="color:var(--accent);">RX</b> — Completaste el WOD exactamente como fue programado, sin modificar pesos, movimientos ni repeticiones.<br>
+                    <b style="color:var(--text-secondary);">SCALED (SC)</b> — Modificaste algún aspecto del WOD: bajaste el peso, cambiaste un movimiento o ajustaste las repeticiones. Cualquier adaptación cuenta como Scaled.
+                  </div>
                 </div>
+
+                <div class="score-upload-row">
+                  <input type="text" id="input-score" placeholder="" style="flex:1;" />
+                  <button class="btn-save" onclick="saveWodScore()">Subir</button>
+                </div>
+                <div id="score-format-hint" style="font-size:0.72rem; color:var(--text-tertiary); margin-top:6px;"></div>
+                <div id="score-error" style="font-size:0.75rem; color:var(--danger); margin-top:6px; display:none;"></div>
               </div>
             </div>
           </div>
@@ -963,59 +974,19 @@
           <div class="page-title">Ranking</div>
 
           <div class="admin-section">
-            <div style="display: flex; gap: 6px; margin-bottom: 18px">
-              <button
-                id="rank-mode-day"
-                class="day-btn active"
-                style="flex: 1"
-                onclick="setRankingMode('day')"
-              >
-                DIARIO
-              </button>
-              <button
-                id="rank-mode-week"
-                class="day-btn"
-                style="flex: 1"
-                onclick="setRankingMode('week')"
-              >
-                SEMANAL
-              </button>
-            </div>
-
-            <div
-              id="rank-filters-row"
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 16px;
-              "
-            >
-              <div class="form-row">
-                <label>Día</label>
-                <select
-                  id="rank-day-select"
-                  onchange="renderRanking()"
-                ></select>
-              </div>
-              <div class="form-row">
-                <label>Disciplina</label>
-                <select id="rank-plan-select" onchange="renderRanking()">
-                  <option value="crossfit">CrossFit</option>
-                  <option value="funcional">Funcional</option>
-                </select>
+            <div id="rank-filters-row" style="margin-bottom:16px;">
+              <label style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:2px; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:8px;">Día</label>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;" id="rank-day-btns">
+                <button class="day-btn" onclick="cambiarDiaRanking('lunes', this)">Lun</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('martes', this)">Mar</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('miercoles', this)">Mié</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('jueves', this)">Jue</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('viernes', this)">Vie</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('sabado', this)">Sáb</button>
               </div>
             </div>
 
-            <div
-              id="ranking-list-container"
-              style="
-                background: var(--surface);
-                border-radius: var(--radius);
-                border: 1px solid var(--border);
-                overflow: hidden;
-              "
-            ></div>
+            <div id="ranking-list-container" style="background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden;"></div>
           </div>
         </div>
 
