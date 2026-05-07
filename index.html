@@ -1074,162 +1074,146 @@
           </div>
 
           <!-- ADMIN: Programación -->
-          <div
-            id="admin-panel"
-            class="admin-section hidden"
-            style="margin-top: 32px; border-left: 3px solid var(--accent)"
-          >
-            <div class="admin-title">Programación de Clases</div>
+          <div id="admin-panel" class="admin-section hidden" style="margin-top: 32px;">
 
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-            >
-              <div class="form-row">
-                <label>Día</label>
-                <select id="edit-day-select" onchange="syncAdminView()">
-                  <option value="lunes">Lunes</option>
-                  <option value="martes">Martes</option>
-                  <option value="miercoles">Miércoles</option>
-                  <option value="jueves">Jueves</option>
-                  <option value="viernes">Viernes</option>
-                  <option value="sabado">Sábado</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>Disciplina</label>
-                <select id="edit-plan-select" onchange="syncAdminView()">
-                  <option value="crossfit">CrossFit</option>
-                  <option value="funcional">Funcional</option>
-                  <option value="planificacion">Planificación</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <label>Título</label><input type="text" id="edit-title" />
-            </div>
-            <div class="form-row">
-              <label>Tipo de Resultado</label>
-              <select id="edit-result-type">
-                <option value="time">Tiempo</option>
-                <option value="reps">Reps</option>
-                <option value="weight">Peso</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>Calentamiento / Core</label
-              ><textarea id="edit-warmup" rows="3"></textarea>
-            </div>
-            <div class="form-row">
-              <label>Fuerza / Técnica</label
-              ><textarea id="edit-strength" rows="3"></textarea>
-            </div>
-            <div class="form-row">
-              <label>WOD</label><textarea id="edit-wod" rows="5"></textarea>
-            </div>
-            <button class="btn-save" onclick="saveClass()" style="width: 100%">
-              GUARDAR CLASE
-            </button>
-
-            <hr class="divider" />
-
-            <div class="admin-title">Avisos:</div>
-            <div class="form-row">
-              <textarea id="edit-news" rows="2" style="width: 100%"></textarea>
-            </div>
-            <button
-              class="btn-save"
-              onclick="saveNews()"
-              style="width: 100%; background: #34df45"
-            >
-              PUBLICAR
-            </button>
-            <hr class="divider" style="margin-top: 16px" />
-            <div class="admin-title">Gestión de Horarios</div>
-            <div id="horarios-admin-cont"></div>
-            <hr class="divider" style="margin-top: 16px" />
-            <div class="admin-title">Notificación General</div>
-            <div class="form-row" style="margin-top: 8px">
-              <input
-                type="text"
-                id="notif-general-texto"
-                placeholder="Mensaje para todos los atletas..."
-              />
-            </div>
-            <button
-              class="btn-save"
-              onclick="enviarNotificacionGeneral()"
-              style="
-                width: 100%;
-                background: none;
-                border: 1px solid var(--border-strong);
-                color: var(--text-secondary);
-                margin-top: 8px;
-              "
-            >
-              🔔 ENVIAR A TODOS
-            </button>
-            <hr class="divider" style="margin-top: 24px" />
-            <div
-              class="admin-title"
-              style="color: var(--danger); margin-bottom: 8px"
-            >
-              Eliminar clases
-            </div>
-            <p
-              style="
-                font-size: 0.78rem;
-                color: var(--text-tertiary);
-                margin-bottom: 12px;
-              "
-            >
-              Seleccioná los días que quieras eliminar
-            </p>
-            <div
-              id="reset-day-selector"
-              style="
-                display: grid;
-                grid-template-columns: repeat(6, 1fr);
-                gap: 6px;
-                margin-bottom: 12px;
-              "
-            >
-              <button class="day-btn" onclick="toggleResetDay(this, 'lunes')">
-                LUN
-              </button>
-              <button class="day-btn" onclick="toggleResetDay(this, 'martes')">
-                MAR
-              </button>
-              <button
-                class="day-btn"
-                onclick="toggleResetDay(this, 'miercoles')"
-              >
-                MIE
-              </button>
-              <button class="day-btn" onclick="toggleResetDay(this, 'jueves')">
-                JUE
-              </button>
-              <button class="day-btn" onclick="toggleResetDay(this, 'viernes')">
-                VIE
-              </button>
-              <button class="day-btn" onclick="toggleResetDay(this, 'sabado')">
-                SAB
-              </button>
-            </div>
-            <button
-              class="btn-save"
-              onclick="resetProgramacion()"
-              style="
-                width: 100%;
-                background: none;
-                border: 1px solid var(--danger);
-                color: var(--danger);
-              "
-            >
-              ELIMINAR
-            </button>
+  <!-- ── 1. PROGRAMACIÓN DE CLASES ─────────────── -->
+  <div class="admin-section" style="margin-top:0; margin-bottom:10px; border-left:3px solid var(--accent);">
+    <div class="accordion-header" onclick="toggleAccordion('admin-prog'); syncAdminView()">
+      <div class="admin-title" style="margin-bottom:0;">Programación de Clases</div>
+      <span class="accordion-arrow" id="acc-arrow-admin-prog">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-admin-prog">
+      <div style="padding-top:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="form-row">
+            <label>Día</label>
+            <select id="edit-day-select" onchange="this.dataset.userChanged='1'; syncAdminView()">
+              <option value="lunes">Lunes</option>
+              <option value="martes">Martes</option>
+              <option value="miercoles">Miércoles</option>
+              <option value="jueves">Jueves</option>
+              <option value="viernes">Viernes</option>
+              <option value="sabado">Sábado</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Disciplina</label>
+            <select id="edit-plan-select" onchange="syncAdminView()">
+              <option value="crossfit">CrossFit</option>
+              <option value="funcional">Funcional</option>
+              <option value="planificacion">Planificación</option>
+            </select>
           </div>
         </div>
+        <div class="form-row">
+          <label>Título</label><input type="text" id="edit-title" />
+        </div>
+        <div class="form-row">
+          <label>Tipo de Resultado</label>
+          <select id="edit-result-type">
+            <option value="time">Tiempo</option>
+            <option value="reps">Reps</option>
+            <option value="weight">Peso</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Calentamiento / Core</label>
+          <textarea id="edit-warmup" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Fuerza / Técnica</label>
+          <textarea id="edit-strength" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <label>WOD</label>
+          <textarea id="edit-wod" rows="5"></textarea>
+        </div>
+        <button class="btn-save" onclick="saveClass()" style="width:100%;">
+          GUARDAR CLASE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. AVISOS ──────────────────────────────── -->
+  <div class="admin-section" style="margin-top:0; margin-bottom:10px;">
+    <div class="accordion-header" onclick="toggleAccordion('admin-avisos')">
+      <div class="admin-title" style="margin-bottom:0;">Avisos</div>
+      <span class="accordion-arrow" id="acc-arrow-admin-avisos">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-admin-avisos">
+      <div style="padding-top:16px;">
+        <div class="form-row">
+          <textarea id="edit-news" rows="3" style="width:100%;"></textarea>
+        </div>
+        <button class="btn-save" onclick="saveNews()" style="width:100%; background:var(--accent); color:#000;">
+          PUBLICAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. GESTIÓN DE HORARIOS ─────────────────── -->
+  <div class="admin-section" style="margin-top:0; margin-bottom:10px;">
+    <div class="accordion-header" onclick="toggleAccordion('admin-horarios')">
+      <div class="admin-title" style="margin-bottom:0;">Gestión de Horarios</div>
+      <span class="accordion-arrow" id="acc-arrow-admin-horarios">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-admin-horarios">
+      <div style="padding-top:16px;">
+        <div id="horarios-admin-cont"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. NOTIFICACIÓN GENERAL ────────────────── -->
+  <div class="admin-section" style="margin-top:0; margin-bottom:10px;">
+    <div class="accordion-header" onclick="toggleAccordion('admin-notif')">
+      <div class="admin-title" style="margin-bottom:0;">Notificación General</div>
+      <span class="accordion-arrow" id="acc-arrow-admin-notif">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-admin-notif">
+      <div style="padding-top:16px;">
+        <div class="form-row">
+          <input type="text" id="notif-general-texto" placeholder="Mensaje para todos los atletas..." />
+        </div>
+        <button class="btn-save" onclick="enviarNotificacionGeneral()"
+          style="width:100%; background:none; border:1px solid var(--border-strong); color:var(--text-secondary);">
+          🔔 ENVIAR A TODOS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. ELIMINAR CLASES ─────────────────────── -->
+  <div class="admin-section" style="margin-top:0; border-left:3px solid var(--danger);">
+    <div class="accordion-header" onclick="toggleAccordion('admin-eliminar')">
+      <div class="admin-title" style="margin-bottom:0; color:var(--danger);">Eliminar Clases</div>
+      <span class="accordion-arrow" id="acc-arrow-admin-eliminar">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-admin-eliminar">
+      <div style="padding-top:16px;">
+        <p style="font-size:0.78rem; color:var(--text-tertiary); margin-bottom:12px;">
+          Seleccioná los días que quieras eliminar
+        </p>
+        <div id="reset-day-selector"
+          style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:12px;">
+          <button class="day-btn" onclick="toggleResetDay(this,'lunes')">LUN</button>
+          <button class="day-btn" onclick="toggleResetDay(this,'martes')">MAR</button>
+          <button class="day-btn" onclick="toggleResetDay(this,'miercoles')">MIE</button>
+          <button class="day-btn" onclick="toggleResetDay(this,'jueves')">JUE</button>
+          <button class="day-btn" onclick="toggleResetDay(this,'viernes')">VIE</button>
+          <button class="day-btn" onclick="toggleResetDay(this,'sabado')">SAB</button>
+        </div>
+        <button class="btn-save" onclick="resetProgramacion()"
+          style="width:100%; background:none; border:1px solid var(--danger); color:var(--danger);">
+          ELIMINAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
         <!-- ── RANKING ────────────────────────────────── -->
         <div id="tab-ranking" class="tab-content">
@@ -1485,329 +1469,145 @@
         </div>
 
         <!-- ── GESTIÓN DE ATLETAS ─────────────────────── -->
-        <div id="tab-users" class="tab-content">
-          <div class="page-title">Atletas</div>
+<!-- ── GESTIÓN DE ATLETAS ─────────────────────── -->
+<div id="tab-users" class="tab-content">
+  <div class="page-title">Atletas</div>
 
-          <div class="admin-section">
-            <div class="admin-title">Registro / Edición</div>
+  <!-- BOTÓN NUEVO ATLETA -->
+  <button class="btn-save" onclick="abrirDrawerAtleta(null)"
+    style="width:100%; margin-bottom:16px;">
+    + NUEVO ATLETA
+  </button>
 
-            <div
-              style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 12px;
-              "
-            >
-              <div class="form-row">
-                <label>DNI</label><input type="text" id="user-id" />
-              </div>
-              <div class="form-row">
-                <label>Nombre Completo</label
-                ><input type="text" id="user-name" />
-              </div>
-              <div class="form-row">
-                <label>Contraseña</label
-                ><input type="text" id="user-pass-admin" />
-              </div>
-              <div class="form-row">
-                <label>Vencimiento Cuota</label
-                ><input type="date" id="user-expiry" />
-              </div>
-              <div class="form-row">
-                <label>Email</label><input type="email" id="user-email" />
-              </div>
-              <div class="form-row">
-                <label>Teléfono</label><input type="text" id="user-phone" />
-              </div>
-              <div class="form-row">
-                <label>Dirección</label><input type="text" id="user-address" />
-              </div>
-              <div class="form-row">
-                <label>Emergencia</label
-                ><input type="text" id="user-emergency" />
-              </div>
-              <div class="form-row">
-                <label>Nacimiento</label><input type="date" id="user-birth" />
-              </div>
-              <div class="form-row">
-                <label>Horario</label>
-                <select id="user-schedule">
-                  <option value="">
-                    Seleccione primer el Tipo de Entrenamiento
-                  </option>
-                </select>
-              </div>
-            </div>
+  <!-- ALERTAS / VENCIMIENTOS (colapsable) -->
+  <div class="admin-section" id="vencimientos-panel" style="margin-top:0; margin-bottom:16px; border-left:3px solid var(--danger); display:none;">
+    <div class="accordion-header" onclick="toggleAccordion('venc-atletas')">
+      <div class="admin-title" style="color:var(--danger); margin-bottom:0;">
+        ALERTAS
+        <span id="venc-badge" style="
+          background:var(--danger); color:#000; font-size:0.62rem;
+          padding:1px 7px; border-radius:10px; margin-left:8px;
+          font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;
+        "></span>
+      </div>
+      <span class="accordion-arrow" id="acc-arrow-venc-atletas">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-venc-atletas">
+      <div id="vencimientos-proximos" style="padding-top:12px;"></div>
+    </div>
+  </div>
 
-            <div class="form-row" style="margin-top: 6px">
-              <label>Tipo de Entrenamiento</label>
-              <div class="plan-check-group">
-                <label
-                  ><input
-                    type="checkbox"
-                    class="plan-check"
-                    value="crossfit"
-                    onchange="refreshScheduleUI()"
-                  />
-                  CrossFit</label
-                >
-                <label
-                  ><input
-                    type="checkbox"
-                    class="plan-check"
-                    value="funcional"
-                    onchange="refreshScheduleUI()"
-                  />
-                  Funcional</label
-                >
-                <label
-                  ><input
-                    type="checkbox"
-                    class="plan-check"
-                    value="planificacion"
-                    onchange="refreshScheduleUI()"
-                  />
-                  Planificación</label
-                >
-              </div>
-            </div>
+  <!-- BUSCADOR Y FILTROS -->
+  <div style="margin-bottom:16px; background:var(--card); padding:16px;
+    border-radius:var(--radius-lg); border:1px solid var(--border);">
+    <input type="text" id="user-search" placeholder="Buscar por nombre o DNI..."
+      oninput="renderUserList()" style="margin-bottom:14px;" />
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="form-row">
+        <label>Estado</label>
+        <div class="filter-bar">
+          <button class="day-btn active" onclick="setSocioFilter('all', this)" style="flex:1;">TODOS</button>
+          <button class="day-btn" onclick="setSocioFilter('active', this)" style="flex:1;">AL DÍA</button>
+          <button class="day-btn" onclick="setSocioFilter('expired', this)" style="flex:1;">VENC.</button>
+          <button class="day-btn" onclick="setSocioFilter('inactive', this)" style="flex:1;">INACT.</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <select id="filter-discipline" onchange="renderUserList()" style="margin-top:0;">
+          <option value="all">Tipo de Entrenamiento</option>
+          <option value="crossfit">CrossFit</option>
+          <option value="funcional">Funcional</option>
+          <option value="planificacion">Planificación</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-            <button
-              class="btn-save"
-              onclick="saveUser()"
-              style="width: 100%; margin-top: 14px"
-            >
-              GUARDAR ATLETA
-            </button>
-          </div>
+  <!-- EXPORTAR -->
+  <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <button class="btn-save" onclick="exportAtletas('xlsx')"
+      style="flex:1; background:none; border:1px solid var(--accent); color:var(--accent);">
+      Descargar en Excel
+    </button>
+    <button class="btn-save" onclick="exportAtletas('pdf')"
+      style="flex:1; background:none; border:1px solid var(--danger); color:var(--danger);">
+      Descargar en PDF
+    </button>
+  </div>
 
-          <!-- Historial de Pagos -->
-          <div
-            id="admin-user-history"
-            class="admin-section hidden"
-            style="margin-top: 16px; border-left: 3px solid var(--warning)"
-          >
-            <div class="admin-title" style="color: var(--warning)">
-              Historial de Pagos — <span id="history-user-name"></span>
-            </div>
+  <!-- LISTA ACORDEÓN -->
+  <div id="user-list-container"></div>
+</div>
 
-            <div
-              id="payment-history-list"
-              style="
-                max-height: 200px;
-                overflow-y: auto;
-                margin-bottom: 16px;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-sm);
-                padding: 8px 14px;
-              "
-            ></div>
+<!-- ── DRAWER NUEVO/EDITAR ATLETA ─────────────── -->
+<div id="drawer-overlay" onclick="cerrarDrawerAtleta()"
+  style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+  z-index:400; backdrop-filter:blur(4px);"></div>
 
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 10px;
-              "
-            >
-              <div class="form-row">
-                <label>Fecha de Pago</label><input type="date" id="pay-date" />
-              </div>
-              <div class="form-row">
-                <label>Método</label>
-                <select id="pay-method">
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Transferencia">Transferencia</option>
-                  <option value="Mixto">Mixto</option>
-                </select>
-              </div>
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 10px;
-              "
-            >
-              <div class="form-row">
-                <label>Monto $</label
-                ><input type="number" id="pay-amount" placeholder="8500" />
-              </div>
-              <div class="form-row">
-                <label>Observación</label
-                ><input type="text" id="pay-obs" placeholder="Opcional" />
-              </div>
-            </div>
+<div id="drawer-atleta"
+  style="display:none; position:fixed; top:0; right:0; height:100%;
+  width:min(420px,100%); background:var(--surface);
+  border-left:1px solid var(--border-strong); z-index:401;
+  overflow-y:auto; padding:28px 24px;
+  animation:slideInRight 0.25s ease;">
 
-            <div class="form-row" style="margin-bottom: 10px">
-              <label>Tipo de Pago</label>
-              <div
-                style="
-                  display: grid;
-                  grid-template-columns: 1fr 1fr;
-                  gap: 8px;
-                  margin-top: 6px;
-                "
-              >
-                <button
-                  id="pay-tipo-renovacion"
-                  onclick="seleccionarTipoPago('renovacion')"
-                  class="btn-save"
-                  style="background: var(--accent); color: #000"
-                >
-                  RENOVACIÓN
-                </button>
-                <button
-                  id="pay-tipo-reincorporacion"
-                  onclick="seleccionarTipoPago('reincorporacion')"
-                  class="btn-save"
-                  style="
-                    background: none;
-                    border: 1px solid var(--border-strong);
-                    color: var(--text-secondary);
-                  "
-                >
-                  REINCORPORACIÓN
-                </button>
-              </div>
-            </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <div class="admin-title" id="drawer-titulo" style="margin-bottom:0;">NUEVO ATLETA</div>
+    <button onclick="cerrarDrawerAtleta()"
+      style="background:none; border:none; color:var(--text-tertiary);
+      font-size:1.4rem; cursor:pointer; line-height:1; padding:4px 8px;">✕</button>
+  </div>
 
-            <div class="form-row" id="pay-nuevo-venc-row">
-              <label>Nuevo Vencimiento</label>
-              <input
-                type="date"
-                id="pay-nuevo-venc"
-                disabled
-                style="opacity: 0.6"
-              />
-            </div>
+  <!-- Campos del formulario (idénticos a los actuales) -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div class="form-row">
+      <label>DNI</label><input type="text" id="user-id" />
+    </div>
+    <div class="form-row">
+      <label>Nombre Completo</label><input type="text" id="user-name" />
+    </div>
+    <div class="form-row">
+      <label>Contraseña</label><input type="text" id="user-pass-admin" />
+    </div>
+    <div class="form-row">
+      <label>Vencimiento Cuota</label><input type="date" id="user-expiry" />
+    </div>
+    <div class="form-row">
+      <label>Email</label><input type="email" id="user-email" />
+    </div>
+    <div class="form-row">
+      <label>Teléfono</label><input type="text" id="user-phone" />
+    </div>
+    <div class="form-row">
+      <label>Dirección</label><input type="text" id="user-address" />
+    </div>
+    <div class="form-row">
+      <label>Emergencia</label><input type="text" id="user-emergency" />
+    </div>
+    <div class="form-row">
+      <label>Nacimiento</label><input type="date" id="user-birth" />
+    </div>
+    <div class="form-row">
+      <label>Horario</label>
+      <select id="user-schedule">
+        <option value="">Seleccione el Tipo de Entrenamiento</option>
+      </select>
+    </div>
+  </div>
 
-            <button
-              class="btn-save"
-              onclick="addPaymentRecord()"
-              style="
-                width: 100%;
-                margin-top: 10px;
-                background: var(--warning);
-                color: #000;
-              "
-            >
-              REGISTRAR PAGO
-            </button>
-          </div>
+  <div class="form-row" style="margin-top:6px;">
+    <label>Tipo de Entrenamiento</label>
+    <div class="plan-check-group">
+      <label><input type="checkbox" class="plan-check" value="crossfit" onchange="refreshScheduleUI()" />CrossFit</label>
+      <label><input type="checkbox" class="plan-check" value="funcional" onchange="refreshScheduleUI()" />Funcional</label>
+      <label><input type="checkbox" class="plan-check" value="planificacion" onchange="refreshScheduleUI()" />Planificación</label>
+    </div>
+  </div>
 
-          <!-- PANEL VENCIMIENTOS PRÓXIMOS -->
-          <div
-            id="vencimientos-panel"
-            class="admin-section hidden"
-            style="margin-top: 20px; border-left: 3px solid var(--warning)"
-          >
-            <div class="admin-title" style="color: var(--warning)">
-              Vencimientos
-            </div>
-            <div id="vencimientos-proximos"></div>
-          </div>
-
-          <!-- Buscador y filtros -->
-          <div
-            style="
-              margin: 20px 0;
-              background: var(--card);
-              padding: 16px;
-              border-radius: var(--radius-lg);
-              border: 1px solid var(--border);
-            "
-          >
-            <input
-              type="text"
-              id="user-search"
-              placeholder="Buscar por nombre o DNI..."
-              oninput="renderUserList()"
-              style="margin-bottom: 14px"
-            />
-
-            <div style="display: flex; flex-direction: column; gap: 12px">
-              <div class="form-row">
-                <label>Estado</label>
-                <div class="filter-bar">
-                  <button
-                    class="day-btn active"
-                    id="filter-all"
-                    onclick="setSocioFilter('all', this)"
-                    style="flex: 1"
-                  >
-                    TODOS
-                  </button>
-                  <button
-                    class="day-btn"
-                    id="filter-active"
-                    onclick="setSocioFilter('active', this)"
-                    style="flex: 1"
-                  >
-                    AL DÍA
-                  </button>
-                  <button
-                    class="day-btn"
-                    id="filter-expired"
-                    onclick="setSocioFilter('expired', this)"
-                    style="flex: 1"
-                  >
-                    VENC.
-                  </button>
-                  <button
-                    class="day-btn"
-                    id="filter-inactive"
-                    onclick="setSocioFilter('inactive', this)"
-                    style="flex: 1"
-                  >
-                    INACT.
-                  </button>
-                </div>
-              </div>
-              <div class="form-row">
-                <select
-                  id="filter-discipline"
-                  onchange="renderUserList()"
-                  style="margin-top: 0"
-                >
-                  <option value="all">Tipo de Entrenamiento</option>
-                  <option value="crossfit">CrossFit</option>
-                  <option value="funcional">Funcional</option>
-                  <option value="planificacion">Planificación</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px; margin-bottom: 16px">
-            <button
-              class="btn-save"
-              onclick="exportAtletas('xlsx')"
-              style="
-                flex: 1;
-                background: none;
-                border: 1px solid var(--accent);
-                color: var(--accent);
-              "
-            >
-              Descargar en Excel
-            </button>
-            <button
-              class="btn-save"
-              onclick="exportAtletas('pdf')"
-              style="
-                flex: 1;
-                background: none;
-                border: 1px solid var(--danger);
-                color: var(--danger);
-              "
-            >
-              Descargar en PDF
-            </button>
-          </div>
-          <div id="user-list-container"></div>
+  <button class="btn-save" onclick="saveUser()" style="width:100%; margin-top:20px;">
+    GUARDAR ATLETA
+  </button>
+</div>
         </div>
       </main>
     </div>

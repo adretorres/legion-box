@@ -10,7 +10,12 @@ import { selectedViewDay, setSelectedViewDay, currentViewPlan, setCurrentViewPla
 
 // ─── PROGRAMACIÓN ─────────────────────────────────────────────────────────────
 export function syncAdminView() {
-  const d = document.getElementById("edit-day-select").value;
+  // Sincronizar selector con el día que está viendo el coach
+  const daySelect = document.getElementById("edit-day-select");
+  if (daySelect && !daySelect.dataset.userChanged) {
+    daySelect.value = selectedViewDay;
+  }
+  const d = daySelect.value;
   const p = document.getElementById("edit-plan-select").value;
   setSelectedViewDay(d);
   setCurrentViewPlan(p);
