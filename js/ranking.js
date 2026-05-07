@@ -8,8 +8,11 @@ import {
 
 import { selectedViewDay, currentViewPlan, setCurrentRankingMode } from './main.js';
 
+let diaRankingActual = null;
+
 // ─── MODALIDAD RX / SCALED ────────────────────────────────────────────────────
 let modalidadSeleccionada = null;
+
 
 export function seleccionarModalidad(modo) {
   modalidadSeleccionada = modo;
@@ -135,7 +138,7 @@ export async function saveWodScore() {
 export function renderRanking() {
   const cont    = document.getElementById("ranking-list-container");
   const results = cacheResults || {};
-  const day     = document.getElementById("rank-day-select")?.value || selectedViewDay;
+  const day = diaRankingActual || selectedViewDay;
   const plan    = 'crossfit';
   const tipo    = cachePrograms[day]?.[plan]?.resultType || 'time';
   const hoy     = new Date(); hoy.setHours(0,0,0,0);
@@ -164,11 +167,6 @@ export function renderRanking() {
     return parts.length === 2 ? parseInt(parts[0])*60 + parseFloat(parts[1]) : parseFloat(parts[0]);
   };
   const toNum = str => parseFloat(str.replace(',','.')) || 0;
-
-  conResultado.sort(([, ], [idB, ]) => {
-    const sa = lista[_a = conResultado.find(([i])=>i===idA)?.[0], lista[idA]?.score] ;
-    return 0;
-  });
 
   // Ordenar correctamente
   const conOrdenado = conResultado
@@ -285,12 +283,10 @@ export async function cargarResultadoCoach(uid, nombre, day, plan) {
 }
 
 export function cambiarDiaRanking(dia, btn) {
+  diaRankingActual = dia;
   document.querySelectorAll('#rank-day-btns .day-btn')
     .forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // actualizar el select oculto para mantener compatibilidad
-  const sel = document.getElementById('rank-day-select');
-  if(sel) sel.value = dia;
   renderRanking();
 }
 
