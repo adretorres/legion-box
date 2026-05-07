@@ -15,7 +15,6 @@ export function syncAdminView() {
   setSelectedViewDay(d);
   setCurrentViewPlan(p);
   const c = cachePrograms[d]?.[p] || {};
-  document.getElementById('edit-title').value        = c.title    || '';
   document.getElementById('edit-result-type').value  = c.resultType || 'time';
   document.getElementById("edit-warmup").value       = c.warmup   || "";
   document.getElementById("edit-strength").value     = c.strength || "";
@@ -28,7 +27,6 @@ export async function saveClass() {
   const p = document.getElementById("edit-plan-select").value;
   if(!cachePrograms[d]) cachePrograms[d] = {};
   cachePrograms[d][p] = {
-    title:      document.getElementById('edit-title').value,
     resultType: document.getElementById('edit-result-type').value,
     warmup:     document.getElementById('edit-warmup').value,
     strength:   document.getElementById('edit-strength').value,
@@ -44,7 +42,6 @@ export function renderClass() {
   const c = cachePrograms[selectedViewDay]?.[currentViewPlan] || {};
   document.getElementById("display-day-name").textContent  = selectedViewDay.toUpperCase();
   document.getElementById("display-plan-name").textContent = currentViewPlan.toUpperCase();
-  document.getElementById("class-title-display").textContent = c.title || "";
   const cont = document.getElementById("class-blocks-display");
   cont.innerHTML = "";
   const nl = t => t.replace(/\n/g, '<br>');

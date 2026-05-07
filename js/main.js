@@ -11,7 +11,11 @@ import { doLogin, cerrarSesion }         from './auth.js';
 import { renderUserList, renderBirthdays, renderVencimientos,
          refreshScheduleUI, editUser, saveUser, eliminarAtleta,
          addPaymentRecord, deletePayment, renderPaymentHistory,
-         exportAtletas, setSocioFilter }  from './atletas.js';
+         exportAtletas, setSocioFilter,
+         toggleAtleta, switchAtletaTab, togglePagoPanel,
+         seleccionarTipoPagoAtleta, guardarPagoAtleta,
+         deletePaymentInline, abrirDrawerAtleta, cerrarDrawerAtleta,
+         renderHistorialPagosInline } from './atletas.js';
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
          resetProgramacion, toggleResetDay }  from './clases.js';
@@ -120,18 +124,17 @@ export function switchTab(id, btn) {
   if(id === "profile")     loadProfileData();
   if(id === "ranking")     renderRanking();
   if(id === "info") {
-  loadBoxInfo();
-  renderBirthdays();
-  // Mostrar botón competencia si hay una activa y pública
-  const wrap = document.getElementById('info-comp-btn-wrap');
-  if(wrap) {
-    if(cacheComp?.activa && cacheComp?.accesoPublico) {
-      wrap.classList.remove('hidden');
-    } else {
-      wrap.classList.add('hidden');
+    loadBoxInfo();
+    renderBirthdays();
+    const wrap = document.getElementById('info-comp-btn-wrap');
+    if(wrap) {
+      if(cacheComp?.activa && cacheComp?.accesoPublico) {
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+      }
     }
   }
-}
   if(id === "users")       { renderUserList(); renderVencimientos(); }
   if(id === 'comp') {
     cargarCompetencia().then(() => {
@@ -165,10 +168,12 @@ export function seleccionarTipoPago(tipo) {
     const expiry = cacheUsers[editingUserId]?.expiry;
     const base   = expiry ? new Date(expiry + 'T00:00:00') : new Date();
     base.setMonth(base.getMonth() + 1);
-    inputVenc.value    = base.toISOString().split('T')[0];
-    inputVenc.disabled = false;
-    inputVenc.style.opacity = '1';
-} else {
+    if(inputVenc) {
+      inputVenc.value    = base.toISOString().split('T')[0];
+      inputVenc.disabled = false;
+      inputVenc.style.opacity = '1';
+    }
+  } else {
     btnRein.style.background = 'var(--accent)';
     btnRein.style.color      = '#000';
     btnRein.style.border     = 'none';
@@ -176,12 +181,14 @@ export function seleccionarTipoPago(tipo) {
     btnRen.style.color       = 'var(--text-secondary)';
     btnRen.style.border      = '1px solid var(--border-strong)';
 
-    const fechaPago = document.getElementById('pay-date').value;
+    const fechaPago = document.getElementById('pay-date')?.value;
     const base      = fechaPago ? new Date(fechaPago + 'T00:00:00') : new Date();
     base.setDate(base.getDate() + 30);
-    inputVenc.value    = base.toISOString().split('T')[0];
-    inputVenc.disabled = false;
-    inputVenc.style.opacity = '1';
+    if(inputVenc) {
+      inputVenc.value    = base.toISOString().split('T')[0];
+      inputVenc.disabled = false;
+      inputVenc.style.opacity = '1';
+    }
   }
 }
 
@@ -191,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoyIdx = new Date().getDay();
   setSelectedViewDay(hoyIdx === 0 ? "lunes" : dias[hoyIdx]);
 
-  // Marcar día actual en botones del ranking
   document.querySelectorAll('#rank-day-btns .day-btn').forEach(btn => {
     const onclick = btn.getAttribute('onclick') || '';
     if(onclick.includes(selectedViewDay)) btn.classList.add('active');
@@ -202,7 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarCompetencia().then(() => actualizarBotonLeaderboard());
 
-  // Reset automático ranking los domingos
   async function checkAutoReset() {
     const ahora = new Date();
     if(ahora.getDay() === 0) {
@@ -219,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   setInterval(checkAutoReset, 30000);
 
-// Restaurar sesión
   const sesionGuardada = localStorage.getItem('legion_session');
   if(sesionGuardada) {
     const s = JSON.parse(sesionGuardada);
@@ -305,4 +309,13 @@ window.renderVencimientos    = renderVencimientos;
 window.renderBirthdays       = renderBirthdays;
 window.editarResultadoRanking = editarResultadoRanking;
 window.actualizarTamEquipo   = function(){};
-window.toggleAccordion = toggleAccordion;
+window.toggleAccordion       = toggleAccordion;
+window.toggleAtleta              = toggleAtleta;
+window.switchAtletaTab           = switchAtletaTab;
+window.togglePagoPanel           = togglePagoPanel;
+window.seleccionarTipoPagoAtleta = seleccionarTipoPagoAtleta;
+window.guardarPagoAtleta         = guardarPagoAtleta;
+window.deletePaymentInline       = deletePaymentInline;
+window.abrirDrawerAtleta         = abrirDrawerAtleta;
+window.cerrarDrawerAtleta        = cerrarDrawerAtleta;
+window.renderHistorialPagosInline = renderHistorialPagosInline;
