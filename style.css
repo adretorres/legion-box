@@ -3,18 +3,18 @@
 :root {
   --bg: #080808;
   --surface: #101010;
-  --card: #1414147d;
-  --card-hover: #1a1a1add;
-  --border: rgba(255,255,255,0.07);
-  --border-strong: rgba(255,255,255,0.12);
+  --card: rgba(20,20,20,0.82);
+  --card-hover: rgba(26,26,26,0.92);
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
   --accent: #34df45;        /* verde */
   --accent-dim: #1ca93656;
   --accent-glow: rgba(72, 241, 53, 0.25);
   --danger: #FF4545;
   --warning: #34df45;
-  --text: #F2F2F2;
-  --text-secondary: #888;
-  --text-tertiary: #555555;
+  --text: #FFFFFF;
+  --text-secondary: #c8c8c8;
+  --text-tertiary: #909090;
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 16px;

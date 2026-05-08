@@ -78,7 +78,6 @@ export async function showApp(isCoach, userData = null) {
     document.getElementById("admin-panel").classList.remove("hidden");
     document.getElementById("tab-link-users").classList.remove("hidden");
     document.getElementById("admin-prices-editor").classList.remove("hidden");
-    document.getElementById("tab-link-calc").classList.add("hidden");
     document.getElementById("tab-link-profile").classList.add("hidden");
     document.getElementById("score-upload-container").classList.add("hidden");
     renderUserList();
