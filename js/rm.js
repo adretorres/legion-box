@@ -9,8 +9,9 @@ import { renderPaymentHistory } from './atletas.js';
 
 // ─── CALCULADORA ──────────────────────────────────────────────────────────────
 export function calculate() {
-  const rm  = parseFloat(document.getElementById("input-rm").value);
-  const res = document.getElementById("calc-results");
+  const rm    = parseFloat(document.getElementById("input-rm").value);
+  const res   = document.getElementById("calc-results");
+  const unidad = document.getElementById("btn-convertir")?.dataset.modo === 'lb' ? 'lb' : 'kg';
   if(!rm) { res.innerHTML = ""; return; }
 
   const percent = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 40];
@@ -18,8 +19,28 @@ export function calculate() {
     <div class="rm-cell">
       <small>${p}%</small>
       <b>${((rm * p) / 100).toFixed(1)}</b>
-      <span>kg</span>
+      <span>${unidad}</span>
     </div>`).join("");
+}
+
+export function convertirPeso() {
+  const input = document.getElementById("input-rm");
+  const btn   = document.getElementById("btn-convertir");
+  const val   = parseFloat(input.value);
+  if(!val) return;
+
+  if(btn.dataset.modo === 'lb') {
+    // Libras a kg
+    input.value = (val / 2.205).toFixed(1);
+    btn.textContent = 'kg → lb';
+    btn.dataset.modo = 'kg';
+  } else {
+    // kg a libras
+    input.value = (val * 2.205).toFixed(1);
+    btn.textContent = 'lb → kg';
+    btn.dataset.modo = 'lb';
+  }
+  calculate();
 }
 
 export function loadRMValue() {
@@ -159,6 +180,21 @@ export async function updateOwnProfile() {
   alert("Perfil guardado.");
 }
 
+// ─── CONVERSOR INDEPENDIENTE ──────────────────────────────────────────────────
+export function convertirKgLb() {
+  const kg = parseFloat(document.getElementById('conv-kg').value);
+  const lb = document.getElementById('conv-lb');
+  if(!isNaN(kg) && kg !== '') lb.value = (kg * 2.205).toFixed(2);
+  else lb.value = '';
+}
+
+export function convertirLbKg() {
+  const lb = parseFloat(document.getElementById('conv-lb').value);
+  const kg = document.getElementById('conv-kg');
+  if(!isNaN(lb) && lb !== '') kg.value = (lb / 2.205).toFixed(2);
+  else kg.value = '';
+}
+
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.calculate         = calculate;
 window.loadRMValue       = loadRMValue;
@@ -166,3 +202,6 @@ window.saveRM            = saveRM;
 window.renderRMChart     = renderRMChart;
 window.loadProfileData   = loadProfileData;
 window.updateOwnProfile  = updateOwnProfile;
+window.convertirPeso = convertirPeso;
+window.convertirKgLb = convertirKgLb;
+window.convertirLbKg = convertirLbKg;
