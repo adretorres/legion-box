@@ -224,6 +224,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   setInterval(checkAutoReset, 30000);
 
+  // Registrar Service Worker (PWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/legion-box/service-worker.js')
+      .catch(err => console.log('SW error:', err));
+  }
+
   const sesionGuardada = localStorage.getItem('legion_session');
   if(sesionGuardada) {
     const s = JSON.parse(sesionGuardada);
