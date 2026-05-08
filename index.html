@@ -844,76 +844,42 @@
           </div>
 
           <!-- Display -->
-          <div
-            id="timer-display"
-            class="admin-section"
-            style="text-align: center; margin-top: 16px; padding: 40px 20px"
-          >
-            <div
-              id="timer-phase-label"
-              style="
-                font-family: &quot;Barlow Condensed&quot;, sans-serif;
-                font-size: 0.8rem;
-                font-weight: 700;
-                letter-spacing: 3px;
-                color: var(--text-tertiary);
-                margin-bottom: 8px;
-                text-transform: uppercase;
-                min-height: 20px;
-              "
-            ></div>
-            <div
-              id="timer-clock"
-              style="
-                font-family: &quot;Bebas Neue&quot;, sans-serif;
-                font-size: 6rem;
-                line-height: 1;
-                color: var(--text);
-                letter-spacing: 4px;
-              "
-            >
+          <!-- Display -->
+          <div id="timer-display" class="admin-section"
+            style="text-align:center; margin-top:16px; padding:20px;">
+
+            <div id="timer-mode-display"
+              style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem;
+              font-weight:700; letter-spacing:3px; color:var(--accent);
+              text-transform:uppercase; margin-bottom:8px; min-height:22px;">
+            </div>
+
+            <div id="timer-phase-label"
+              style="font-family:'Bebas Neue',sans-serif; font-size:2.2rem;
+              letter-spacing:3px; color:var(--text); min-height:36px;
+              text-transform:uppercase;">
+            </div>
+
+            <div id="timer-clock"
+              style="font-family:'Bebas Neue',sans-serif; font-size:6rem;
+              line-height:1; color:var(--text); letter-spacing:4px;">
               00:00
             </div>
-            <div
-              id="timer-round-label"
-              style="
-                font-family: &quot;Barlow Condensed&quot;, sans-serif;
-                font-size: 0.9rem;
-                letter-spacing: 2px;
-                color: var(--text-tertiary);
-                margin-top: 10px;
-                min-height: 22px;
-              "
-            ></div>
-            <div
-              style="
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-                margin-top: 28px;
-              "
-            >
-              <button
-                id="timer-btn-start"
-                class="btn-save"
-                onclick="timerStart()"
-                style="min-width: 100px; font-size: 0.9rem; padding: 14px 24px"
-              >
+
+            <div id="timer-round-label"
+              style="font-family:'Barlow Condensed',sans-serif; font-size:1.2rem;
+              font-weight:700; letter-spacing:2px; color:var(--text);
+              margin-top:10px; min-height:22px;">
+            </div>
+
+            <div style="display:flex; gap:12px; justify-content:center; margin-top:28px;">
+              <button id="timer-btn-start" class="btn-save" onclick="timerStart()"
+                style="min-width:100px; font-size:0.9rem; padding:14px 24px;">
                 INICIAR
               </button>
-              <button
-                id="timer-btn-reset"
-                class="btn-save"
-                onclick="timerReset()"
-                style="
-                  min-width: 80px;
-                  background: none;
-                  border: 1px solid var(--border-strong);
-                  color: var(--text-secondary);
-                  font-size: 0.9rem;
-                  padding: 14px 24px;
-                "
-              >
+              <button id="timer-btn-reset" class="btn-save" onclick="timerReset()"
+                style="min-width:80px; background:none; border:1px solid var(--border-strong);
+                color:var(--text-secondary); font-size:0.9rem; padding:14px 24px;">
                 RESTABLECER
               </button>
             </div>
@@ -1355,64 +1321,52 @@
 
         <!-- ── INFO BOX ───────────────────────────────── -->
         <div id="tab-info" class="tab-content">
-          <div class="page-title">Info Box</div>
+  <div class="page-title">Info Box</div>
 
-          <div
-            class="admin-section"
-            style="
-              border-left: 3px solid rgba(1, 254, 241, 0.4);
-              margin-bottom: 16px;
-            "
-          >
-            <div class="admin-title" style="color: #01fef1">
-              Cumpleaños del Mes
-            </div>
-            <div
-              id="info-birthday-list"
-              style="display: flex; flex-wrap: wrap; gap: 8px"
-            ></div>
-          </div>
+  <!-- CUMPLEAÑOS -->
+  <div class="admin-section" style="border-left:3px solid rgba(1,254,241,0.4); margin-bottom:10px;">
+    <div class="admin-title" style="color:#01fef1;">Cumpleaños del Mes</div>
+    <div id="info-birthday-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+  </div>
 
-          <div class="admin-section">
-            <div class="admin-title">Nuestros Horarios</div>
-            <div id="horarios-publico-cont" style="margin-bottom: 20px"></div>
-            <hr class="divider" />
-            <div class="admin-title">Membresías y Planes</div>
-            <div
-              id="display-prices"
-              style="
-                white-space: pre-wrap;
-                line-height: 1.7;
-                font-size: 0.88rem;
-                color: var(--text-secondary);
-                margin-bottom: 20px;
-              "
-            ></div>
-            <div id="admin-prices-editor" class="hidden">
-              <hr class="divider" />
-              <div class="admin-title">Editar Información</div>
-              <textarea
-                id="edit-prices"
-                rows="8"
-                style="width: 100%; margin-bottom: 10px"
-              ></textarea>
-              <button
-                class="btn-save"
-                onclick="savePrices()"
-                style="width: 100%"
-              >
-                ACTUALIZAR
-              </button>
-            </div>
-          </div>
-          <div id="info-comp-btn-wrap" class="hidden" style="margin-top:16px;">
-  <button onclick="entrarLeaderboard('infobox')"
-    class="btn-save"
-    style="width:100%; background:none; border:1px solid var(--accent); color:var(--accent);">
-    🏆 VER COMPETENCIA
-  </button>
+  <!-- MEMBRESÍAS Y PLANES -->
+  <div class="admin-section" style="margin-bottom:10px;">
+    <div class="admin-title">Membresías y Planes</div>
+    <div id="display-prices" style="white-space:pre-wrap; line-height:1.7;
+      font-size:0.88rem; color:var(--text-secondary);"></div>
+  </div>
+
+  <!-- HORARIOS -->
+  <div class="admin-section" style="margin-bottom:10px;">
+    <div class="admin-title">Nuestros Horarios</div>
+    <div id="horarios-publico-cont"></div>
+  </div>
+
+  <!-- EDITAR INFO (solo coach) -->
+  <div id="admin-prices-editor" class="admin-section hidden" style="margin-bottom:10px;">
+    <div class="accordion-header" onclick="toggleAccordion('info-editar')">
+      <div class="admin-title" style="margin-bottom:0;">Editar Información</div>
+      <span class="accordion-arrow" id="acc-arrow-info-editar">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-info-editar">
+      <div style="padding-top:12px;">
+        <textarea id="edit-prices" rows="8" style="width:100%; margin-bottom:10px;"></textarea>
+        <button class="btn-save" onclick="savePrices()" style="width:100%;">
+          ACTUALIZAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN COMPETENCIA -->
+  <div id="info-comp-btn-wrap" class="hidden" style="margin-top:16px;">
+    <button onclick="entrarLeaderboard('infobox')" class="btn-save"
+      style="width:100%; background:none; border:1px solid var(--accent); color:var(--accent);">
+      🏆 VER COMPETENCIA
+    </button>
+  </div>
+
 </div>
-        </div>
 
         <!-- ── MI PERFIL ──────────────────────────────── -->
         <div id="tab-profile" class="tab-content">
@@ -1477,18 +1431,22 @@
           </button>
 
           <!-- ALERTAS / VENCIMIENTOS (colapsable) -->
-          <div class="admin-section" id="vencimientos-panel" style="margin-top:0; margin-bottom:16px; border-left:3px solid var(--danger); display:none;">
-            <div class="accordion-header" onclick="toggleAccordion('venc-atletas')">
-              <div class="admin-title" style="color:var(--danger); margin-bottom:0;">
-                ALERTAS
-                <span id="venc-badge" style="
-                  background:var(--danger); color:#000; font-size:0.62rem;
-                  padding:1px 7px; border-radius:10px; margin-left:8px;
-                  font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;
-                "></span>
-              </div>
-              <span class="accordion-arrow" id="acc-arrow-venc-atletas">▼</span>
-            </div>
+          <div class="admin-section" id="vencimientos-panel" style="margin-top:0; margin-bottom:16px; border-left:3px solid var(--danger); display:none; padding:0;">
+            <div class="accordion-header" onclick="toggleAccordion('venc-atletas')"
+  style="justify-content:center; padding:12px 16px; position:relative;">
+  <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.82rem;
+    font-weight:700; letter-spacing:3px; color:var(--danger); text-align:center;">
+    PRÓXIMOS A VENCER
+    <span id="venc-badge" style="
+      background:var(--danger); color:#000; font-size:0.72rem;
+      padding:2px 9px; border-radius:10px; margin-left:10px;
+      font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;
+      vertical-align:middle;
+    "></span>
+  </div>
+  <span class="accordion-arrow" id="acc-arrow-venc-atletas"
+    style="position:absolute; right:16px; font-size:0.75rem; color:var(--danger);">▼</span>
+</div>
             <div class="accordion-body" id="acc-body-venc-atletas">
               <div id="vencimientos-proximos" style="padding-top:12px;"></div>
             </div>

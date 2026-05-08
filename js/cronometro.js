@@ -57,15 +57,43 @@ function formatTime(s) {
 }
 
 function setDisplay(main, sub = '') {
-  const el = document.getElementById('timer-display');
-  if(el) el.textContent = main;
-  const sl = document.getElementById('timer-sub');
-  if(sl) sl.textContent = sub;
+  const clock = document.getElementById('timer-clock');
+  if(clock) clock.textContent = main;
+
+  const phase = document.getElementById('timer-phase-label');
+  if(phase) {
+    phase.textContent = sub;
+    phase.style.fontSize = sub ? '2.2rem' : '0';
+  }
+
+  // Fondo verde/rojo según fase
+  const display = document.getElementById('timer-display');
+  if(display) {
+    display.classList.remove('timer-work', 'timer-rest');
+    if(sub === '¡TRABAJO!') display.classList.add('timer-work');
+    else if(sub === 'DESCANSO') display.classList.add('timer-rest');
+  }
+
+  // Mostrar modo en el div separado
+  const modeEl = document.getElementById('timer-mode-display');
+  if(modeEl) {
+    const labels = {
+      fortime:'FOR TIME', amrap:'AMRAP', emom:'EMOM',
+      tabata:'TABATA', interval:'INTERVALOS', compound:'WOD COMPUESTO'
+    };
+    modeEl.textContent = labels[timerMode] || '';
+  }
 }
 
 function setStatus(txt) {
-  const el = document.getElementById('timer-status');
-  if(el) el.textContent = txt;
+  const el = document.getElementById('timer-round-label');
+  if(!el) return;
+  el.textContent      = txt;
+  el.style.fontSize   = '1.2rem';
+  el.style.color      = 'var(--text)';
+  el.style.fontFamily = "'Barlow Condensed', sans-serif";
+  el.style.fontWeight = '700';
+  el.style.letterSpacing = '2px';
 }
 
 // ─── MODOS ────────────────────────────────────────────────────────────────────
@@ -88,28 +116,52 @@ export function setTimerMode(mode) {
   if(labelEl) labelEl.textContent = labels[mode] || mode;
 }
 
-// ─── START ────────────────────────────────────────────────────────────────────
+// ─── START / PAUSE / RESUME ───────────────────────────────────────────────────
 export function timerStart() {
-  if(timerRunning) return;
+  const btn = document.getElementById('timer-btn-start');
+
+  // PAUSAR
+  if(timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning   = false;
+    timerCountdown = false;
+    if(btn) btn.textContent = 'CONTINUAR';
+    return;
+  }
+
+  if(btn) btn.textContent = 'PAUSAR';
+
+  // Ocultar configuración al iniciar
+  document.getElementById('timer-mode-selector').style.display = 'none';
+  document.querySelectorAll('.timer-config-panel').forEach(p => p.style.display = 'none');
 
   if(timerMode === 'compound') {
     startCompound();
     return;
   }
 
+  // REANUDAR — no resetear variables, solo reiniciar el setInterval
+  if(timerSeconds > 0 || timerPhaseSeconds > 0) {
+    timerRunning = true;
+    resumeMainTimer();
+    return;
+  }
+
+  // PRIMER INICIO — cuenta regresiva
   timerRunning      = true;
   timerCountdown    = true;
   timerCountdownSec = 10;
   setDisplay('00:10', '¡Preparate!');
 
-  const cdInterval = setInterval(() => {
+  timerInterval = setInterval(() => {
     timerCountdownSec--;
     beepCountdown();
     if(timerCountdownSec <= 0) {
-      clearInterval(cdInterval);
+      clearInterval(timerInterval);
       timerCountdown = false;
       beepStart();
       setStatus('EN CURSO');
+      setDisplay('00:00', '');
       startMainTimer();
     } else {
       setDisplay(formatTime(timerCountdownSec), '¡Preparate!');
@@ -129,6 +181,86 @@ function startMainTimer() {
   }
 }
 
+function resumeMainTimer() {
+  if(timerMode === 'fortime' || timerMode === 'amrap') {
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      if(timerSeconds === timerLimitSecs - 10) beepTen();
+      if(timerLimitSecs > 0 && timerLimitSecs - timerSeconds <= 3 && timerLimitSecs - timerSeconds > 0) beepCountdown();
+      if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        beepFinish();
+        setDisplay(formatTime(timerSeconds), timerMode === 'amrap' ? '¡TIEMPO!' : '¡TIEMPO LÍMITE!');
+        setStatus('FINALIZADO');
+        const b = document.getElementById('timer-btn-start');
+        if(b) b.textContent = 'INICIAR';
+        return;
+      }
+      const sub = timerMode === 'amrap' && timerLimitSecs > 0
+        ? `Quedan ${formatTime(timerLimitSecs - timerSeconds)}` : '';
+      setDisplay(formatTime(timerSeconds), sub);
+    }, 1000);
+
+  } else if(timerMode === 'emom') {
+    const intervalSec = parseInt(document.getElementById('emom-interval')?.value || 1) * 60;
+    const exercises   = emomExercises.length ? emomExercises : Array(timerTotalRounds).fill('');
+    timerInterval = setInterval(() => {
+      timerPhaseSeconds++;
+      const remaining = intervalSec - timerPhaseSeconds;
+      if(remaining === 10) beepTen();
+      if(remaining <= 3 && remaining > 0) beepCountdown();
+      const exActual = exercises[(timerRound - 1) % exercises.length] || '';
+      setDisplay(formatTime(remaining), exActual);
+      if(timerPhaseSeconds >= intervalSec) {
+        timerPhaseSeconds = 0;
+        timerRound++;
+        if(timerRound > timerTotalRounds) {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          beepVictory();
+          setDisplay('¡LISTO!', `${timerTotalRounds} rondas completadas`);
+          setStatus('FINALIZADO');
+        } else {
+          beepNewRound();
+          setStatus(`RONDA ${timerRound} / ${timerTotalRounds}`);
+        }
+      }
+    }, 1000);
+
+  } else if(timerMode === 'tabata' || timerMode === 'interval') {
+    timerInterval = setInterval(() => {
+      timerPhaseSeconds++;
+      const limit     = timerPhase === 'work' ? timerWorkSecs : timerRestSecs;
+      const remaining = limit - timerPhaseSeconds;
+      if(remaining === 10) beepTen();
+      if(remaining <= 3 && remaining > 0) beepCountdown();
+      setDisplay(formatTime(remaining), timerPhase === 'work' ? '¡TRABAJO!' : 'DESCANSO');
+      if(timerPhaseSeconds >= limit) {
+        timerPhaseSeconds = 0;
+        if(timerPhase === 'work') {
+          timerPhase = 'rest';
+          beepFinish();
+          setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
+        } else {
+          timerPhase = 'work';
+          timerRound++;
+          if(timerRound > timerTotalRounds) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            beepVictory();
+            setDisplay('¡LISTO!', `${timerTotalRounds} rondas completadas`);
+            setStatus('FINALIZADO');
+          } else {
+            beepNewRound();
+            setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
+          }
+        }
+      }
+    }, 1000);
+  }
+}
+
 // ─── FOR TIME / AMRAP ─────────────────────────────────────────────────────────
 function startForTimeAmrap() {
   const minEl = document.getElementById('fortime-min');
@@ -141,6 +273,7 @@ function startForTimeAmrap() {
   timerInterval = setInterval(() => {
     timerSeconds++;
     if(timerSeconds === timerLimitSecs - 10) beepTen();
+    if(timerLimitSecs > 0 && timerLimitSecs - timerSeconds <= 3 && timerLimitSecs - timerSeconds > 0) beepCountdown();
     if(timerLimitSecs > 0 && timerSeconds >= timerLimitSecs) {
       clearInterval(timerInterval);
       timerRunning = false;
@@ -176,6 +309,7 @@ function startEmom() {
     timerPhaseSeconds++;
     const remaining = intervalSec - timerPhaseSeconds;
     if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
 
     const exActual = exercises[(timerRound - 1) % exercises.length] || '';
     setDisplay(formatTime(remaining), exActual);
@@ -209,13 +343,14 @@ function startTabata() {
   timerPhase       = 'work';
   timerPhaseSeconds = 0;
 
-  setStatus(`TRABAJO — Ronda ${timerRound}/${timerTotalRounds}`);
+  setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
 
   timerInterval = setInterval(() => {
     timerPhaseSeconds++;
     const limit     = timerPhase === 'work' ? timerWorkSecs : timerRestSecs;
     const remaining = limit - timerPhaseSeconds;
-    if(remaining === 3) beepTen();
+    if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
     setDisplay(formatTime(remaining), timerPhase === 'work' ? '¡TRABAJO!' : 'DESCANSO');
 
     if(timerPhaseSeconds >= limit) {
@@ -223,7 +358,7 @@ function startTabata() {
       if(timerPhase === 'work') {
         timerPhase = 'rest';
         beepFinish();
-        setStatus(`DESCANSO — Ronda ${timerRound}/${timerTotalRounds}`);
+        setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
       } else {
         timerPhase = 'work';
         timerRound++;
@@ -235,7 +370,7 @@ function startTabata() {
           setStatus('FINALIZADO');
         } else {
           beepNewRound();
-          setStatus(`TRABAJO — Ronda ${timerRound}/${timerTotalRounds}`);
+          setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
         }
       }
     }
@@ -254,13 +389,14 @@ function startInterval() {
   timerPhase       = 'work';
   timerPhaseSeconds = 0;
 
-  setStatus(`TRABAJO — Ronda ${timerRound}/${timerTotalRounds}`);
+  setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
 
   timerInterval = setInterval(() => {
     timerPhaseSeconds++;
     const limit     = timerPhase === 'work' ? timerWorkSecs : timerRestSecs;
     const remaining = limit - timerPhaseSeconds;
     if(remaining === 10) beepTen();
+    if(remaining <= 3 && remaining > 0) beepCountdown();
     setDisplay(formatTime(remaining), timerPhase === 'work' ? '¡TRABAJO!' : 'DESCANSO');
 
     if(timerPhaseSeconds >= limit) {
@@ -268,7 +404,7 @@ function startInterval() {
       if(timerPhase === 'work') {
         timerPhase = 'rest';
         beepFinish();
-        setStatus(`DESCANSO — Ronda ${timerRound}/${timerTotalRounds}`);
+        setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
       } else {
         timerPhase = 'work';
         timerRound++;
@@ -280,7 +416,7 @@ function startInterval() {
           setStatus('FINALIZADO');
         } else {
           beepNewRound();
-          setStatus(`TRABAJO — Ronda ${timerRound}/${timerTotalRounds}`);
+          setStatus(`Ronda ${timerRound}/${timerTotalRounds}`);
         }
       }
     }
@@ -385,6 +521,26 @@ export function timerReset() {
   currentBlockIdx   = 0;
   setDisplay('00:00', '');
   setStatus('');
+  const modeEl = document.getElementById('timer-mode-display');
+  if(modeEl) modeEl.textContent = '';
+  const display = document.getElementById('timer-display');
+  if(display) display.classList.remove('timer-work', 'timer-rest');
+  const btn = document.getElementById('timer-btn-start');
+  if(btn) btn.textContent = 'INICIAR';
+  // Mostrar configuración sin llamar timerReset recursivamente
+  const sel = document.getElementById('timer-mode-selector');
+  if(sel) sel.style.display = '';
+  document.querySelectorAll('.timer-config-panel').forEach(p => {
+    p.style.display = '';
+    p.classList.add('hidden');
+  });
+  const panels = {
+    fortime:'fortime', amrap:'fortime', emom:'emom',
+    tabata:'tabata', interval:'interval', compound:'compound'
+  };
+  const panelId = 'timer-config-' + (panels[timerMode] || 'fortime');
+  const panel = document.getElementById(panelId);
+  if(panel) { panel.classList.remove('hidden'); panel.style.display = ''; }
 }
 
 // ─── EMOM EJERCICIOS ──────────────────────────────────────────────────────────

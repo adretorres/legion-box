@@ -36,8 +36,8 @@ body::before {
   top: 0; left: 0;
   width: 100%; height: 100%;
   background:
-    linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)),
-    url('img/5.jpg') center/cover no-repeat;
+    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)),
+    url('img/2.jpg') center/cover no-repeat;
   z-index: -1;
 }
 
@@ -1118,4 +1118,26 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   .atleta-panel  { padding: 14px; }
   .atleta-data-grid { grid-template-columns: 1fr; }
   .atleta-dato-full { grid-column: 1; }
+}
+
+/* ─── CRONÓMETRO DISPLAY ─────────────────────────────────────────────────── */
+#timer-clock {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 7rem !important;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: 4px;
+  transition: color 0.3s ease;
+}
+
+#timer-phase-label {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  min-height: 20px;
+  transition: font-size 0.2s ease;
 }

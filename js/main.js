@@ -148,6 +148,7 @@ export function switchTab(id, btn) {
     });
   }
   if(id === 'comp-public') renderRankingPublico();
+  localStorage.setItem('legion_last_tab', id);
 }
 
 // ─── PAGO TIPO ────────────────────────────────────────────────────────────────
@@ -240,6 +241,11 @@ document.addEventListener("DOMContentLoaded", () => {
       cargarDatos().then(() => {
         if(s.role === 'coach') showApp(true);
         else showApp(false, cacheUsers[s.id] || s);
+        const lastTab = localStorage.getItem('legion_last_tab');
+        if (lastTab) {
+          const btn = document.querySelector(`[onclick="switchTab('${lastTab}', this)"]`);
+          if (btn) setTimeout(() => switchTab(lastTab, btn), 100);
+        }
       });
     }
   }

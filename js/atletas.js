@@ -67,6 +67,21 @@ export function renderUserList() {
     const pagos = u.payments || [];
     const ultimoPago = pagos.length ? pagos[pagos.length - 1] : null;
 
+    // ── WhatsApp ──────────────────────────────────────────────────────────────
+    const tel = (u.phone || '').replace(/\D/g, '');
+    const fechaVenc = u.expiry ? u.expiry.split('-').reverse().join('/') : '';
+    const nombre1 = u.name.split(' ')[0];
+    const diasParaVencer = fv ? Math.round((fv - hoy) / (1000*60*60*24)) : null;
+    let msgWsp = '';
+    if (isInactive || isVencido) {
+      msgWsp = `Hola ${nombre1}! Tu cuota venció el ${fechaVenc}, comunicate con el coach. Si tuviste algún problema o necesitás que veamos algo, escribinos. ¡Queremos verte pronto por acá! y ponete al día para seguir entrenando. @legion.box`;
+    } else if (diasParaVencer !== null && diasParaVencer <= 7) {
+      msgWsp = `Hola ${nombre1}, como estás? Tu cuota vence el ${fechaVenc}, no lo dejes pasar y seguí entrenando con nosotros. Saludos @legion.box`;
+    } else {
+      msgWsp = `Hola ${nombre1}, como estás? Queríamos avisarte que [mensaje de aviso]. Saludos @legion.box`;
+    }
+    const urlWsp = tel ? `https://wa.me/54${tel}?text=${encodeURIComponent(msgWsp)}` : '';
+
     cont.innerHTML += `
       <div class="atleta-acordeon" id="atleta-${id}">
 
@@ -139,13 +154,28 @@ export function renderUserList() {
             </div>
             <div style="display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
               <button class="btn-save" onclick="abrirDrawerAtleta('${id}')"
-                style="flex:1; background:none; border:1px solid var(--border-strong); color:var(--text-secondary); font-size:0.75rem;">
-                ✏️ EDITAR
+                style="flex:1; background:none; border:1px solid #fff; color:#fff; font-size:0.75rem;">
+                EDITAR
               </button>
               <button class="btn-save" onclick="eliminarAtleta('${id}')"
                 style="flex:1; background:none; border:1px solid var(--danger); color:var(--danger); font-size:0.75rem;">
-                🗑️ BORRAR
+                BORRAR
               </button>
+              ${urlWsp
+                ? `<a href="${urlWsp}" target="_blank"
+                    style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px;
+                    background:none; border:1px solid #25D366; color:#25D366;
+                    border-radius:var(--radius-sm); font-size:0.75rem; font-weight:700;
+                    font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;
+                    padding:7px; text-decoration:none; cursor:pointer;">
+                    WhatsApp
+                  </a>`
+                : `<button class="btn-save" disabled
+                    style="flex:1; background:none; border:1px solid var(--border);
+                    color:var(--text-tertiary); font-size:0.75rem; opacity:0.4; cursor:not-allowed;">
+                    WhatsApp
+                  </button>`
+              }
             </div>
           </div>
 
@@ -153,7 +183,7 @@ export function renderUserList() {
             <div class="pago-mini-header" onclick="togglePagoPanel('${id}')">
               <span style="font-size:0.72rem; font-weight:700; letter-spacing:1.5px;
                 color:var(--warning); font-family:'Barlow Condensed',sans-serif;">
-                💲 REGISTRAR PAGO
+                REGISTRAR PAGO
               </span>
               <span id="chev-pago-${id}" style="font-size:0.72rem; color:var(--text-tertiary);">▼</span>
             </div>
