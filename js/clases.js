@@ -6,7 +6,9 @@ import {
   currentUser
 } from './firebase.js';
 
-import { selectedViewDay, setSelectedViewDay, currentViewPlan, setCurrentViewPlan } from './main.js';
+import { selectedViewDay, setSelectedViewDay, currentViewPlan, setCurrentViewPlan, diasSeleccionadosReset } from './main.js';
+import { enviarNotificacion } from './notificaciones.js';
+import { renderHorariosPublico } from './horarios.js';
 
 // ─── PROGRAMACIÓN ─────────────────────────────────────────────────────────────
 export function syncAdminView() {
