@@ -661,15 +661,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 #prof-status-info b { color: var(--text-secondary); font-weight: 500; }
 
-/* ─── BIRTHDAY CHIPS ─────────────────────────────── */
-.birthday-chip {
-  background: var(--card);
-  border: 1px solid rgba(1,254,241,0.2);
-  color: var(--text);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  white-space: nowrap;
+/* ─── BIRTHDAY LIST ──────────────────────────────── */
+#info-birthday-list {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ─── ADMIN PANEL STRIPE ─────────────────────────── */

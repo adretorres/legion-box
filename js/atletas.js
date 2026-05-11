@@ -593,7 +593,7 @@ export function renderBirthdays() {
     if (u.birth) {
       const fb = new Date(u.birth + "T00:00:00");
       if (fb.getMonth() === mesHoy)
-        cumples.push({ name: u.name, dia: fb.getDate() });
+        cumples.push({ name: u.name, dia: fb.getDate(), schedule: u.schedule || '—' });
     }
   }
 
@@ -603,9 +603,24 @@ export function renderBirthdays() {
   }
 
   cumples.sort((a, b) => a.dia - b.dia);
-  cumples.forEach(c => {
-    cont.innerHTML += `<span class="birthday-chip"> ${c.name.split(' ')[0]} (${c.dia})</span>`;
-  });
+  cont.style.display = 'flex';
+  cont.style.flexDirection = 'column';
+  cont.style.gap = '0';
+
+cumples.forEach(c => {
+  cont.innerHTML += `
+    <div style="display:flex; justify-content:space-between; align-items:center;
+      padding:10px 0; border-bottom:1px solid var(--border);">
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <span style="font-size:0.88rem; font-weight:600;"> ${c.name}</span>
+        <small style="color:var(--text-tertiary); font-size:0.75rem;">${c.schedule}</small>
+      </div>
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.82rem;
+        font-weight:700; color:var(--accent); letter-spacing:1px; white-space:nowrap;">
+        día ${c.dia}
+      </span>
+    </div>`;
+});
 }
 
 // ─── EXPORTAR ATLETAS ─────────────────────────────────────────────────────────
