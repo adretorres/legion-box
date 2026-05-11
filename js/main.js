@@ -208,21 +208,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarCompetencia().then(() => actualizarBotonLeaderboard());
 
-  async function checkAutoReset() {
-    const ahora = new Date();
-    if(ahora.getDay() === 0) {
-      const clave = `legion_reset_${ahora.getFullYear()}_${ahora.getMonth()}_${ahora.getDate()}`;
-      if(!localStorage.getItem(clave)) {
-        if(ahora.getHours() === 23 && ahora.getMinutes() === 59) {
-          setCacheResults({});
-          await fsSet('results', {});
-          localStorage.setItem(clave, '1');
-          renderRanking();
-        }
-      }
-    }
+  // ─── AUTO RESET SEMANAL ──────────────────────────────────────────────────────
+async function checkAutoReset() {
+  const ahora     = new Date();
+  const diaSemana = ahora.getDay(); // 0=domingo
+
+  // Calcular el domingo más reciente (o hoy si es domingo)
+  const diasDesdeUltimoDomingo = diaSemana === 0 ? 0 : diaSemana;
+  const ultimoDomingo = new Date(ahora);
+  ultimoDomingo.setDate(ahora.getDate() - diasDesdeUltimoDomingo);
+  ultimoDomingo.setHours(0, 0, 0, 0);
+  const claveUltimoDomingo = ultimoDomingo.toISOString().split('T')[0]; // "2025-06-01"
+
+  const claveGuardada = localStorage.getItem('legion_reset_semana');
+
+  if(claveGuardada !== claveUltimoDomingo) {
+    // No se hizo el reset de esta semana todavía
+    setCacheResults({});
+    await fsSet('results', {});
+    localStorage.setItem('legion_reset_semana', claveUltimoDomingo);
+    renderRanking();
+    console.log('Reset semanal ejecutado para semana del', claveUltimoDomingo);
   }
-  setInterval(checkAutoReset, 30000);
+}
+  checkAutoReset();  // se ejecuta al abrir la app, no cada 30 segundos
 
   // Registrar Service Worker (PWA)
   if ('serviceWorker' in navigator) {
