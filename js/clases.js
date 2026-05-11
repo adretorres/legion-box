@@ -131,6 +131,26 @@ export function loadBoxInfo() {
   renderHorariosPublico();
 }
 
+// ─── QUILL EDITOR ─────────────────────────────────────────────────────────────
+let quillEditor = null;
+
+export function initQuillEditor() {
+  if(quillEditor) return;
+  quillEditor = new Quill('#quill-editor', {
+    theme: 'snow',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline'],
+        [{ 'size': ['small', false, 'large'] }],
+        [{ 'align': [] }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['clean']
+      ]
+    }
+  });
+  quillEditor.root.innerHTML = cacheInfo.prices || '';
+}
+
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.saveClass        = saveClass;
 window.saveNews         = saveNews;
@@ -139,3 +159,4 @@ window.syncAdminView    = syncAdminView;
 window.changeViewDay    = changeViewDay;
 window.toggleResetDay   = toggleResetDay;
 window.resetProgramacion = resetProgramacion;
+window.initQuillEditor = initQuillEditor;

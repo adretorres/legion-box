@@ -21,6 +21,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Legión Box" />
     <link rel="apple-touch-icon" href="icon-192.png" />
+    <link href="quill.snow.css" rel="stylesheet" />
+    <script src="quill.min.js"></script>
   </head>
   <body>
     <!-- ─── LOGIN ──────────────────────────────────────── -->
@@ -1364,35 +1366,38 @@
   <!-- CUMPLEAÑOS -->
   <div class="admin-section" style="border-left:3px solid rgba(1,254,241,0.4); margin-bottom:10px;">
     <div class="admin-title" style="color:#01fef1;">Cumpleaños del Mes</div>
-    <div id="info-birthday-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    <div id="info-birthday-list"></div>
   </div>
 
   <!-- MEMBRESÍAS Y PLANES -->
-  <div class="admin-section" style="margin-bottom:10px;">
-    <div class="admin-title">Membresías y Planes</div>
+  <div class="admin-section" style="margin-bottom:10px; border-left:3px solid var(--accent);">
+  <div class="admin-title" style="color:var(--accent);">Membresías y Planes</div>
     <div id="display-prices" style="white-space:pre-wrap; line-height:1.7;
       font-size:0.88rem; color:var(--text-secondary);"></div>
   </div>
 
   <!-- HORARIOS -->
-  <div class="admin-section" style="margin-bottom:10px;">
-    <div class="admin-title">Nuestros Horarios</div>
+  <div class="admin-section" style="margin-bottom:10px; border-left:3px solid var(--danger);">
+  <div class="admin-title" style="color:var(--danger);">Nuestros Horarios</div>
     <div id="horarios-publico-cont"></div>
   </div>
 
   <!-- EDITAR INFO (solo coach) -->
   <div id="admin-prices-editor" class="admin-section hidden" style="margin-bottom:10px;">
-    <div class="accordion-header" onclick="toggleAccordion('info-editar')">
+    <div class="accordion-header" onclick="toggleAccordion('info-editar'); initQuillEditor();">
       <div class="admin-title" style="margin-bottom:0;">Editar Información</div>
       <span class="accordion-arrow" id="acc-arrow-info-editar">▼</span>
     </div>
     <div class="accordion-body" id="acc-body-info-editar">
       <div style="padding-top:12px;">
-        <textarea id="edit-prices" rows="8" style="width:100%; margin-bottom:10px;"></textarea>
-        <button class="btn-save" onclick="savePrices()" style="width:100%;">
-          ACTUALIZAR
-        </button>
-      </div>
+  <div id="quill-editor" style="background:var(--surface); color:var(--text);
+    border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+    min-height:160px; font-size:0.88rem; margin-bottom:10px;"></div>
+  <input type="hidden" id="edit-prices" />
+  <button class="btn-save" onclick="savePrices()" style="width:100%;">
+    ACTUALIZAR
+  </button>
+</div>
     </div>
   </div>
 
