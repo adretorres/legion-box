@@ -43,6 +43,7 @@ import { inicializarNotificaciones, enviarNotificacion,
 import { renderHorariosAdmin, agregarHorario,
          eliminarHorario, renderHorariosPublico } from './horarios.js';
 import { toggleAccordion } from './ui.js';
+import './share.js';
 
 // ─── ESTADO LOCAL ─────────────────────────────────────────────────────────────
 export let selectedViewDay          = "lunes";

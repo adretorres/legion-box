@@ -29,7 +29,7 @@
     <div id="screen-login">
       <div class="login-box">
         <div class="login-logo-wrap">
-          <img src="img/logo-legion.png" alt="Legión Box" />
+          <img src="img/logo-cuadrado-legion.png" alt="Legión Box" />
         </div>
         <div class="login-tagline">Centro de Entrenamiento</div>
 
@@ -959,7 +959,18 @@
               <span id="display-plan-name"></span>
             </div>
             <div class="class-body">
-            <div id="class-blocks-display"></div>
+            <div id="class-blocks-display">
+            </div>
+
+            <!-- Botón compartir WOD -->
+              <button onclick="compartirWOD()"
+                style="width:100%; margin-top:12px; background:none;
+                border:1px solid var(--accent); color:var(--accent);
+                padding:12px; border-radius:var(--radius); cursor:pointer;
+                font-family:'Barlow Condensed',sans-serif; font-size:0.85rem;
+                font-weight:700; letter-spacing:2px;">
+                COMPARTIR WOD COMO HISTORIA
+              </button>
 
               <div
                 id="score-upload-container"
@@ -1256,6 +1267,16 @@
                 overflow: hidden;
               "
             ></div>
+
+            <!-- Botón compartir Ranking -->
+              <button onclick="compartirRanking()"
+                style="width:100%; margin-top:12px; background:none;
+                border:1px solid var(--accent); color:var(--accent);
+                padding:12px; border-radius:var(--radius); cursor:pointer;
+                font-family:'Barlow Condensed',sans-serif; font-size:0.85rem;
+                font-weight:700; letter-spacing:2px;">
+                COMPARTIR RANKING COMO HISTORIA
+              </button>
           </div>
         </div>
 

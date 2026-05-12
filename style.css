@@ -83,7 +83,7 @@ body::before {
 }
 
 .login-logo-wrap img {
-  width: 120px;
+  width: 180px;
   height: auto;
   filter: brightness(1.1);
 }
