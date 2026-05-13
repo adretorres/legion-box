@@ -138,13 +138,12 @@ export async function saveWodScore() {
 export function renderRanking() {
   const cont    = document.getElementById("ranking-list-container");
   const results = cacheResults || {};
-  const day = diaRankingActual || selectedViewDay;
-  const plan    = 'crossfit';
+  const day     = diaRankingActual || selectedViewDay;
+  const plan    = currentViewPlan;
   const tipo    = cachePrograms[day]?.[plan]?.resultType || 'time';
   const hoy     = new Date(); hoy.setHours(0,0,0,0);
   cont.innerHTML = "";
 
-  // Todos los atletas activos
   const todos = Object.entries(cacheUsers)
     .filter(([id, u]) => {
       if(id === 'coach') return false;
@@ -155,20 +154,17 @@ export function renderRanking() {
     })
     .sort(([, a], [, b]) => (a.name || '').localeCompare(b.name || '', 'es'));
 
-  const lista  = results[day]?.[plan] || {};
+  const lista = results[day]?.[plan] || {};
 
-  // Separar con y sin resultado
-  const conResultado  = todos.filter(([id]) => lista[id]?.score);
-  const sinResultado  = todos.filter(([id]) => !lista[id]?.score);
+  const conResultado = todos.filter(([id]) => lista[id]?.score);
+  const sinResultado = todos.filter(([id]) => !lista[id]?.score);
 
-  // Ordenar los que tienen resultado
   const toSec = str => {
     const parts = str.trim().replace(',','.').split(':');
     return parts.length === 2 ? parseInt(parts[0])*60 + parseFloat(parts[1]) : parseFloat(parts[0]);
   };
   const toNum = str => parseFloat(str.replace(',','.')) || 0;
 
-  // Ordenar correctamente
   const conOrdenado = conResultado
     .map(([id, u]) => ({ id, name: u.name, ...lista[id] }))
     .sort((a, b) => tipo === 'time'
@@ -176,9 +172,8 @@ export function renderRanking() {
       : toNum(b.score) - toNum(a.score)
     );
 
-  // Render con resultado
   conOrdenado.forEach((r, idx) => {
-    const esCoach   = currentUser?.role === 'coach';
+    const esCoach    = currentUser?.role === 'coach';
     const modalBadge = r.modalidad === 'scaled'
       ? `<span style="font-size:0.65rem; background:#55555530; color:var(--text-tertiary);
           border:1px solid var(--border-strong); border-radius:4px; padding:1px 5px; margin-left:4px;">SC</span>`
@@ -201,7 +196,6 @@ export function renderRanking() {
       </div>`;
   });
 
-  // Render sin resultado
   sinResultado.forEach(([id, u]) => {
     const esCoach = currentUser?.role === 'coach';
     cont.innerHTML += `
@@ -290,6 +284,11 @@ export function cambiarDiaRanking(dia, btn) {
   renderRanking();
 }
 
+export function getDiaRankingActual() {
+  return diaRankingActual || selectedViewDay;
+}
+
+
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.renderRanking          = renderRanking;
 window.saveWodScore           = saveWodScore;
@@ -297,3 +296,4 @@ window.editarResultadoRanking = editarResultadoRanking;
 window.cargarResultadoCoach   = cargarResultadoCoach;
 window.seleccionarModalidad   = seleccionarModalidad;
 window.cambiarDiaRanking = cambiarDiaRanking;
+window.getDiaRankingActual = getDiaRankingActual;
