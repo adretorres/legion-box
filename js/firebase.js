@@ -2,6 +2,7 @@
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",
@@ -72,6 +73,24 @@ export async function cargarDatos() {
 
 export async function cargarCompetencia() {
   cacheComp = await fsGet('competencia') || null;
+}
+
+export function escucharResultados(callback) {
+  return onSnapshot(doc(db, 'legion', 'results'), snap => {
+    if (snap.exists()) {
+      cacheResults = snap.data();
+      callback(cacheResults);
+    }
+  });
+}
+
+export function escucharPrograms(callback) {
+  return onSnapshot(doc(db, 'legion', 'programs'), snap => {
+    if (snap.exists()) {
+      cachePrograms = snap.data();
+      callback(cachePrograms);
+    }
+  });
 }
 
 export { getToken, onMessage };

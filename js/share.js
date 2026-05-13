@@ -1,6 +1,7 @@
 // ─── js/share.js ──────────────────────────────────────────────────────────────
 import { cachePrograms, cacheResults, cacheUsers } from './firebase.js';
 import { selectedViewDay, currentViewPlan } from './main.js';
+import { getDiaRankingActual } from './ranking.js';
 
 const STORY_W = 1080;
 const STORY_H = 1920;
@@ -119,7 +120,7 @@ function descargarCanvas(canvas, nombre) {
 
 // ─── COMPARTIR WOD ────────────────────────────────────────────────────────────
 export async function compartirWOD() {
-  const dia  = selectedViewDay;
+  const dia = getDiaRankingActual()
   const plan = currentViewPlan;
   const c    = cachePrograms[dia]?.[plan] || {};
 
@@ -196,8 +197,8 @@ export async function compartirWOD() {
 
 // ─── COMPARTIR RANKING ────────────────────────────────────────────────────────
 export async function compartirRanking() {
-  const dia  = selectedViewDay;
-  const plan = 'crossfit';
+  const dia  = getDiaRankingActual();
+  const plan = currentViewPlan;
   const hoy  = new Date(); hoy.setHours(0,0,0,0);
   const lista = cacheResults[dia]?.[plan] || {};
 
@@ -229,7 +230,7 @@ export async function compartirRanking() {
   // ── LOGO ──
   let logoBottomY = 120;
   try {
-    const logo = await cargarImagen('img/logo-legion.png');
+    const logo = await cargarImagen('img/logo-cuadrado-legion.png');
     const logoH = 200;
     dibujarLogo(ctx, logo, cx, 80, logoH);
     logoBottomY = 80 + logoH + 30;
@@ -241,7 +242,7 @@ export async function compartirRanking() {
   ctx.fillStyle   = '#FFFFFF';
   ctx.fillText('RANKING', cx, logoBottomY + 70);
 
-  const diaLabel  = dia.charAt(0).toUpperCase() + dia.slice(1);
+  const diaLabel = dia.toUpperCase();
   ctx.font        = '600 48px sans-serif';
   ctx.fillStyle   = '#48F135';
   ctx.fillText(diaLabel, cx, logoBottomY + 132);

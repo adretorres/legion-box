@@ -4,8 +4,8 @@ import {
   cacheUsers, cachePrograms, cacheResults, cacheInfo, cacheComp,
   currentUser, setCurrentUser,
   SCHEDULES, setSchedules,
-  fsSet, setCacheResults
-} from './firebase.js';
+  fsSet, setCacheResults,
+  escucharResultados } from './firebase.js';
 
 import { doLogin, cerrarSesion }         from './auth.js';
 import { renderUserList, renderBirthdays, renderVencimientos,
@@ -256,6 +256,12 @@ async function checkAutoReset() {
       cargarDatos().then(() => {
         if(s.role === 'coach') showApp(true);
         else showApp(false, cacheUsers[s.id] || s);
+
+        // ← Agregar esto:
+        escucharResultados(() => {
+          renderRanking();
+        });
+
         const lastTab = localStorage.getItem('legion_last_tab');
         if (lastTab) {
           const btn = document.querySelector(`[onclick="switchTab('${lastTab}', this)"]`);
