@@ -1,7 +1,6 @@
 // ─── js/share.js ──────────────────────────────────────────────────────────────
 import { cachePrograms, cacheResults, cacheUsers } from './firebase.js';
 import { selectedViewDay, currentViewPlan } from './main.js';
-import { getDiaRankingActual } from './ranking.js';
 
 const STORY_W = 1080;
 const STORY_H = 1920;
@@ -120,7 +119,7 @@ function descargarCanvas(canvas, nombre) {
 
 // ─── COMPARTIR WOD ────────────────────────────────────────────────────────────
 export async function compartirWOD() {
-  const dia = getDiaRankingActual()
+  const dia = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
   const plan = currentViewPlan;
   const c    = cachePrograms[dia]?.[plan] || {};
 
@@ -197,7 +196,7 @@ export async function compartirWOD() {
 
 // ─── COMPARTIR RANKING ────────────────────────────────────────────────────────
 export async function compartirRanking() {
-  const dia  = getDiaRankingActual();
+  const dia = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
   const plan = currentViewPlan;
   const hoy  = new Date(); hoy.setHours(0,0,0,0);
   const lista = cacheResults[dia]?.[plan] || {};
