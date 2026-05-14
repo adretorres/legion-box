@@ -287,8 +287,8 @@ export async function compartirRanking() {
     const wodLineas = calcularLineas(ctx, c.wod, WOD_ANCHO - 40);
 
     // Limitar a máx 6 líneas para no invadir el ranking
-    const lineasMostrar   = wodLineas.slice(0, 6);
-    const hayMasWod       = wodLineas.length > 6;
+    const lineasMostrar   = wodLineas.slice(0, 15);
+    const hayMasWod       = wodLineas.length > 15;
     const WOD_BLOCK_H     = 32 + lineasMostrar.length * WOD_LH + (hayMasWod ? WOD_LH : 0) + 20;
 
     // Asegurarse de que el bloque WOD + ranking + footer quepan
@@ -377,7 +377,7 @@ export async function compartirRanking() {
     // Posición / medalla
     const numFontSize = Math.max(26, ROW_H * 0.40);
     ctx.font      = `${esPodio ? 700 : 600} ${numFontSize}px sans-serif`;
-    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.4)';
+    ctx.fillStyle = esPodio ? '#48F135' : 'rgba(255,255,255,0.4)';
     ctx.textAlign = 'center';
     ctx.fillText(esPodio ? medals[idx] : `#${idx+1}`, PAD + 46, midY + numFontSize * 0.36);
 
@@ -404,7 +404,7 @@ export async function compartirRanking() {
     // Score
     const scoreFontSize = Math.max(24, ROW_H * 0.38);
     ctx.font      = `700 ${scoreFontSize}px sans-serif`;
-    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.88)';
+    ctx.fillStyle = esPodio ? '#48F135' : 'rgba(255,255,255,0.88)';
     ctx.textAlign = 'right';
     ctx.fillText(r.score, STORY_W - PAD - 4, midY + scoreFontSize * 0.36);
 
