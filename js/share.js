@@ -4,6 +4,7 @@ import { selectedViewDay, currentViewPlan } from './main.js';
 
 const STORY_W = 1080;
 const STORY_H = 1920;
+const MAX_RANKING_ROWS = 10; // máximo de atletas visibles en el flyer
 
 function cargarImagen(src) {
   return new Promise((resolve, reject) => {
@@ -15,7 +16,7 @@ function cargarImagen(src) {
   });
 }
 
-function wrapText(ctx, text, maxWidth, lineHeight) {
+function wrapText(ctx, text, maxWidth) {
   const words = text.split(' ');
   const lines = [];
   let line = '';
@@ -36,7 +37,7 @@ function calcularLineas(ctx, contenido, maxWidth, lineHeight) {
   const todas = [];
   for (const linea of contenido.split('\n')) {
     if (linea.trim() === '') { todas.push(''); continue; }
-    const wrapped = wrapText(ctx, linea, maxWidth, lineHeight);
+    const wrapped = wrapText(ctx, linea, maxWidth);
     todas.push(...wrapped);
   }
   return todas;
@@ -48,10 +49,8 @@ async function crearCanvasBase() {
   canvas.height = STORY_H;
   const ctx     = canvas.getContext('2d');
 
-  // Fondo
   try {
     const bg = await cargarImagen('img/2.jpg');
-    // Crop centrado para llenar 1080x1920
     const scale = Math.max(STORY_W / bg.width, STORY_H / bg.height);
     const w = bg.width * scale;
     const h = bg.height * scale;
@@ -61,7 +60,6 @@ async function crearCanvasBase() {
     ctx.fillRect(0, 0, STORY_W, STORY_H);
   }
 
-  // Overlay — menos denso arriba, más oscuro abajo para leer el texto
   const grad = ctx.createLinearGradient(0, 0, 0, STORY_H);
   grad.addColorStop(0,    'rgba(0,0,0,0.30)');
   grad.addColorStop(0.25, 'rgba(0,0,0,0.50)');
@@ -80,7 +78,6 @@ function dibujarLogo(ctx, img, cx, y, targetH) {
 }
 
 function dibujarFooter(ctx) {
-  // Línea decorativa
   ctx.strokeStyle = 'rgba(255,255,255,0.25)';
   ctx.lineWidth   = 1;
   ctx.beginPath();
@@ -119,7 +116,7 @@ function descargarCanvas(canvas, nombre) {
 
 // ─── COMPARTIR WOD ────────────────────────────────────────────────────────────
 export async function compartirWOD() {
-  const dia = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
+  const dia  = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
   const plan = currentViewPlan;
   const c    = cachePrograms[dia]?.[plan] || {};
 
@@ -131,29 +128,22 @@ export async function compartirWOD() {
   const { canvas, ctx } = await crearCanvasBase();
   const cx = STORY_W / 2;
 
-  // ── LOGO ──
   let logoBottomY = 120;
   try {
     const logo = await cargarImagen('img/logo-cuadrado-legion.png');
-    const logoH = 200;
-    dibujarLogo(ctx, logo, cx, 80, logoH);
-    logoBottomY = 80 + logoH + 30;
+    dibujarLogo(ctx, logo, cx, 80, 200);
+    logoBottomY = 80 + 200 + 30;
   } catch { logoBottomY = 120; }
 
-  // ── TÍTULO WOD DEL DÍA ──
   ctx.textAlign   = 'center';
   ctx.font        = '700 48px sans-serif';
   ctx.fillStyle   = '#FFFFFF';
   ctx.fillText('WOD DEL DÍA', cx, logoBottomY + 70);
 
-  // Día + Plan
-  const diaLabel = dia.toUpperCase();
-  const planLabel = plan.toUpperCase();
   ctx.font        = '600 42px sans-serif';
   ctx.fillStyle   = '#48F135';
-  ctx.fillText(`${diaLabel}  ·  ${planLabel}`, cx, logoBottomY + 132);
+  ctx.fillText(`${dia.toUpperCase()}  ·  ${plan.toUpperCase()}`, cx, logoBottomY + 132);
 
-  // Línea decorativa
   const lineY = logoBottomY + 158;
   ctx.strokeStyle = '#FFFFFF';
   ctx.lineWidth   = 2;
@@ -162,28 +152,20 @@ export async function compartirWOD() {
   ctx.lineTo(STORY_W - 100, lineY);
   ctx.stroke();
 
-  // ── CONTENIDO WOD centrado ──
   const PAD       = 100;
   const ANCHO     = STORY_W - PAD * 2;
   const LINE_H    = 46;
   const FONT_SIZE = 38;
 
-  ctx.font        = `${FONT_SIZE}px sans-serif`;
-  ctx.fillStyle   = 'rgba(255,255,255,0.9)';
+  ctx.font = `${FONT_SIZE}px sans-serif`;
+  const lineas  = calcularLineas(ctx, c.wod, ANCHO);
+  const totalH  = lineas.length * LINE_H;
+  const zonaTop = lineY + 30;
+  const zonaBot = STORY_H - 220;
+  const zonaH   = zonaBot - zonaTop;
+  const startY  = zonaTop + (zonaH - totalH) / 2 + FONT_SIZE;
 
-  const lineas    = calcularLineas(ctx, c.wod, ANCHO, LINE_H);
-  const totalH    = lineas.length * LINE_H;
-
-  // Zona de contenido: entre lineY+30 y footer (STORY_H - 220)
-  const zonaTop   = lineY + 30;
-  const zonaBot   = STORY_H - 220;
-  const zonaH     = zonaBot - zonaTop;
-  const startY    = zonaTop + (zonaH - totalH) / 2 + FONT_SIZE;
-
-  // Texto
-  ctx.font        = `${FONT_SIZE}px sans-serif`;
-  ctx.fillStyle   = 'rgba(255,255,255,0.92)';
-  ctx.textAlign   = 'center';
+  ctx.textAlign = 'center';
   lineas.forEach((l, i) => {
     ctx.fillStyle = l === '' ? 'transparent' : 'rgba(255,255,255,0.92)';
     ctx.fillText(l, cx, startY + i * LINE_H);
@@ -196,10 +178,11 @@ export async function compartirWOD() {
 
 // ─── COMPARTIR RANKING ────────────────────────────────────────────────────────
 export async function compartirRanking() {
-  const dia = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
+  const dia  = window.getDiaRankingActual ? window.getDiaRankingActual() : selectedViewDay;
   const plan = currentViewPlan;
   const hoy  = new Date(); hoy.setHours(0,0,0,0);
   const lista = cacheResults[dia]?.[plan] || {};
+  const c     = cachePrograms[dia]?.[plan] || {};
 
   const todos = Object.entries(cacheUsers)
     .filter(([id, u]) => {
@@ -217,97 +200,225 @@ export async function compartirRanking() {
   const toSec = str => { const p = str.trim().split(':'); return p.length === 2 ? parseInt(p[0])*60 + parseFloat(p[1]) : parseFloat(p[0]); };
   const toNum = str => parseFloat(str.replace(',','.')) || 0;
 
-  const ordenado = conResultado.sort((a, b) =>
+  const ordenadoCompleto = conResultado.sort((a, b) =>
     tipo === 'time' ? toSec(a.score) - toSec(b.score) : toNum(b.score) - toNum(a.score)
   );
 
-  if (!ordenado.length) { alert('No hay resultados cargados para este día.'); return; }
+  if (!ordenadoCompleto.length) { alert('No hay resultados cargados para este día.'); return; }
+
+  const ordenado     = ordenadoCompleto.slice(0, MAX_RANKING_ROWS);
+  const hayMas       = ordenadoCompleto.length > MAX_RANKING_ROWS;
+  const totalAtletas = ordenadoCompleto.length;
 
   const { canvas, ctx } = await crearCanvasBase();
   const cx = STORY_W / 2;
 
   // ── LOGO ──
-  let logoBottomY = 120;
+  const LOGO_Y = 80;
+  const LOGO_H = 150;
+  let cursorY  = LOGO_Y + LOGO_H;
   try {
     const logo = await cargarImagen('img/logo-cuadrado-legion.png');
-    const logoH = 200;
-    dibujarLogo(ctx, logo, cx, 80, logoH);
-    logoBottomY = 80 + logoH + 30;
-  } catch { logoBottomY = 120; }
+    dibujarLogo(ctx, logo, cx, LOGO_Y, LOGO_H);
+  } catch {}
 
-  // ── TÍTULO ──
-  ctx.textAlign   = 'center';
-  ctx.font        = '700 72px sans-serif';
-  ctx.fillStyle   = '#FFFFFF';
-  ctx.fillText('RANKING', cx, logoBottomY + 70);
+  // ── ENCABEZADO ──
+  // Layout:
+  //   [logo]
+  //   <GAP_LOGO>     ← espacio logo → línea superior
+  //   ────────────   ← línea verde
+  //   <GAP_INNER>    ← espacio línea → RANKING  (= mismo valor que RANKING → línea inferior)
+  //   RANKING
+  //   <GAP_SUB>      ← espacio RANKING → disciplina (compacto, son un bloque)
+  //   CROSSFIT · DÍA
+  //   <GAP_INNER>    ← espacio disciplina → línea inferior (= mismo valor que arriba)
+  //   ────────────   ← línea verde
 
-  const diaLabel = dia.toUpperCase();
-  ctx.font        = '600 48px sans-serif';
-  ctx.fillStyle   = '#48F135';
-  ctx.fillText(diaLabel, cx, logoBottomY + 132);
+  const GAP_LOGO  = 36; // separación logo → línea superior
+  const GAP_INNER = 48; // separación línea → contenido (arriba)
+  const GAP_INNER_BOTTOM = 20; // separación contenido → línea (abajo, más ajustado)
+  const GAP_SUB   = 10; // separación entre RANKING y disciplina (son un bloque)
 
-  const lineY = logoBottomY + 158;
+  // Espacio logo → línea superior
+  cursorY += GAP_LOGO;
+
+  // Línea superior
   ctx.strokeStyle = '#48F135';
   ctx.lineWidth   = 2;
   ctx.beginPath();
-  ctx.moveTo(100, lineY);
-  ctx.lineTo(STORY_W - 100, lineY);
+  ctx.moveTo(80, cursorY);
+  ctx.lineTo(STORY_W - 80, cursorY);
   ctx.stroke();
+  cursorY += GAP_INNER;
+
+  // RANKING
+  ctx.textAlign = 'center';
+  ctx.font      = '700 58px sans-serif';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('RANKING', cx, cursorY);
+  cursorY += GAP_SUB + 36; // +36 = descenso tipográfico aprox de 58px
+
+  // Disciplina · día
+  ctx.font      = '700 36px sans-serif';
+  ctx.fillStyle = '#48F135';
+  ctx.fillText(`${plan.toUpperCase()}  ·  ${dia.toUpperCase()}`, cx, cursorY);
+  cursorY += GAP_INNER_BOTTOM;
+
+  // Línea inferior
+  ctx.strokeStyle = '#48F135';
+  ctx.lineWidth   = 2;
+  ctx.beginPath();
+  ctx.moveTo(80, cursorY);
+  ctx.lineTo(STORY_W - 80, cursorY);
+  ctx.stroke();
+  cursorY += 28;
+
+  // ── WOD — si existe, se muestra en un bloque compacto ──
+  const FOOTER_TOP = STORY_H - 210;
+  if (c.wod) {
+    // Fondo semitransparente para el bloque WOD
+    const WOD_PAD   = 60;
+    const WOD_ANCHO = STORY_W - WOD_PAD * 2;
+
+    // Calcular cuántas líneas ocupa el WOD con fuente pequeña
+    const WOD_FONT  = 30;
+    const WOD_LH    = 42;
+    ctx.font = `400 ${WOD_FONT}px sans-serif`;
+    const wodLineas = calcularLineas(ctx, c.wod, WOD_ANCHO - 40);
+
+    // Limitar a máx 6 líneas para no invadir el ranking
+    const lineasMostrar   = wodLineas.slice(0, 6);
+    const hayMasWod       = wodLineas.length > 6;
+    const WOD_BLOCK_H     = 32 + lineasMostrar.length * WOD_LH + (hayMasWod ? WOD_LH : 0) + 20;
+
+    // Asegurarse de que el bloque WOD + ranking + footer quepan
+    // Estimamos espacio mínimo para el ranking
+    const MIN_RANKING_H = ordenado.length * 74 + 60;
+    const espacioTotal  = FOOTER_TOP - cursorY;
+    const mostrarWod    = espacioTotal > WOD_BLOCK_H + MIN_RANKING_H + 20;
+
+    if (mostrarWod) {
+      // Fondo del bloque WOD
+      ctx.fillStyle = 'rgba(0,0,0,0.40)';
+      roundRect(ctx, WOD_PAD, cursorY, WOD_ANCHO, WOD_BLOCK_H, 12);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth   = 1;
+      roundRect(ctx, WOD_PAD, cursorY, WOD_ANCHO, WOD_BLOCK_H, 12);
+      ctx.stroke();
+
+      // Etiqueta "WOD"
+      ctx.font      = '700 22px sans-serif';
+      ctx.fillStyle = '#48F135';
+      ctx.textAlign = 'left';
+      ctx.fillText('WOD', WOD_PAD + 20, cursorY + 26);
+
+      // Texto del WOD
+      ctx.font      = `400 ${WOD_FONT}px sans-serif`;
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.textAlign = 'center';
+      let ly = cursorY + 26 + WOD_LH;
+      lineasMostrar.forEach(l => {
+        ctx.fillStyle = l === '' ? 'transparent' : 'rgba(255,255,255,0.82)';
+        ctx.fillText(l, cx, ly);
+        ly += WOD_LH;
+      });
+      if (hayMasWod) {
+        ctx.font      = '400 26px sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillText('…', cx, ly);
+      }
+
+      cursorY += WOD_BLOCK_H + 18;
+    }
+  }
+
+  // Línea separadora entre WOD y ranking
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.moveTo(80, cursorY);
+  ctx.lineTo(STORY_W - 80, cursorY);
+  ctx.stroke();
+  cursorY += 16;
 
   // ── FILAS RANKING ──
-  const PAD    = 80;
-  const ANCHO  = STORY_W - PAD * 2;
-  const ROW_H  = 96;
-  const medals = ['🥇', '🥈', '🥉'];
+  const PAD      = 60;
+  const ANCHO    = STORY_W - PAD * 2;
+  const medals   = ['🥇', '🥈', '🥉'];
+  const zonaTop  = cursorY;
+  const zonaBot  = FOOTER_TOP - (hayMas ? 44 : 0);
+  const zonaH    = zonaBot - zonaTop;
 
-  // Calcular startY para centrar las filas
   const totalFilas = ordenado.length;
-  const totalH     = totalFilas * (ROW_H + 10);
-  const zonaTop    = lineY + 30;
-  const zonaBot    = STORY_H - 220;
-  let   y          = zonaTop + ((zonaBot - zonaTop) - totalH) / 2;
+  const GAP        = 6;
+  const ROW_H      = Math.min(100, Math.max(68, Math.floor((zonaH - GAP * (totalFilas - 1)) / totalFilas)));
+  const totalH     = totalFilas * ROW_H + GAP * (totalFilas - 1);
+
+  // Alinear desde arriba (no centrar verticalmente) para que quede prolijo
+  let y = zonaTop;
 
   ctx.textAlign = 'left';
 
   ordenado.forEach((r, idx) => {
-    if (y > zonaBot) return;
     const esPodio = idx < 3;
 
-    ctx.fillStyle = `rgba(0,0,0,${esPodio ? 0.4 : 0.25})`;
-    roundRect(ctx, PAD, y, ANCHO, ROW_H, 14);
+    ctx.fillStyle = `rgba(0,0,0,${esPodio ? 0.45 : 0.28})`;
+    roundRect(ctx, PAD, y, ANCHO, ROW_H, 12);
     ctx.fill();
 
-    ctx.strokeStyle = esPodio ? 'rgba(200,241,53,0.6)' : 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = esPodio ? 'rgba(200,241,53,0.55)' : 'rgba(255,255,255,0.10)';
     ctx.lineWidth   = esPodio ? 1.5 : 1;
-    roundRect(ctx, PAD, y, ANCHO, ROW_H, 14);
+    roundRect(ctx, PAD, y, ANCHO, ROW_H, 12);
     ctx.stroke();
 
+    const midY = y + ROW_H / 2;
+
     // Posición / medalla
-    ctx.font      = esPodio ? '700 48px sans-serif' : '600 38px sans-serif';
-    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.45)';
+    const numFontSize = Math.max(26, ROW_H * 0.40);
+    ctx.font      = `${esPodio ? 700 : 600} ${numFontSize}px sans-serif`;
+    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.4)';
     ctx.textAlign = 'center';
-    ctx.fillText(esPodio ? medals[idx] : `#${idx+1}`, PAD + 52, y + 62);
+    ctx.fillText(esPodio ? medals[idx] : `#${idx+1}`, PAD + 46, midY + numFontSize * 0.36);
 
     // Nombre
-    ctx.font      = '600 36px sans-serif';
+    const nameFontSize = Math.max(22, ROW_H * 0.36);
+    ctx.font = `600 ${nameFontSize}px sans-serif`;
+    let displayName = r.name;
+    const maxNombreW = ANCHO - 210;
+    while(ctx.measureText(displayName).width > maxNombreW && displayName.length > 6) {
+      displayName = displayName.slice(0, -1);
+    }
+    if(displayName !== r.name) displayName += '…';
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'left';
-    ctx.fillText(r.name, PAD + 106, y + 62);
+    ctx.fillText(displayName, PAD + 92, midY + nameFontSize * 0.36);
 
     // Modalidad
-    ctx.font      = '700 26px sans-serif';
-    ctx.fillStyle = r.modalidad === 'rx' ? '#C8F135' : 'rgba(255,255,255,0.4)';
+    const mdFontSize = Math.max(18, ROW_H * 0.28);
+    ctx.font      = `700 ${mdFontSize}px sans-serif`;
+    ctx.fillStyle = r.modalidad === 'rx' ? '#C8F135' : 'rgba(255,255,255,0.38)';
     ctx.textAlign = 'right';
-    ctx.fillText(r.modalidad === 'rx' ? 'RX' : 'SC', STORY_W - PAD - 130, y + 50);
+    ctx.fillText(r.modalidad === 'rx' ? 'RX' : 'SC', STORY_W - PAD - 110, midY + mdFontSize * 0.28);
 
     // Score
-    ctx.font      = '700 40px sans-serif';
-    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.85)';
-    ctx.fillText(r.score, STORY_W - PAD, y + 66);
+    const scoreFontSize = Math.max(24, ROW_H * 0.38);
+    ctx.font      = `700 ${scoreFontSize}px sans-serif`;
+    ctx.fillStyle = esPodio ? '#C8F135' : 'rgba(255,255,255,0.88)';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.score, STORY_W - PAD - 4, midY + scoreFontSize * 0.36);
 
     ctx.textAlign = 'left';
-    y += ROW_H + 10;
+    y += ROW_H + GAP;
   });
+
+  // Nota de atletas adicionales
+  if(hayMas) {
+    ctx.font      = '400 28px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.42)';
+    ctx.textAlign = 'center';
+    ctx.fillText(`+ ${totalAtletas - MAX_RANKING_ROWS} atleta${totalAtletas - MAX_RANKING_ROWS !== 1 ? 's' : ''} más`, cx, y + 32);
+  }
 
   dibujarFooter(ctx);
   descargarCanvas(canvas, `legion-ranking-${dia}.png`);

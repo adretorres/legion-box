@@ -3,8 +3,8 @@ import {
   cargarDatos, cargarCompetencia,
   cacheUsers, cachePrograms, cacheResults, cacheInfo, cacheComp,
   currentUser, setCurrentUser,
-  SCHEDULES, setSchedules,
-  fsSet, setCacheResults,
+  SCHEDULES,
+  fsGet, fsSet, setCacheResults,
   escucharResultados } from './firebase.js';
 
 import { doLogin, cerrarSesion }         from './auth.js';
@@ -21,7 +21,8 @@ import { renderClass, syncAdminView, saveClass, changeViewDay,
          resetProgramacion, toggleResetDay }  from './clases.js';
 import { renderRanking, saveWodScore,
          editarResultadoRanking, cargarResultadoCoach,
-         seleccionarModalidad } from './ranking.js';
+         seleccionarModalidad, cambiarDiaRanking,
+         cambiarPlanRanking } from './ranking.js';
 import { renderCompAdmin, mostrarFormComp, guardarCompetencia,
          agregarCategoria, eliminarCategoria,
          agregarEvento, eliminarEvento, editarEvento, guardarEdicionEvento,
@@ -38,8 +39,7 @@ import { setTimerMode, timerStart, timerReset,
 import { calculate, loadRMValue, saveRM,
          renderRMChart, loadProfileData,
          updateOwnProfile }              from './rm.js';
-import { inicializarNotificaciones, enviarNotificacion,
-         enviarNotificacionGeneral }      from './notificaciones.js';
+import { inicializarNotificaciones }     from './notificaciones.js';
 import { renderHorariosAdmin, agregarHorario,
          eliminarHorario, renderHorariosPublico } from './horarios.js';
 import { toggleAccordion } from './ui.js';
@@ -61,6 +61,55 @@ export function setEditingUserId(v)            { editingUserId            = v; }
 export function setCurrentRankingMode(v)       { currentRankingMode       = v; }
 export function setTipoPagoSeleccionado(v)     { tipoPagoSeleccionado     = v; }
 
+// ─── LISTENER DE RESULTADOS EN TIEMPO REAL ────────────────────────────────────
+// Se llama una sola vez; la referencia al unsubscribe permite limpiarlo si se
+// necesita en el futuro (por ejemplo al cerrar sesión).
+let _unsubResultados = null;
+
+function suscribirResultados() {
+  if (_unsubResultados) return; // ya está activo, no duplicar
+  _unsubResultados = escucharResultados(() => {
+    renderRanking();
+  });
+}
+
+// ─── RESET SEMANAL SEGURO (solo coach, clave en Firestore) ────────────────────
+async function checkAutoReset() {
+  // Solo el coach ejecuta el reset para evitar que cualquier dispositivo borre
+  // los datos de todos los usuarios.
+  if (!currentUser || currentUser.role !== 'coach') return;
+
+  const ahora           = new Date();
+  const diasDesde       = ahora.getDay() === 0 ? 0 : ahora.getDay();
+  const ultimoDomingo   = new Date(ahora);
+  ultimoDomingo.setDate(ahora.getDate() - diasDesde);
+  ultimoDomingo.setHours(0, 0, 0, 0);
+  const claveEsteReset  = ultimoDomingo.toISOString().split('T')[0]; // "2025-06-01"
+
+  // Leer la clave del último reset desde Firestore
+  const info            = await fsGet('info');
+  const claveGuardada   = info?.lastReset || null;
+
+  if (claveGuardada !== claveEsteReset) {
+    const confirmar = confirm(
+      `Nueva semana detectada.\n¿Limpiar los resultados del ranking anterior?\n` +
+      `(Semana del ${claveEsteReset})\n\n` +
+      `Esta acción borrará todos los resultados cargados hasta ahora.`
+    );
+
+    // Siempre guardar la clave en Firestore, haya confirmado o no.
+    // Así no vuelve a preguntar hasta la próxima semana.
+    await fsSet('info', { ...info, lastReset: claveEsteReset });
+
+    if (confirmar) {
+      setCacheResults({});
+      await fsSet('results', {});
+      renderRanking();
+      console.log('Reset semanal ejecutado para semana del', claveEsteReset);
+    }
+  }
+}
+
 // ─── SHOW APP ─────────────────────────────────────────────────────────────────
 export async function showApp(isCoach, userData = null) {
   document.getElementById("screen-login").classList.add("hidden");
@@ -74,6 +123,9 @@ export async function showApp(isCoach, userData = null) {
   else navUser.textContent = "Hola, " + (userData.name ? userData.name.split(" ")[0] : "Atleta");
 
   renderBirthdays();
+
+  // ── Suscribir resultados en tiempo real para TODOS los roles ──────────────
+  suscribirResultados();
 
   if(isCoach) {
     document.getElementById("admin-panel").classList.remove("hidden");
@@ -94,20 +146,24 @@ export async function showApp(isCoach, userData = null) {
       document.getElementById('comp-empty').classList.remove('hidden');
       document.getElementById('comp-form').classList.add('hidden');
     }
+    // Reset semanal solo lo evalúa el coach
+    checkAutoReset();
   } else {
     currentViewPlan = userData.plans && userData.plans.length > 0
       ? userData.plans[0] : "crossfit";
-      const esSoloCrossFit = userData.plans?.includes('crossfit');
-      const esSoloFuncional = !esSoloCrossFit && userData.plans?.includes('funcional');
 
-      if(esSoloCrossFit) {
-        document.getElementById("score-upload-container").classList.remove("hidden");
-        document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.remove("hidden");
-      } else {
-        document.getElementById("score-upload-container").classList.add("hidden");
-        document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.add("hidden");
-      }
-      setupPlanSwitcher(userData.plans);
+    const tieneCrossFit  = userData.plans?.includes('crossfit');
+    const tieneFuncional = userData.plans?.includes('funcional');
+    const puedeRanking   = tieneCrossFit || tieneFuncional;
+
+    if(puedeRanking) {
+      document.getElementById("score-upload-container").classList.remove("hidden");
+      document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.remove("hidden");
+    } else {
+      document.getElementById("score-upload-container").classList.add("hidden");
+      document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.add("hidden");
+    }
+    setupPlanSwitcher(userData.plans);
     const btnH = document.getElementById("btn-" + selectedViewDay);
     if(btnH) changeViewDay(selectedViewDay, btnH);
     setTimeout(() => inicializarNotificaciones(), 2000);
@@ -122,7 +178,20 @@ export function switchTab(id, btn) {
   btn.classList.add("active");
 
   if(id === "profile")     loadProfileData();
-  if(id === "ranking")     renderRanking();
+  if(id === "ranking") {
+    // Marcar el día actual como activo si ningún botón tiene activo todavía
+    const rankDayBtns = document.querySelectorAll('#rank-day-btns .day-btn');
+    const hayActivo   = Array.from(rankDayBtns).some(b => b.classList.contains('active'));
+    if(!hayActivo) {
+      rankDayBtns.forEach(b => {
+        const onclick = b.getAttribute('onclick') || '';
+        if(onclick.includes(`'${selectedViewDay}'`)) {
+          b.classList.add('active');
+        }
+      });
+    }
+    renderRanking();
+  }
   if(id === "info") {
     loadBoxInfo();
     renderBirthdays();
@@ -199,40 +268,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoyIdx = new Date().getDay();
   setSelectedViewDay(hoyIdx === 0 ? "lunes" : dias[hoyIdx]);
 
+  // Marcar día activo en el selector de ranking al cargar
   document.querySelectorAll('#rank-day-btns .day-btn').forEach(btn => {
     const onclick = btn.getAttribute('onclick') || '';
-    if(onclick.includes(selectedViewDay)) btn.classList.add('active');
+    if(onclick.includes(`'${selectedViewDay}'`)) btn.classList.add('active');
   });
 
   const payDateInput = document.getElementById("pay-date");
   if(payDateInput) payDateInput.valueAsDate = new Date();
 
   cargarCompetencia().then(() => actualizarBotonLeaderboard());
-
-  // ─── AUTO RESET SEMANAL ──────────────────────────────────────────────────────
-async function checkAutoReset() {
-  const ahora     = new Date();
-  const diaSemana = ahora.getDay(); // 0=domingo
-
-  // Calcular el domingo más reciente (o hoy si es domingo)
-  const diasDesdeUltimoDomingo = diaSemana === 0 ? 0 : diaSemana;
-  const ultimoDomingo = new Date(ahora);
-  ultimoDomingo.setDate(ahora.getDate() - diasDesdeUltimoDomingo);
-  ultimoDomingo.setHours(0, 0, 0, 0);
-  const claveUltimoDomingo = ultimoDomingo.toISOString().split('T')[0]; // "2025-06-01"
-
-  const claveGuardada = localStorage.getItem('legion_reset_semana');
-
-  if(claveGuardada !== claveUltimoDomingo) {
-    // No se hizo el reset de esta semana todavía
-    setCacheResults({});
-    await fsSet('results', {});
-    localStorage.setItem('legion_reset_semana', claveUltimoDomingo);
-    renderRanking();
-    console.log('Reset semanal ejecutado para semana del', claveUltimoDomingo);
-  }
-}
-  checkAutoReset();  // se ejecuta al abrir la app, no cada 30 segundos
 
   // Registrar Service Worker (PWA)
   if ('serviceWorker' in navigator) {
@@ -256,11 +301,6 @@ async function checkAutoReset() {
       cargarDatos().then(() => {
         if(s.role === 'coach') showApp(true);
         else showApp(false, cacheUsers[s.id] || s);
-
-        // ← Agregar esto:
-        escucharResultados(() => {
-          renderRanking();
-        });
 
         const lastTab = localStorage.getItem('legion_last_tab');
         if (lastTab) {
@@ -327,8 +367,6 @@ window.eliminarEjercicioEmom = eliminarEjercicioEmom;
 window.agregarBloqueWod      = agregarBloqueWod;
 window.eliminarBloqueWod     = eliminarBloqueWod;
 window.toggleCompoundTipo    = toggleCompoundTipo;
-window.enviarNotificacion        = enviarNotificacion;
-window.enviarNotificacionGeneral = enviarNotificacionGeneral;
 window.renderHorariosAdmin   = renderHorariosAdmin;
 window.agregarHorario        = agregarHorario;
 window.eliminarHorario       = eliminarHorario;
@@ -346,3 +384,5 @@ window.deletePaymentInline       = deletePaymentInline;
 window.abrirDrawerAtleta         = abrirDrawerAtleta;
 window.cerrarDrawerAtleta        = cerrarDrawerAtleta;
 window.renderHistorialPagosInline = renderHistorialPagosInline;
+window.cambiarDiaRanking  = cambiarDiaRanking;
+window.cambiarPlanRanking = cambiarPlanRanking;

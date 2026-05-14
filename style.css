@@ -1136,3 +1136,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   min-height: 20px;
   transition: font-size 0.2s ease;
 }
+
+.ql-align-center { text-align: center; }
+.ql-align-right  { text-align: right; }
+.ql-align-justify { text-align: justify; }
+.ql-size-small  { font-size: 0.75em; }
+.ql-size-large  { font-size: 1.5em; }
+.ql-size-huge   { font-size: 2em; }

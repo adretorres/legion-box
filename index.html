@@ -1204,79 +1204,58 @@
           <div class="page-title">Ranking</div>
 
           <div class="admin-section">
-            <div id="rank-filters-row" style="margin-bottom: 16px">
-              <label
-                style="
-                  font-family: &quot;Barlow Condensed&quot;, sans-serif;
-                  font-size: 0.72rem;
-                  font-weight: 700;
-                  letter-spacing: 2px;
-                  color: var(--accent);
-                  text-transform: uppercase;
-                  display: block;
-                  margin-bottom: 8px;
-                "
-                >Día</label
-              >
-              <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;" id="rank-day-btns">
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('lunes', this)"
-                >
-                  Lun
-                </button>
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('martes', this)"
-                >
-                  Mar
-                </button>
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('miercoles', this)"
-                >
-                  Mié
-                </button>
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('jueves', this)"
-                >
-                  Jue
-                </button>
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('viernes', this)"
-                >
-                  Vie
-                </button>
-                <button
-                  class="day-btn"
-                  onclick="cambiarDiaRanking('sabado', this)"
-                >
-                  Sáb
-                </button>
+
+            <!-- SELECTOR DE DISCIPLINA -->
+            <div style="margin-bottom:14px;">
+              <label style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem;
+                font-weight:700; letter-spacing:2px; color:var(--accent);
+                text-transform:uppercase; display:block; margin-bottom:8px;">Disciplina</label>
+              <div style="display:flex; gap:6px;" id="rank-plan-btns">
+                <button class="day-btn active" onclick="cambiarPlanRanking('crossfit', this)"
+                  style="flex:1;">CrossFit</button>
+                <button class="day-btn" onclick="cambiarPlanRanking('funcional', this)"
+                  style="flex:1;">Funcional</button>
+                <button class="day-btn" onclick="cambiarPlanRanking('planificacion', this)"
+                  style="flex:1;">Planif.</button>
               </div>
             </div>
 
-            <div
-              id="ranking-list-container"
-              style="
-                background: var(--surface);
-                border-radius: var(--radius);
-                border: 1px solid var(--border);
-                overflow: hidden;
-              "
-            ></div>
+            <!-- SELECTOR DE DÍA -->
+            <div id="rank-filters-row" style="margin-bottom:16px;">
+              <label style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem;
+                font-weight:700; letter-spacing:2px; color:var(--accent);
+                text-transform:uppercase; display:block; margin-bottom:8px;">Día</label>
+              <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:6px;" id="rank-day-btns">
+                <button class="day-btn" onclick="cambiarDiaRanking('lunes', this)">Lun</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('martes', this)">Mar</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('miercoles', this)">Mié</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('jueves', this)">Jue</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('viernes', this)">Vie</button>
+                <button class="day-btn" onclick="cambiarDiaRanking('sabado', this)">Sáb</button>
+              </div>
+            </div>
+
+            <!-- TÍTULO ACTIVO (disciplina) -->
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem;
+              font-weight:700; letter-spacing:2px; color:var(--text-tertiary);
+              text-transform:uppercase; margin-bottom:10px;">
+              Mostrando: <span id="rank-plan-title">CROSSFIT</span>
+            </div>
+
+            <div id="ranking-list-container"
+              style="background:var(--surface); border-radius:var(--radius);
+              border:1px solid var(--border); overflow:hidden;"></div>
 
             <!-- Botón compartir Ranking -->
-              <button onclick="compartirRanking()"
-                style="width:100%; margin-top:12px; background:none;
-                border:1px solid var(--accent); color:var(--accent);
-                padding:12px; border-radius:var(--radius); cursor:pointer;
-                font-family:'Barlow Condensed',sans-serif; font-size:0.85rem;
-                font-weight:700; letter-spacing:2px;">
-                COMPARTIR RANKING COMO HISTORIA
-              </button>
+            <button onclick="compartirRanking()"
+              style="width:100%; margin-top:12px; background:none;
+              border:1px solid var(--accent); color:var(--accent);
+              padding:12px; border-radius:var(--radius); cursor:pointer;
+              font-family:'Barlow Condensed',sans-serif; font-size:0.85rem;
+              font-weight:700; letter-spacing:2px;">
+              COMPARTIR RANKING COMO HISTORIA
+            </button>
+
           </div>
         </div>
 

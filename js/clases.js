@@ -118,14 +118,14 @@ export async function saveNews() {
 }
 
 export async function savePrices() {
-  cacheInfo.prices = document.getElementById("edit-prices").value;
+  cacheInfo.prices = quillEditor.root.innerHTML;
   await fsSet('info', cacheInfo);
   alert("Información actualizada.");
   loadBoxInfo();
 }
 
 export function loadBoxInfo() {
-  document.getElementById("display-prices").textContent = cacheInfo.prices || '';
+  document.getElementById("display-prices").innerHTML = cacheInfo.prices || '';
   if(currentUser.role === "coach")
     document.getElementById("edit-prices").value = cacheInfo.prices || '';
   renderHorariosPublico();

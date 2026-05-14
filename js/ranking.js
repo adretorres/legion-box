@@ -6,13 +6,13 @@ import {
   currentUser
 } from './firebase.js';
 
-import { selectedViewDay, currentViewPlan, setCurrentRankingMode } from './main.js';
+import { selectedViewDay, currentViewPlan, setCurrentViewPlan } from './main.js';
 
-let diaRankingActual = null;
+let diaRankingActual  = null;
+let planRankingActual = null; // null = sigue currentViewPlan de main
 
 // ─── MODALIDAD RX / SCALED ────────────────────────────────────────────────────
 let modalidadSeleccionada = null;
-
 
 export function seleccionarModalidad(modo) {
   modalidadSeleccionada = modo;
@@ -40,10 +40,10 @@ export function seleccionarModalidad(modo) {
 }
 
 function actualizarHintFormato() {
-  const day      = selectedViewDay;
-  const plan     = currentViewPlan;
-  const tipo     = cachePrograms[day]?.[plan]?.resultType || 'time';
-  const hintEl   = document.getElementById('score-format-hint');
+  const day    = diaRankingActual  || selectedViewDay;
+  const plan   = planRankingActual || currentViewPlan;
+  const tipo   = cachePrograms[day]?.[plan]?.resultType || 'time';
+  const hintEl = document.getElementById('score-format-hint');
   if(!hintEl) return;
 
   const hints = {
@@ -55,45 +55,41 @@ function actualizarHintFormato() {
 }
 
 // ─── VALIDACIÓN ───────────────────────────────────────────────────────────────
-function validarScore(score, tipo) {
-  const errorEl = document.getElementById('score-error');
-  errorEl.style.display = 'none';
-  errorEl.textContent   = '';
+function validarScore(score, tipo, mostrarEnDOM = true) {
+  if(mostrarEnDOM) {
+    const errorEl = document.getElementById('score-error');
+    if(errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  }
 
   if(!score.trim()) {
-    errorEl.textContent   = 'Ingresá tu resultado.';
-    errorEl.style.display = 'block';
+    if(mostrarEnDOM) _mostrarError('Ingresá tu resultado.');
     return false;
   }
 
   if(tipo === 'time') {
     const regex = /^\d{1,2}:\d{2}$/;
     if(!regex.test(score.trim())) {
-      errorEl.textContent   = 'Formato incorrecto. Usá mm:ss — Ejemplo: 17:00 para 17 minutos.';
-      errorEl.style.display = 'block';
+      if(mostrarEnDOM) _mostrarError('Formato incorrecto. Usá mm:ss — Ejemplo: 17:00 para 17 minutos.');
       return false;
     }
     const parts = score.trim().split(':');
     const segs  = parseInt(parts[1]);
     if(segs > 59) {
-      errorEl.textContent   = 'Los segundos no pueden superar 59.';
-      errorEl.style.display = 'block';
+      if(mostrarEnDOM) _mostrarError('Los segundos no pueden superar 59.');
       return false;
     }
   }
 
   if(tipo === 'reps') {
     if(!/^\d+$/.test(score.trim())) {
-      errorEl.textContent   = 'Solo se permiten números enteros. Ejemplo: 45';
-      errorEl.style.display = 'block';
+      if(mostrarEnDOM) _mostrarError('Solo se permiten números enteros. Ejemplo: 45');
       return false;
     }
   }
 
   if(tipo === 'weight') {
     if(!/^\d+(\.\d+)?$/.test(score.trim().replace(',','.'))) {
-      errorEl.textContent   = 'Solo se permiten números. Ejemplo: 85 o 85.5';
-      errorEl.style.display = 'block';
+      if(mostrarEnDOM) _mostrarError('Solo se permiten números. Ejemplo: 85 o 85.5');
       return false;
     }
   }
@@ -101,17 +97,22 @@ function validarScore(score, tipo) {
   return true;
 }
 
+function _mostrarError(msg) {
+  const errorEl = document.getElementById('score-error');
+  if(!errorEl) return;
+  errorEl.textContent   = msg;
+  errorEl.style.display = 'block';
+}
+
 // ─── GUARDAR RESULTADO ────────────────────────────────────────────────────────
 export async function saveWodScore() {
   const score = document.getElementById("input-score").value.trim();
-  const day   = selectedViewDay;
-  const plan  = currentViewPlan;
+  const day   = diaRankingActual  || selectedViewDay;
+  const plan  = planRankingActual || currentViewPlan;
   const tipo  = cachePrograms[day]?.[plan]?.resultType || 'time';
 
   if(!modalidadSeleccionada) {
-    const errorEl = document.getElementById('score-error');
-    errorEl.textContent   = 'Seleccioná RX o Scaled antes de cargar tu resultado.';
-    errorEl.style.display = 'block';
+    _mostrarError('Seleccioná RX o Scaled antes de cargar tu resultado.');
     return;
   }
 
@@ -137,12 +138,17 @@ export async function saveWodScore() {
 // ─── RENDER RANKING ───────────────────────────────────────────────────────────
 export function renderRanking() {
   const cont    = document.getElementById("ranking-list-container");
+  if(!cont) return;
   const results = cacheResults || {};
-  const day     = diaRankingActual || selectedViewDay;
-  const plan    = currentViewPlan;
+  const day     = diaRankingActual  || selectedViewDay;
+  const plan    = planRankingActual || currentViewPlan;
   const tipo    = cachePrograms[day]?.[plan]?.resultType || 'time';
   const hoy     = new Date(); hoy.setHours(0,0,0,0);
   cont.innerHTML = "";
+
+  // Actualizar título del ranking con disciplina activa
+  const titleEl = document.getElementById('rank-plan-title');
+  if(titleEl) titleEl.textContent = plan.toUpperCase();
 
   const todos = Object.entries(cacheUsers)
     .filter(([id, u]) => {
@@ -174,6 +180,11 @@ export function renderRanking() {
 
   conOrdenado.forEach((r, idx) => {
     const esCoach    = currentUser?.role === 'coach';
+    const medalEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
+    const numLabel   = medalEmoji
+      ? `<span class="rank-num" style="font-size:1.1rem;">${medalEmoji}</span>`
+      : `<span class="rank-num">#${idx+1}</span>`;
+
     const modalBadge = r.modalidad === 'scaled'
       ? `<span style="font-size:0.65rem; background:#55555530; color:var(--text-tertiary);
           border:1px solid var(--border-strong); border-radius:4px; padding:1px 5px; margin-left:4px;">SC</span>`
@@ -183,7 +194,7 @@ export function renderRanking() {
     cont.innerHTML += `
       <div class="ranking-row">
         <div style="display:flex; align-items:center; gap:10px;">
-          <span class="rank-num">#${idx+1}</span>
+          ${numLabel}
           <span style="font-size:0.9rem;">${r.name}</span>
           ${modalBadge}
         </div>
@@ -214,7 +225,7 @@ export function renderRanking() {
   });
 
   if(!todos.length) {
-    cont.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">No hay atletas activos.</p>';
+    cont.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">No hay atletas activos en esta disciplina.</p>';
   }
 }
 
@@ -222,10 +233,13 @@ export function renderRanking() {
 export async function editarResultadoRanking(day, plan, uid) {
   const actual    = cacheResults[day]?.[plan]?.[uid];
   const scoreAct  = actual?.score || '';
-  const modalAct  = actual?.modalidad || 'rx';
   const tipo      = cachePrograms[day]?.[plan]?.resultType || 'time';
+  const hints     = { time:'mm:ss — Ej: 17:00', reps:'Número entero — Ej: 45', weight:'Peso en kg — Ej: 85' };
 
-  const nuevoScore = prompt(`Editar resultado de ${actual?.name}:\n(Formato actual: ${scoreAct})`, scoreAct);
+  const nuevoScore = prompt(
+    `Editar resultado de ${actual?.name}\nFormato: ${hints[tipo]}\nActual: ${scoreAct}`,
+    scoreAct
+  );
   if(nuevoScore === null) return;
 
   if(!nuevoScore.trim()) {
@@ -236,7 +250,10 @@ export async function editarResultadoRanking(day, plan, uid) {
     return;
   }
 
-  if(!validarScore(nuevoScore.trim(), tipo)) return;
+  if(!validarScore(nuevoScore.trim(), tipo, false)) {
+    alert(`Formato incorrecto.\n${hints[tipo]}`);
+    return;
+  }
 
   const nuevaModalidad = confirm('¿El atleta realizó el WOD en RX?\n(Cancelar = Scaled)') ? 'rx' : 'scaled';
 
@@ -248,17 +265,14 @@ export async function editarResultadoRanking(day, plan, uid) {
 
 // ─── CARGAR RESULTADO COACH ───────────────────────────────────────────────────
 export async function cargarResultadoCoach(uid, nombre, day, plan) {
-  const tipo = cachePrograms[day]?.[plan]?.resultType || 'time';
-  const hints = {
-    time:   'Formato mm:ss — Ejemplo: 17:00',
-    reps:   'Solo números enteros — Ejemplo: 45',
-    weight: 'Peso en kg — Ejemplo: 85'
-  };
+  const tipo  = cachePrograms[day]?.[plan]?.resultType || 'time';
+  const hints = { time:'mm:ss — Ej: 17:00', reps:'Número entero — Ej: 45', weight:'Peso en kg — Ej: 85' };
 
-  const score = prompt(`Cargar resultado de ${nombre}:\n${hints[tipo]}`);
+  const score = prompt(`Cargar resultado de ${nombre}\nFormato: ${hints[tipo]}`);
   if(!score) return;
-  if(!validarScore(score.trim(), tipo)) {
-    alert('Formato incorrecto. ' + hints[tipo]);
+
+  if(!validarScore(score.trim(), tipo, false)) {
+    alert(`Formato incorrecto.\n${hints[tipo]}`);
     return;
   }
 
@@ -276,6 +290,7 @@ export async function cargarResultadoCoach(uid, nombre, day, plan) {
   renderRanking();
 }
 
+// ─── CAMBIAR DÍA ──────────────────────────────────────────────────────────────
 export function cambiarDiaRanking(dia, btn) {
   diaRankingActual = dia;
   document.querySelectorAll('#rank-day-btns .day-btn')
@@ -284,10 +299,20 @@ export function cambiarDiaRanking(dia, btn) {
   renderRanking();
 }
 
+// ─── CAMBIAR DISCIPLINA EN RANKING ────────────────────────────────────────────
+export function cambiarPlanRanking(plan, btn) {
+  planRankingActual = plan;
+  setCurrentViewPlan(plan);
+  document.querySelectorAll('#rank-plan-btns .day-btn')
+    .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRanking();
+}
+
+// ─── GETTER DÍA ACTUAL (usado por share.js) ───────────────────────────────────
 export function getDiaRankingActual() {
   return diaRankingActual || selectedViewDay;
 }
-
 
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.renderRanking          = renderRanking;
@@ -295,5 +320,6 @@ window.saveWodScore           = saveWodScore;
 window.editarResultadoRanking = editarResultadoRanking;
 window.cargarResultadoCoach   = cargarResultadoCoach;
 window.seleccionarModalidad   = seleccionarModalidad;
-window.cambiarDiaRanking = cambiarDiaRanking;
-window.getDiaRankingActual = getDiaRankingActual;
+window.cambiarDiaRanking      = cambiarDiaRanking;
+window.cambiarPlanRanking     = cambiarPlanRanking;
+window.getDiaRankingActual    = getDiaRankingActual;
