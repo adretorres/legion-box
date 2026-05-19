@@ -255,7 +255,7 @@ export async function editarResultadoRanking(day, plan, uid) {
     return;
   }
 
-  const nuevaModalidad = confirm('¿El atleta realizó el WOD en RX?\n(Cancelar = Scaled)') ? 'rx' : 'scaled';
+  const nuevaModalidad = confirm('Modalidad del atleta:\n✅ Aceptar = RX\n❌ Cancelar = Scaled') ? 'rx' : 'scaled';
 
   cacheResults[day][plan][uid].score     = nuevoScore.trim();
   cacheResults[day][plan][uid].modalidad = nuevaModalidad;
