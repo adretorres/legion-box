@@ -211,6 +211,13 @@ export function renderPlanesAtleta(userData) {
         `;
       }).join('')}
     </div>
+    ${esCoach ? `
+    <button onclick="abrirFormNuevoPlan()"
+      style="width:100%;margin-top:10px;background:none;border:1px dashed var(--accent);
+      color:var(--accent);padding:10px;border-radius:var(--radius);cursor:pointer;
+      font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;">
+      + AGREGAR NUEVO PLAN
+    </button>` : ''}
   `;
 }
 
@@ -338,6 +345,7 @@ export function renderPlanesInfoBox() {
   const cont = document.getElementById('planes-info-cont');
   if (!cont || !cachePlanes) return;
 
+  const esCoach        = currentUser?.role === 'coach';
   const planesNormales = cachePlanes.filter(p => p.id !== 'suelta');
   const planSuelta     = cachePlanes.find(p => p.id === 'suelta');
 
@@ -364,6 +372,17 @@ export function renderPlanesInfoBox() {
               display:flex;gap:6px;align-items:flex-start;line-height:1.4;">
               <span style="color:var(--accent);font-weight:700;flex-shrink:0;">✓</span>${b}</li>`).join('')}
           </ul>
+          ${esCoach ? `
+          <div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+            <button onclick="editarPlan('${p.id}')"
+              style="flex:1;background:none;border:1px solid var(--border-strong);color:var(--text-secondary);
+              padding:4px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.7rem;">
+              Editar</button>
+            <button onclick="eliminarPlan('${p.id}')"
+              style="flex:1;background:none;border:1px solid var(--danger);color:var(--danger);
+              padding:4px 8px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.7rem;">
+              Eliminar</button>
+          </div>` : ''}
         </div>`).join('')}
     </div>
     ${planSuelta ? `

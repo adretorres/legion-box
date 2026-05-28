@@ -122,7 +122,7 @@ export async function showApp(isCoach, userData = null) {
   window.scrollTo(0, 0);
   localStorage.setItem('legion_session', JSON.stringify(currentUser));
 
-  document.getElementById("news-text").textContent = cacheInfo.news;
+  const newsEl = document.getElementById("news-text"); if(newsEl) newsEl.textContent = cacheInfo.news;
 
   // Sincronizar nav-username legacy (usado por otros módulos)
   const navUser = document.getElementById("nav-username");
@@ -137,23 +137,23 @@ export async function showApp(isCoach, userData = null) {
   suscribirResultados();
 
   if(isCoach) {
-    document.getElementById("admin-panel").classList.remove("hidden");
-    document.getElementById("tab-link-users").classList.remove("hidden");
-    document.getElementById("admin-prices-editor").classList.remove("hidden");
-    document.getElementById("tab-link-profile").classList.add("hidden");
-    document.getElementById("score-upload-container").classList.add("hidden");
+    document.getElementById("admin-panel")?.classList.remove("hidden");
+    document.getElementById("tab-link-users")?.classList.remove("hidden");
+    document.getElementById("admin-prices-editor")?.classList.remove("hidden");
+    document.getElementById("tab-link-profile")?.classList.add("hidden");
+    document.getElementById("score-upload-container")?.classList.add("hidden");
     renderUserList();
     syncAdminView();
     renderHorariosAdmin();
     renderVencimientos();
-    document.getElementById('tab-link-comp').classList.remove('hidden');
+    document.getElementById('tab-link-comp')?.classList.remove('hidden');
     await cargarCompetencia();
     if(cacheComp && cacheComp.activa) {
       mostrarFormComp();
       renderCompAdmin();
     } else {
-      document.getElementById('comp-empty').classList.remove('hidden');
-      document.getElementById('comp-form').classList.add('hidden');
+      document.getElementById('comp-empty')?.classList.remove('hidden');
+      document.getElementById('comp-form')?.classList.add('hidden');
     }
     // Planes admin
     const adminPlanes = document.getElementById('admin-planes-editor');
@@ -174,10 +174,10 @@ export async function showApp(isCoach, userData = null) {
     const puedeRanking   = tieneCrossFit || tieneFuncional;
 
     if(puedeRanking) {
-      document.getElementById("score-upload-container").classList.remove("hidden");
+      document.getElementById("score-upload-container")?.classList.remove("hidden");
       document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.remove("hidden");
     } else {
-      document.getElementById("score-upload-container").classList.add("hidden");
+      document.getElementById("score-upload-container")?.classList.add("hidden");
       document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.add("hidden");
     }
     setupPlanSwitcher(userData.plans);
@@ -252,8 +252,8 @@ export function switchTab(id, btn) {
         mostrarFormComp();
         renderCompAdmin();
       } else {
-        document.getElementById('comp-empty').classList.remove('hidden');
-        document.getElementById('comp-form').classList.add('hidden');
+        document.getElementById('comp-empty')?.classList.remove('hidden');
+        document.getElementById('comp-form')?.classList.add('hidden');
       }
     });
   }
