@@ -395,8 +395,9 @@
 
 /* ─── SCREEN APP — sin margen top propio (lo maneja el landing) ──────────── */
 #screen-app {
-  /* El padding-top lo genera el nav fijo + tabs de la app */
+  border-top: 2px solid var(--lnd-accent);
 }
+
 #screen-app main {
   padding-top: 0;
 }
@@ -556,7 +557,6 @@
   align-items: start;
 }
 .lnd-footer-brand .lnd-footer-logo { height: 48px; width: auto; margin-bottom: 4px; }
-.lnd-footer-col {}
 .lnd-footer-info-item {
   display: flex;
   gap: 10px;
