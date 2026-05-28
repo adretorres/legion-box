@@ -15,7 +15,8 @@ import { renderUserList, renderBirthdays, renderVencimientos,
          toggleAtleta, switchAtletaTab, togglePagoPanel,
          seleccionarTipoPagoAtleta, guardarPagoAtleta,
          deletePaymentInline, abrirDrawerAtleta, cerrarDrawerAtleta,
-         renderHistorialPagosInline } from './atletas.js';
+         renderHistorialPagosInline,
+         verificarVencimientoAtleta } from './atletas.js';
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
          resetProgramacion, toggleResetDay }  from './clases.js';
@@ -44,6 +45,8 @@ import { renderHorariosAdmin, agregarHorario,
          eliminarHorario, renderHorariosPublico } from './horarios.js';
 import { toggleAccordion } from './ui.js';
 import './share.js';
+import { cargarPlanes, renderPlanesLanding, renderPlanesAdmin,
+         renderPlanesAtleta, elegirPlan } from './planes.js';
 
 // ─── ESTADO LOCAL ─────────────────────────────────────────────────────────────
 export let selectedViewDay          = "lunes";
@@ -112,15 +115,20 @@ async function checkAutoReset() {
 
 // ─── SHOW APP ─────────────────────────────────────────────────────────────────
 export async function showApp(isCoach, userData = null) {
-  document.getElementById("screen-login").classList.add("hidden");
+  // Ocultar landing, mostrar app
+  document.getElementById("screen-landing")?.classList.add("hidden");
   document.getElementById("screen-app").classList.remove("hidden");
+  window.scrollTo(0, 0);
   localStorage.setItem('legion_session', JSON.stringify(currentUser));
 
   document.getElementById("news-text").textContent = cacheInfo.news;
 
+  // Sincronizar nav-username legacy (usado por otros módulos)
   const navUser = document.getElementById("nav-username");
-  if(isCoach) navUser.textContent = "Hola, Coach";
-  else navUser.textContent = "Hola, " + (userData.name ? userData.name.split(" ")[0] : "Atleta");
+  if(navUser) {
+    if(isCoach) navUser.textContent = "Hola, Coach";
+    else navUser.textContent = "Hola, " + (userData?.name ? userData.name.split(" ")[0] : "Atleta");
+  }
 
   renderBirthdays();
 
@@ -146,6 +154,12 @@ export async function showApp(isCoach, userData = null) {
       document.getElementById('comp-empty').classList.remove('hidden');
       document.getElementById('comp-form').classList.add('hidden');
     }
+    // Planes admin
+    const adminPlanes = document.getElementById('admin-planes-editor');
+    if (adminPlanes) adminPlanes.classList.remove('hidden');
+    await cargarPlanes();
+    renderPlanesAdmin();
+    renderPlanesLanding();
     // Reset semanal solo lo evalúa el coach
     checkAutoReset();
   } else {
@@ -166,7 +180,22 @@ export async function showApp(isCoach, userData = null) {
     setupPlanSwitcher(userData.plans);
     const btnH = document.getElementById("btn-" + selectedViewDay);
     if(btnH) changeViewDay(selectedViewDay, btnH);
+    await cargarPlanes();
+    renderPlanesLanding();
+    renderPlanesAtleta(userData);
+    verificarVencimientoAtleta(userData);
     setTimeout(() => inicializarNotificaciones(), 2000);
+  }
+
+  // Detectar si el acceso viene desde el código QR físico de recepción
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('pago_presencial') === 'true' && isCoach) {
+    const modalQR = document.getElementById('modal-pago-rapido-qr');
+    if (modalQR) {
+      modalQR.classList.remove('hidden');
+      // Limpiar el parámetro de la URL para que no se reabra al recargar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
 }
 
@@ -175,7 +204,7 @@ export function switchTab(id, btn) {
   document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("tab-" + id).classList.add("active");
-  btn.classList.add("active");
+  if (btn) btn.classList.add("active");
 
   if(id === "profile")     loadProfileData();
   if(id === "ranking") {
@@ -206,7 +235,14 @@ export function switchTab(id, btn) {
   }
   if(id === "users")       { renderUserList(); renderVencimientos(); }
   if(id === 'comp') {
-    cargarCompetencia().then(() => {
+    // Renderizar datos públicos en el landing al cargar
+  Promise.all([cargarDatos(), cargarPlanes()]).then(() => {
+    renderHorariosPublico();
+    renderPlanesLanding();
+    if(window.lndMostrarCompetencia) window.lndMostrarCompetencia(cacheComp);
+  }).catch(() => {});
+
+  cargarCompetencia().then(() => {
       if(cacheComp && cacheComp.activa) {
         mostrarFormComp();
         renderCompAdmin();
@@ -277,7 +313,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const payDateInput = document.getElementById("pay-date");
   if(payDateInput) payDateInput.valueAsDate = new Date();
 
-  cargarCompetencia().then(() => actualizarBotonLeaderboard());
+  cargarCompetencia().then(() => {
+    actualizarBotonLeaderboard();
+    if(window.lndMostrarCompetencia) window.lndMostrarCompetencia(cacheComp);
+  });
+
+  // Cargar datos públicos del landing sin sesión
+  Promise.all([cargarDatos(), cargarPlanes()])
+    .then(() => {
+      renderHorariosPublico();
+      renderPlanesLanding();
+    })
+    .catch(() => {
+      // Si Firestore falla, renderizar igual con los datos por defecto de respaldo
+      renderHorariosPublico();
+      renderPlanesLanding();
+    });
 
   // Registrar Service Worker (PWA)
   if ('serviceWorker' in navigator) {
@@ -301,6 +352,8 @@ document.addEventListener("DOMContentLoaded", () => {
       cargarDatos().then(() => {
         if(s.role === 'coach') showApp(true);
         else showApp(false, cacheUsers[s.id] || s);
+        renderHorariosPublico();
+        renderPlanesLanding();
 
         const lastTab = localStorage.getItem('legion_last_tab');
         if (lastTab) {
@@ -385,4 +438,7 @@ window.abrirDrawerAtleta         = abrirDrawerAtleta;
 window.cerrarDrawerAtleta        = cerrarDrawerAtleta;
 window.renderHistorialPagosInline = renderHistorialPagosInline;
 window.cambiarDiaRanking  = cambiarDiaRanking;
-window.cambiarPlanRanking = cambiarPlanRanking;
+window.cambiarPlanRanking    = cambiarPlanRanking;
+window.renderPlanesLanding   = renderPlanesLanding;
+window.renderHorariosPublico = renderHorariosPublico;
+window.elegirPlan         = elegirPlan;

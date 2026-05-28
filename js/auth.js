@@ -18,8 +18,9 @@ export async function doLogin() {
   await cargarCompetencia();
   await cargarDatos();
 
+  // Coach se detecta por ID, no por selector de rol
   const coachData = cacheUsers['coach'];
-  if (role === "admin" && coachData && passIn === coachData.pass) {
+  if ((userIn === 'coach') && coachData && passIn === coachData.pass) {
     setCurrentUser({ id: "coach", role: "coach", name: "Coach" });
     showApp(true);
     return;
@@ -46,7 +47,11 @@ export async function doLogin() {
 // ─── CERRAR SESIÓN ────────────────────────────────────────────────────────────
 export function cerrarSesion() {
   localStorage.removeItem('legion_session');
-  location.reload();
+  document.getElementById('screen-app')?.classList.add('hidden');
+  document.getElementById('screen-landing')?.classList.remove('hidden');
+  window.scrollTo(0, 0);
+  if(window.renderPlanesLanding)   window.renderPlanesLanding();
+  if(window.renderHorariosPublico) window.renderHorariosPublico();
 }
 
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────

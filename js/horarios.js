@@ -81,19 +81,19 @@ export function renderHorariosPublico() {
   if(!cont) return;
   cont.innerHTML = '';
 
-  const labels = { crossfit:'CrossFit', funcional:'Funcional', openbox:'Open Box (Sábado)' };
-  ['crossfit', 'funcional', 'openbox'].forEach(disc => {
+  const labels = { crossfit:'CrossFit', funcional:'Funcional' };
+  const icons  = { crossfit:'🏋️', funcional:'⚡' };
+
+  ['crossfit', 'funcional'].forEach(disc => {
     const horarios = SCHEDULES[disc] || [];
     cont.innerHTML += `
-      <div style="margin-bottom:12px;">
-        <p style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700;
-          letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">
-          ${labels[disc]}</p>
-        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:6px;">
-          ${horarios.map(h => `
-            <span style="font-size:0.82rem; color:var(--text-secondary); background:var(--card);
-              border:1px solid var(--border); border-radius:var(--radius-sm);
-              padding:5px 8px; text-align:center;">${h}</span>`).join('')}
+      <div class="lnd-sched-card">
+        <div class="lnd-sched-header">
+          <span class="lnd-sched-icon">${icons[disc]}</span>
+          <h3>${labels[disc]}</h3>
+        </div>
+        <div class="lnd-sched-times">
+          ${horarios.map(h => `<span>${h}</span>`).join('')}
         </div>
       </div>`;
   });

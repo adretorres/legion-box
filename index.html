@@ -23,126 +23,366 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link href="quill.snow.css" rel="stylesheet" />
     <script src="quill.min.js"></script>
+    <link rel="stylesheet" href="landing.css" />
   </head>
   <body>
-    <!-- ─── LOGIN ──────────────────────────────────────── -->
-    <div id="screen-login">
-      <div class="login-box">
-        <div class="login-logo-wrap">
+<!-- ─── MODAL LOGIN ──────────────────────────────────────── -->
+    <div id="modal-login" class="lnd-modal-overlay hidden" onclick="cerrarModalLogin(event)">
+      <div class="lnd-modal-box" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarModalLogin()">✕</button>
+        <div class="lnd-modal-logo">
           <img src="img/logo-cuadrado-legion.png" alt="Legión Box" />
         </div>
-        <div class="login-tagline">Centro de Entrenamiento</div>
-
-        <div class="form-row">
-          <label>Tipo de Usuario</label>
-          <select id="login-role">
-            <option value="user">ATLETA</option>
-            <option value="admin">COACH</option>
-          </select>
+        <p class="lnd-modal-tagline">Centro de Entrenamiento</p>
+        <div class="lnd-form-row">
+          <label>DNI o Usuario</label>
+          <input type="text" id="login-user" placeholder="Sin puntos" autocomplete="username" />
         </div>
-        <div class="form-row">
-          <label>DNI</label>
-          <input type="text" id="login-user" placeholder="DNI (Sin puntos)" />
-        </div>
-        <div class="form-row">
+        <div class="lnd-form-row">
           <label>Contraseña</label>
-          <input type="password" id="login-pass" placeholder="••••••••" />
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
-
-        <button class="btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
-        <div id="btn-ver-comp-wrap" class="hidden" style="margin-top: 10px">
-          <button
-            class="btn-primary"
-            onclick="entrarLeaderboard()"
-            style="
-              background: none;
-              border: 1px solid var(--accent);
-              color: var(--accent);
-            "
-            id="btn-ver-comp-label"
-          >
-            Ver Competencia
-          </button>
+        <!-- selector de rol oculto pero mantenido para compatibilidad -->
+        <select id="login-role" class="hidden">
+          <option value="user">ATLETA</option>
+          <option value="admin">COACH</option>
+        </select>
+        <button class="lnd-btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
+        <div id="btn-ver-comp-wrap" class="hidden" style="margin-top:10px;">
+          <button class="lnd-btn-outline" onclick="entrarLeaderboard()">Ver Competencia</button>
         </div>
-        <div id="login-error" class="error-msg"></div>
-
-        <div class="login-footer">
-          <p>Fotheringham 65 - Este · Formosa Capital</p>
-          <p>(370) 4818550 · @legion.box</p>
-        </div>
+        <div id="login-error" class="lnd-error"></div>
       </div>
     </div>
 
-    <!-- ─── APP ────────────────────────────────────────── -->
-    <div id="screen-app" class="hidden">
-      <nav>
-        <img
-          src="img/logo-cuadrado-legion.png"
-          class="nav-logo-img"
-          alt="Legion Box"
-        />
-        <div class="nav-user-info">
-          <span id="nav-username"></span>
-          <button onclick="cerrarSesion()" class="btn-exit">
-            Cerrar Sesión
-          </button>
-        </div>
-      </nav>
+    <!-- ─── LANDING ───────────────────────────────────────────── -->
+    <div id="screen-landing">
 
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('dashboard', this)">
-          Clases
-        </button>
-        <button class="tab-btn" onclick="switchTab('ranking', this)">
-          Ranking
-        </button>
-        <button
-          id="tab-link-calc"
-          class="tab-btn"
-          onclick="switchTab('calc', this)"
-        >
-          Calculadora RM
-        </button>
-        <button class="tab-btn" onclick="switchTab('info', this)">
-          Info Box
-        </button>
-        <button
-          id="tab-link-profile"
-          class="tab-btn"
-          onclick="switchTab('profile', this)"
-        >
-          Mi Perfil
-        </button>
-        <button
-          id="tab-link-users"
-          class="tab-btn hidden"
-          onclick="switchTab('users', this)"
-        >
-          Atletas
-        </button>
-        <button
-          id="tab-link-comp"
-          class="tab-btn hidden"
-          onclick="switchTab('comp', this)"
-        >
-          Competencia
-        </button>
-        <button
-          id="tab-link-comp-public"
-          class="tab-btn hidden"
-          onclick="switchTab('comp-public', this)"
-        >
-          Leaderboard
-        </button>
-        <button
-          id="tab-link-timer"
-          class="tab-btn"
-          onclick="switchTab('timer', this)"
-        >
-          Cronómetro
-        </button>
+      <!-- NAV FIJO -->
+      <header class="lnd-nav">
+        <img src="img/logo-cuadrado-legion.png" class="lnd-nav-logo" alt="Legión Box" />
+        <nav class="lnd-nav-links">
+          <a href="#disciplinas">Disciplinas</a>
+          <a href="#horarios">Horarios</a>
+          <a href="#membresias">Membresías</a>
+          <a href="#calculadora">Calculadora</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+        <!-- Estado sin sesión -->
+        <div id="lnd-nav-guest">
+          <button class="lnd-btn-login" onclick="abrirModalLogin()">INICIAR SESIÓN</button>
+        </div>
+        <!-- Estado con sesión -->
+        <div id="lnd-nav-user" class="lnd-nav-user-info hidden">
+          <span id="lnd-nav-username"></span>
+          <button onclick="cerrarSesion()" class="lnd-btn-exit">Cerrar Sesión</button>
+        </div>
+        <button class="lnd-hamburger" onclick="toggleMobileMenu()" id="lnd-hamburger">☰</button>
+      </header>
+
+      <!-- MOBILE MENU -->
+      <div class="lnd-mobile-menu hidden" id="lnd-mobile-menu">
+        <a href="#disciplinas" onclick="toggleMobileMenu()">Disciplinas</a>
+        <a href="#horarios" onclick="toggleMobileMenu()">Horarios</a>
+        <a href="#membresias" onclick="toggleMobileMenu()">Membresías</a>
+        <a href="#calculadora" onclick="toggleMobileMenu()">Calculadora</a>
+        <a href="#contacto" onclick="toggleMobileMenu()">Contacto</a>
+        <button class="lnd-btn-primary" onclick="abrirModalLogin(); toggleMobileMenu()">INICIAR SESIÓN</button>
       </div>
 
+      <!-- ── HERO ─────────────────────────────────────────────── -->
+      <section class="lnd-hero">
+        <div class="lnd-hero-bg">
+          <img src="img/2.jpg" alt="Legión Box" class="lnd-hero-img" />
+          <div class="lnd-hero-overlay"></div>
+        </div>
+        <div class="lnd-hero-content">
+          <h1 class="lnd-hero-title">ENTRENÁ.<br><span class="lnd-accent">SUPERÁTE.</span><br>PERTENECÉ.</h1>
+          <p class="lnd-hero-sub">Funcionalidad · Destreza · Comunidad</p>
+          <div class="lnd-hero-btns">
+            <a href="#disciplinas" class="lnd-btn-outline lnd-btn-lg">CONOCER MÁS</a>
+          </div>
+        </div>
+        <div class="lnd-hero-scroll">
+          <span>↓</span>
+        </div>
+      </section>
+
+      <!-- ── STATS ─────────────────────────────────────────────── -->
+      <section class="lnd-stats">
+        <div class="lnd-stats-inner">
+          <div class="lnd-stat">
+            <span class="lnd-stat-num">+200</span>
+            <span class="lnd-stat-label">Atletas activos</span>
+          </div>
+          <div class="lnd-stat-divider"></div>
+          <div class="lnd-stat">
+            <span class="lnd-stat-num">2</span>
+            <span class="lnd-stat-label">Modalidades</span>
+          </div>
+          <div class="lnd-stat-divider"></div>
+          <div class="lnd-stat">
+            <span class="lnd-stat-num">9</span>
+            <span class="lnd-stat-label">Turnos diarios</span>
+          </div>
+          <div class="lnd-stat-divider"></div>
+          <div class="lnd-stat">
+            <span class="lnd-stat-num">5+</span>
+            <span class="lnd-stat-label">Años de experiencia</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── NOSOTROS ──────────────────────────────────────────── -->
+      <section class="lnd-about">
+        <div class="lnd-container lnd-about-grid">
+          <div class="lnd-about-img-wrap">
+            <img src="img/IMG_0789.JPG" alt="Entrenamiento" class="lnd-about-img" />
+
+          </div>
+          <div class="lnd-about-text">
+            <p class="lnd-eyebrow">BIENVENIDOS A LA LEGIÓN</p>
+            <h2 class="lnd-section-title">Bienvenidos a<br>la <span class="lnd-accent">Legión</span></h2>
+            <p class="lnd-body-text">En <strong>Legión Box</strong> creemos que entrenar va mucho más allá de lo físico. Es nuestro espacio para desconectar del estrés diario, ganar confianza, superar límites y compartir el proceso con personas que buscan lo mismo que vos: sentirse mejor.</p>
+            <p class="lnd-body-text">Hace <strong>más de 5 años</strong> comenzamos este proyecto con una idea clara: crear un lugar donde cualquiera pudiera entrenar, progresar y sentirse acompañado, sin importar su nivel o experiencia previa. Con el tiempo, Legión fue creciendo y evolucionando, transformándose de un gimnasio a una verdadera <strong>comunidad que se apoya mutuamente</strong> dentro y fuera del entrenamiento.</p>
+            <p class="lnd-body-text">Trabajamos con clases de <strong>CrossFit y Funcional</strong> adaptadas a todos los niveles, desde principiantes hasta atletas experimentados. Para nosotros, entrenar bien no es solamente levantar más peso o hacer más repeticiones; es aprender a moverse mejor, priorizando la técnica, el progreso seguro y la calidad del movimiento.</p>
+            <div class="lnd-about-enfoque">
+              <p class="lnd-enfoque-titulo">Nuestro Enfoque Diario</p>
+              <div class="lnd-enfoque-items">
+                <div class="lnd-enfoque-item"><span>💪</span><div><strong>Entrenar con propósito</strong><p>Planificación inteligente y objetivos claros.</p></div></div>
+                <div class="lnd-enfoque-item"><span>🤝</span><div><strong>Compartir en equipo</strong><p>Una comunidad construida a base de compañerismo y respeto.</p></div></div>
+                <div class="lnd-enfoque-item"><span>🔥</span><div><strong>Desafiarte día a día</strong><p>Disciplina y superación constante.</p></div></div>
+                <div class="lnd-enfoque-item"><span>🧠</span><div><strong>Evolución integral</strong><p>WODs, clínicas técnicas, movilidad, halterofilia y gimnasia.</p></div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- MISIÓN Y VISIÓN -->
+        <div class="lnd-container" style="margin-top:64px;">
+          <div class="lnd-mv-grid">
+            <div class="lnd-mv-card">
+              <p class="lnd-eyebrow">NUESTRA MISIÓN</p>
+              <p class="lnd-body-text">Brindar un espacio de entrenamiento profesional, motivador y accesible para todos, promoviendo hábitos saludables, disciplina y crecimiento personal a través del movimiento.</p>
+            </div>
+            <div class="lnd-mv-card">
+              <p class="lnd-eyebrow">NUESTRA VISIÓN</p>
+              <p class="lnd-body-text">Seguir creciendo como comunidad y consolidarnos como un box referente, donde el entrenamiento de alta calidad, la calidez humana y el compromiso vayan siempre de la mano.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── DISCIPLINAS ────────────────────────────────────────── -->
+      <section class="lnd-disciplines" id="disciplinas">
+        <div class="lnd-container">
+          <p class="lnd-eyebrow" style="text-align:center;">LO QUE HACEMOS</p>
+          <h2 class="lnd-section-title" style="text-align:center; margin-bottom:48px;">Nuestras <span class="lnd-accent">disciplinas</span></h2>
+          <div class="lnd-disc-list">
+
+            <div class="lnd-disc-row">
+              <div class="lnd-disc-row-img">
+                <img src="img/IMG_0788.JPG" alt="CrossFit" />
+              </div>
+              <div class="lnd-disc-row-body">
+                <span class="lnd-disc-tag">ALTA INTENSIDAD</span>
+                <h3 class="lnd-disc-title">CrossFit</h3>
+                <p class="lnd-disc-desc">Entrenamiento funcional variado que combina fuerza, cardio y movimientos olímpicos. Cada día es diferente, cada clase es un desafío. Adaptado a todos los niveles, desde principiantes hasta atletas con experiencia.</p>
+                <div class="lnd-disc-features">
+                  <span>⚡ WOD diario programado</span>
+                  <span>🏋️ Halterofilia y gimnasia</span>
+                  <span>📊 Ranking semanal</span>
+                  <span>🧠 Clínicas técnicas y movilidad</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lnd-disc-row lnd-disc-row-reverse">
+              <div class="lnd-disc-row-img">
+                <img src="img/IMG_0790.JPG" alt="Funcional" />
+              </div>
+              <div class="lnd-disc-row-body">
+                <span class="lnd-disc-tag">ACCESIBLE A TODOS</span>
+                <h3 class="lnd-disc-title">Funcional</h3>
+                <p class="lnd-disc-desc">Movimientos naturales del cuerpo aplicados al entrenamiento con propósito. Ideal para quienes buscan mejorar su condición física de forma progresiva, segura y con acompañamiento diario.</p>
+                <div class="lnd-disc-features">
+                  <span>💪 Progresión guiada</span>
+                  <span>🎯 Objetivos concretos</span>
+                  <span>👥 Grupos reducidos</span>
+                  <span>🔥 Intensidad adaptada a tu nivel</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── HORARIOS ───────────────────────────────────────────── -->
+      <section class="lnd-schedules" id="horarios">
+        <div class="lnd-container">
+          <p class="lnd-eyebrow" style="text-align:center;">ORGANIZATE</p>
+          <h2 class="lnd-section-title" style="text-align:center; margin-bottom:48px;">Encontrá tu <span class="lnd-accent">horario</span></h2>
+          <div id="horarios-publico-cont" class="lnd-sched-grid lnd-sched-grid-2">
+            <!-- Se renderiza desde horarios.js usando renderHorariosPublico() -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ── MEMBRESÍAS ─────────────────────────────────────────── -->
+      <section class="lnd-pricing" id="membresias">
+        <div class="lnd-container">
+          <p class="lnd-eyebrow" style="text-align:center;">PLANES</p>
+          <h2 class="lnd-section-title" style="text-align:center; margin-bottom:16px;">Membresías y <span class="lnd-accent">planes</span></h2>
+          <p class="lnd-body-text" style="text-align:center; margin-bottom:48px; max-width:500px; margin-inline:auto;">Consultá con el coach para conocer el plan que mejor se adapta a tu objetivo y disponibilidad horaria.</p>
+          <div id="lnd-pricing-content">
+            <div class="lnd-price-grid">
+
+              <!-- CROSSFIT -->
+              <div class="lnd-price-card">
+                <div class="lnd-price-header">
+                  <span class="lnd-disc-tag">MODALIDAD</span>
+                  <h3 class="lnd-price-title">CrossFit</h3>
+                </div>
+                <div class="lnd-price-options">
+                  <div class="lnd-price-option lnd-price-featured">
+                    <span class="lnd-price-freq">5 días / semana</span>
+                    <span class="lnd-price-amount">$40.000</span>
+                    <span class="lnd-price-period">por mes</span>
+                  </div>
+                  <div class="lnd-price-option">
+                    <span class="lnd-price-freq">3 días / semana</span>
+                    <span class="lnd-price-amount">$35.000</span>
+                    <span class="lnd-price-period">por mes</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FUNCIONAL -->
+              <div class="lnd-price-card">
+                <div class="lnd-price-header">
+                  <span class="lnd-disc-tag">MODALIDAD</span>
+                  <h3 class="lnd-price-title">Funcional</h3>
+                </div>
+                <div class="lnd-price-options">
+                  <div class="lnd-price-option lnd-price-featured">
+                    <span class="lnd-price-freq">5 días / semana</span>
+                    <span class="lnd-price-amount">$35.000</span>
+                    <span class="lnd-price-period">por mes</span>
+                  </div>
+                  <div class="lnd-price-option">
+                    <span class="lnd-price-freq">3 días / semana</span>
+                    <span class="lnd-price-amount">$30.000</span>
+                    <span class="lnd-price-period">por mes</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- CLASE SUELTA + DESCUENTOS lado a lado -->
+            <div class="lnd-price-bottom-row">
+              <div class="lnd-price-single">
+                <span class="lnd-price-single-label">Clase individual</span>
+                <span class="lnd-price-single-amount">$5.000</span>
+              </div>
+              <div class="lnd-discount-item">
+                <span class="lnd-discount-badge">10%</span>
+                <div>
+                  <strong>Plan Familiar</strong>
+                  <p>Descuento para grupos familiares.</p>
+                </div>
+              </div>
+              <div class="lnd-discount-item">
+                <span class="lnd-discount-badge">15%</span>
+                <div>
+                  <strong>Primer Mes</strong>
+                  <p>Para nuevos atletas de la Legión.</p>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:center; margin-top:32px;">
+              <a href="https://wa.me/5493704818550" target="_blank" class="lnd-btn-primary" style="text-decoration:none;">
+                CONSULTAR POR WHATSAPP
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CALCULADORA ────────────────────────────────────────── -->
+      <section class="lnd-calc" id="calculadora">
+        <div class="lnd-container">
+          <div class="lnd-calc-grid">
+            <div class="lnd-calc-text">
+              <p class="lnd-eyebrow">HERRAMIENTA</p>
+              <h2 class="lnd-section-title">Calculadora de<br><span class="lnd-accent">Repetición Máxima</span></h2>
+              <p class="lnd-body-text">Ingresá tu 1RM y calculá automáticamente los porcentajes de trabajo para cada zona de entrenamiento. Ideal para planificar tus sesiones de fuerza.</p>
+              <p class="lnd-body-text" style="font-size:0.8rem; color:var(--lnd-text-muted);">¿Atleta del box? Iniciá sesión para guardar y seguir el progreso de tus PRs.</p>
+            </div>
+            <div class="lnd-calc-widget">
+              <div class="lnd-calc-input-row">
+                <input type="number" id="lnd-rm-input" placeholder="Ingresá tu 1RM (kg)"
+                  oninput="lndCalculate()" class="lnd-input" />
+              </div>
+              <div id="lnd-calc-results" class="lnd-calc-results"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── COMPETENCIA PÚBLICA — visible solo si hay una activa ── -->
+      <section class="lnd-comp-banner hidden" id="lnd-comp-banner">
+        <div class="lnd-container">
+          <div class="lnd-comp-inner">
+            <div class="lnd-comp-left">
+              <span class="lnd-disc-tag">EN CURSO</span>
+              <h2 class="lnd-section-title" style="margin-bottom:8px;" id="lnd-comp-nombre">Competencia</h2>
+              <p class="lnd-body-text" id="lnd-comp-desc">Seguí el leaderboard en vivo.</p>
+            </div>
+            <div class="lnd-comp-right">
+              <button class="lnd-btn-primary lnd-btn-lg" onclick="entrarLeaderboard()">VER LEADERBOARD</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── FOOTER ────────────────────────────────────────────── -->
+      <footer class="lnd-footer-simple" id="contacto">
+        <div class="lnd-container lnd-footer-simple-inner">
+          <div class="lnd-footer-contact-item"><span>📍</span><p>Fotheringham 65 - Este, Formosa Capital</p></div>
+          <div class="lnd-footer-contact-item"><span>📞</span><p>(370) 481-8550</p></div>
+          <div class="lnd-footer-contact-item"><span>📸</span><p>@legion.box</p></div>
+          <p class="lnd-footer-copy">© 2025 Legión Box · Todos los derechos reservados</p>
+        </div>
+      </footer>
+
+    </div><!-- /screen-landing -->
+
+    <!-- ─── APP ─────────────────────────────────────────────── -->
+    <div id="screen-app" class="hidden">
+      <nav>
+        <img src="img/logo-cuadrado-legion.png" class="nav-logo-img" alt="Legion Box" />
+        <div class="nav-user-info">
+          <span id="nav-username"></span>
+          <button onclick="cerrarSesion()" class="btn-exit">Cerrar Sesión</button>
+        </div>
+      </nav>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">Clases</button>
+        <button class="tab-btn" onclick="switchTab('ranking', this)">Ranking</button>
+        <button id="tab-link-calc" class="tab-btn" onclick="switchTab('calc', this)">Calculadora RM</button>
+        <button class="tab-btn" onclick="switchTab('info', this)">Info Box</button>
+        <button id="tab-link-profile" class="tab-btn" onclick="switchTab('profile', this)">Mi Perfil</button>
+        <button id="tab-link-users" class="tab-btn hidden" onclick="switchTab('users', this)">Atletas</button>
+        <button id="tab-link-comp" class="tab-btn hidden" onclick="switchTab('comp', this)">Competencia</button>
+        <button id="tab-link-comp-public" class="tab-btn hidden" onclick="switchTab('comp-public', this)">Leaderboard</button>
+        <button id="tab-link-timer" class="tab-btn" onclick="switchTab('timer', this)">Cronómetro</button>
+      </div>
       <main>
         <!-- ── COMPETENCIA (COACH) ────────────────────── -->
         <div id="tab-comp" class="tab-content">
@@ -901,6 +1141,8 @@
             <p id="news-text"></p>
           </div>
 
+          <div id="atleta-vencimiento-alerta" class="hidden"></div>
+
           <div class="day-selector">
             <button
               id="btn-lunes"
@@ -1382,6 +1624,22 @@
     </div>
   </div>
 
+  <!-- GESTIÓN DE PLANES (solo coach) -->
+  <div id="admin-planes-editor" class="admin-section hidden" style="margin-bottom:10px;">
+    <div class="accordion-header" onclick="toggleAccordion('planes-editor')">
+      <div class="admin-title" style="margin-bottom:0;">Gestión de Planes y Membresías</div>
+      <span class="accordion-arrow" id="acc-arrow-planes-editor">▼</span>
+    </div>
+    <div class="accordion-body" id="acc-body-planes-editor">
+      <div style="padding-top:12px;">
+        <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:12px;">
+          Los cambios se reflejan en el landing y en la app de atletas automáticamente.
+        </p>
+        <div id="planes-admin-cont"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTÓN COMPETENCIA -->
   <div id="info-comp-btn-wrap" class="hidden" style="margin-top:16px;">
     <button onclick="entrarLeaderboard('infobox')" class="btn-save"
@@ -1442,6 +1700,12 @@
             <div class="admin-title">Mis Pagos Recientes</div>
             <div id="profile-payment-list" style="font-size: 0.88rem"></div>
           </div>
+
+          <!-- PLANES DISPONIBLES -->
+          <div class="admin-section" id="planes-atleta-section">
+            <div class="admin-title" style="margin-bottom:16px;">Planes Disponibles</div>
+            <div id="planes-atleta-cont"></div>
+          </div>
         </div>
 
        <!-- ── GESTIÓN DE ATLETAS ─────────────────────── -->
@@ -1452,6 +1716,15 @@
           <button class="btn-save" onclick="abrirDrawerAtleta(null)"
             style="width:100%; margin-bottom:16px;">
             + NUEVO ATLETA
+          </button>
+
+          <!-- BOTÓN REGISTRO PAGO PRESENCIAL -->
+          <button onclick="abrirPagoRapidoQR()"
+            style="width:100%; background:var(--accent); color:#000; border:none;
+            padding:13px; border-radius:var(--radius); cursor:pointer; margin-bottom:16px;
+            font-family:'Barlow Condensed',sans-serif; font-size:0.9rem;
+            font-weight:700; letter-spacing:2px;">
+            REGISTRAR PAGO PRESENCIAL
           </button>
 
           <!-- ALERTAS / VENCIMIENTOS (colapsable) -->
@@ -1590,6 +1863,132 @@
       </main>
     </div>
 
+
+    <!-- ─── MODAL LOGIN (capa flotante independiente) ───────── -->
+    <div id="modal-login" class="lnd-modal-overlay hidden" onclick="cerrarModalLogin(event)">
+      <div class="lnd-modal-box" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarModalLogin()">✕</button>
+        <div class="lnd-modal-logo">
+          <img src="img/logo-cuadrado-legion.png" alt="Legión Box" />
+        </div>
+        <p class="lnd-modal-tagline">Centro de Entrenamiento</p>
+        <div class="lnd-form-row">
+          <label>DNI o Usuario</label>
+          <input type="text" id="login-user" placeholder="Sin puntos" autocomplete="username" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Contraseña</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') doLogin()" />
+        </div>
+        <select id="login-role" class="hidden">
+          <option value="user">ATLETA</option>
+          <option value="admin">COACH</option>
+        </select>
+        <button class="lnd-btn-primary" onclick="doLogin()">INICIAR SESIÓN</button>
+        <div id="btn-ver-comp-wrap" class="hidden" style="margin-top:10px;">
+          <button class="lnd-btn-outline" onclick="entrarLeaderboard()">Ver Competencia</button>
+        </div>
+        <div id="login-error" class="lnd-error"></div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL EDITOR DE PLANES ────────────────────────── -->
+    <div id="modal-plan-editor" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarFormPlan()">
+      <div class="lnd-modal-box" style="max-width:480px; width:100%;" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarFormPlan()">✕</button>
+        <p class="lnd-eyebrow" id="plan-form-titulo" style="margin-bottom:16px;">Nuevo Plan</p>
+        <input type="hidden" id="plan-form-id" />
+        <div class="lnd-form-row">
+          <label>Nombre del plan *</label>
+          <input type="text" id="plan-form-nombre" placeholder="Ej: CrossFit" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Frecuencia *</label>
+          <input type="text" id="plan-form-frecuencia" placeholder="Ej: x5 por semana" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Precio (sin puntos ni $) *</label>
+          <input type="number" id="plan-form-precio" placeholder="Ej: 45000" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Disciplina</label>
+          <select id="plan-form-disciplina"
+            style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16);
+            border-radius:8px; color:#fff; padding:10px 14px; font-size:0.9rem; outline:none;">
+            <option value="crossfit">CrossFit</option>
+            <option value="funcional">Funcional</option>
+            <option value="ambas">Ambas</option>
+          </select>
+        </div>
+        <div class="lnd-form-row">
+          <label>Beneficios (uno por línea) *</label>
+          <textarea id="plan-form-beneficios" rows="5"
+            placeholder="Entrenamiento todos los días&#10;WOD diario programado&#10;Seguimiento de PRs"
+            style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16);
+            border-radius:8px; color:#fff; padding:10px 14px; font-size:0.86rem; outline:none;
+            resize:vertical; font-family:'Barlow',sans-serif;"></textarea>
+        </div>
+        <div class="lnd-form-row" style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="plan-form-destacado"
+            style="width:16px; height:16px; accent-color:var(--lnd-accent);" />
+          <label style="text-transform:none; letter-spacing:0; font-size:0.86rem; color:#fff; cursor:pointer;"
+            for="plan-form-destacado">Marcar como "Más Popular"</label>
+        </div>
+        <button class="lnd-btn-primary" onclick="guardarFormPlan()"
+          style="width:100%; padding:12px; margin-top:8px;">
+          GUARDAR PLAN
+        </button>
+      </div>
+    </div>
+
+    
+    <!-- ─── MODAL REGISTRO DE PAGO RÁPIDO QR ───────────────────── -->
+    <div id="modal-pago-rapido-qr" class="lnd-modal-overlay hidden">
+      <div class="lnd-modal-box" style="max-width: 450px;">
+        <button class="lnd-modal-close" onclick="document.getElementById('modal-pago-rapido-qr').classList.add('hidden')">✕</button>
+
+        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent); margin-bottom: 15px; letter-spacing: 1px;">
+          💵 Registro de Pago Presencial
+        </h3>
+
+        <div class="lnd-form-row">
+          <label>DNI / Usuario del Atleta</label>
+          <input type="text" id="qr-pago-atleta" placeholder="Buscar por DNI o usuario" />
+        </div>
+        <div class="lnd-form-row" style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label>Monto Abonado ($)</label>
+            <input type="number" id="qr-pago-monto" placeholder="Ej: 8500" />
+          </div>
+          <div style="flex: 1;">
+            <label>Tipo de Gestión</label>
+            <select id="qr-pago-gestion">
+              <option value="renovacion">Renovación</option>
+              <option value="reincorporacion">Reincorporación</option>
+            </select>
+          </div>
+        </div>
+        <div class="lnd-form-row">
+          <label>Tipo de Disciplina / Clase</label>
+          <select id="qr-pago-clase">
+            <option value="crossfit">CrossFit</option>
+            <option value="funcional">Funcional</option>
+            <option value="pase_libre">Pase Libre (Ambas)</option>
+          </select>
+        </div>
+        <div class="lnd-form-row">
+          <label>Coach que Registra</label>
+          <input type="text" id="qr-pago-coach" placeholder="Nombre del Coach" />
+        </div>
+        <button class="lnd-btn-primary" style="margin-top: 15px; width: 100%;" onclick="procesarPagoRapidoQR()">
+          CONFIRMAR Y RENOVAR CUOTA
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="js/pagos-qr.js"></script>
     <script type="module" src="js/main.js"></script>
+    <script src="landing.js"></script>
   </body>
 </html>

@@ -772,6 +772,54 @@ export function renderVencimientos() {
   }
 }
 
+// ─── ALERTA DE VENCIMIENTO (ATLETA) ──────────────────────────────────────────
+export function verificarVencimientoAtleta(user) {
+  const cont = document.getElementById('atleta-vencimiento-alerta');
+  if (!cont || !user || user.role === 'coach') {
+    cont?.classList.add('hidden');
+    return;
+  }
+
+  if (!user.expiry) {
+    cont.classList.add('hidden');
+    return;
+  }
+
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const fv  = new Date(user.expiry + 'T00:00:00');
+  const diff = Math.ceil((fv - hoy) / (1000 * 60 * 60 * 24));
+  const fechaFormateada = fv.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  if (diff > 7) {
+    cont.classList.add('hidden');
+    return;
+  }
+
+  let html = '';
+  if (diff < 0) {
+    html = `
+      <div style="background:var(--card); border:1px solid rgba(255,80,80,0.25);
+        padding:12px 16px; border-radius:var(--radius); margin-bottom:12px;
+        font-size:0.85rem; color:var(--text-secondary); font-family:'Barlow',sans-serif;">
+        ⚠️ Tu cuota venció el <strong style="color:#ff5050;">${fechaFormateada}</strong>.
+        Comunicate con el Coach para renovar.
+      </div>`;
+  } else {
+    html = `
+      <div style="background:var(--card); border:1px solid rgba(255,255,255,0.1);
+        padding:12px 16px; border-radius:var(--radius); margin-bottom:12px;
+        font-size:0.85rem; color:var(--text-secondary); font-family:'Barlow',sans-serif;">
+        ⏰ Tu cuota está próxima a vencer: <strong>${fechaFormateada}</strong>
+        (Quedan <strong>${diff}</strong> día${diff !== 1 ? 's' : ''}).
+      </div>`;
+  }
+
+  cont.innerHTML = html;
+  cont.classList.remove('hidden');
+}
+
+window.verificarVencimientoAtleta = verificarVencimientoAtleta;
+
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.setSocioFilter    = setSocioFilter;
 window.saveUser          = saveUser;

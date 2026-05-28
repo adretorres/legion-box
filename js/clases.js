@@ -125,9 +125,19 @@ export async function savePrices() {
 }
 
 export function loadBoxInfo() {
-  document.getElementById("display-prices").innerHTML = cacheInfo.prices || '';
-  if(currentUser.role === "coach")
-    document.getElementById("edit-prices").value = cacheInfo.prices || '';
+  const preciosHTML = cacheInfo.prices || '';
+
+  const displayApp = document.getElementById("display-prices");
+  if (displayApp) displayApp.innerHTML = preciosHTML;
+
+  if (currentUser && currentUser.role === "coach") {
+    const editPricesInput = document.getElementById("edit-prices");
+    if (editPricesInput) editPricesInput.value = preciosHTML;
+  }
+
+  const displayLanding = document.getElementById("lnd-pricing-content");
+  if (displayLanding) displayLanding.innerHTML = preciosHTML;
+
   renderHorariosPublico();
 }
 
