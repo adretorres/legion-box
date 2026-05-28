@@ -10,18 +10,22 @@ import { showApp } from './main.js';
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 export async function doLogin() {
-  const role   = document.getElementById("login-role").value;
   const userIn = document.getElementById("login-user").value.toLowerCase().trim();
   const passIn = document.getElementById("login-pass").value;
 
   document.getElementById("login-error").textContent = "Verificando...";
-  await cargarCompetencia();
-  await cargarDatos();
+
+  // Solo cargar si el caché no está disponible aún
+  if (!cacheUsers) {
+    await cargarCompetencia();
+    await cargarDatos();
+  }
 
   // Coach se detecta por ID, no por selector de rol
   const coachData = cacheUsers['coach'];
   if ((userIn === 'coach') && coachData && passIn === coachData.pass) {
     setCurrentUser({ id: "coach", role: "coach", name: "Coach" });
+    document.getElementById('modal-login')?.classList.add('hidden');
     showApp(true);
     return;
   }
@@ -37,6 +41,7 @@ export async function doLogin() {
       return;
     }
     setCurrentUser({ id: userIn, ...u, role: "atleta" });
+    document.getElementById('modal-login')?.classList.add('hidden');
     showApp(false, u);
   } else {
     document.getElementById("login-error").textContent =

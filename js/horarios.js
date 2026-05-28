@@ -103,4 +103,27 @@ export function renderHorariosPublico() {
 window.renderHorariosAdmin = renderHorariosAdmin;
 window.agregarHorario      = agregarHorario;
 window.eliminarHorario     = eliminarHorario;
+// ─── INFO BOX ─────────────────────────────────────────────────────────────────
+export function renderHorariosInfoBox() {
+  const cont = document.getElementById('horarios-info-cont');
+  if(!cont) return;
+  cont.innerHTML = '';
+  const labels = { crossfit:'CrossFit', funcional:'Funcional' };
+  const icons  = { crossfit:'🏋️', funcional:'⚡' };
+  ['crossfit', 'funcional'].forEach(disc => {
+    const horarios = SCHEDULES[disc] || [];
+    cont.innerHTML += `
+      <div class="lnd-sched-card">
+        <div class="lnd-sched-header">
+          <span class="lnd-sched-icon">${icons[disc]}</span>
+          <h3>${labels[disc]}</h3>
+        </div>
+        <div class="lnd-sched-times">
+          ${horarios.map(h => `<span>${h}</span>`).join('')}
+        </div>
+      </div>`;
+  });
+}
+
 window.renderHorariosPublico = renderHorariosPublico;
+window.renderHorariosInfoBox  = renderHorariosInfoBox;

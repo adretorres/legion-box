@@ -333,6 +333,72 @@ export async function eliminarPlan(id) {
 }
 
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
+// ─── RENDER INFO BOX (APP) ───────────────────────────────────────────────────
+export function renderPlanesInfoBox() {
+  const cont = document.getElementById('planes-info-cont');
+  if (!cont || !cachePlanes) return;
+
+  const planesNormales = cachePlanes.filter(p => p.id !== 'suelta');
+  const planSuelta     = cachePlanes.find(p => p.id === 'suelta');
+
+  cont.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:8px;">
+      ${planesNormales.map(p => `
+        <div style="background:var(--surface); border:1px solid ${p.destacado ? 'var(--accent)' : 'var(--border)'};
+          border-radius:var(--radius); padding:14px 12px; position:relative;">
+          ${p.destacado ? `<span style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+            background:var(--accent);color:#000;font-family:'Barlow Condensed',sans-serif;
+            font-size:0.55rem;font-weight:700;letter-spacing:1.5px;padding:2px 8px;border-radius:10px;">
+            MÁS POPULAR</span>` : ''}
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.6rem;font-weight:700;
+            letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:3px;">
+            ${p.disciplina.toUpperCase()}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;
+            color:var(--text-primary);margin-bottom:2px;">${p.nombre}</div>
+          <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:8px;">${p.frecuencia}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--accent);
+            line-height:1;margin-bottom:10px;">$${Number(p.precio).toLocaleString('es-AR')}<span
+            style="font-size:0.7rem;color:var(--text-secondary);font-family:'Barlow',sans-serif;">/mes</span></div>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            ${p.beneficios.map(b => `<li style="font-size:0.74rem;color:var(--text-secondary);
+              display:flex;gap:6px;align-items:flex-start;line-height:1.4;">
+              <span style="color:var(--accent);font-weight:700;flex-shrink:0;">✓</span>${b}</li>`).join('')}
+          </ul>
+        </div>`).join('')}
+    </div>
+    ${planSuelta ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:12px 14px;margin-top:10px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;">
+          ${planSuelta.nombre}</div>
+        <div style="font-size:0.72rem;color:var(--text-secondary);">
+          ${planSuelta.beneficios.join(' · ')}</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--accent);">
+        $${Number(planSuelta.precio).toLocaleString('es-AR')}
+        <span style="font-size:0.7rem;color:var(--text-secondary);font-family:'Barlow',sans-serif;">/ clase</span>
+      </div>
+    </div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius);padding:12px;display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);">10%</span>
+        <div><strong style="font-size:0.82rem;">Plan Familiar</strong>
+        <p style="font-size:0.72rem;color:var(--text-secondary);margin:2px 0 0;">Descuento para grupos familiares.</p></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius);padding:12px;display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);">15%</span>
+        <div><strong style="font-size:0.82rem;">Primer Mes</strong>
+        <p style="font-size:0.72rem;color:var(--text-secondary);margin:2px 0 0;">Para nuevos atletas de la Legión.</p></div>
+      </div>
+    </div>
+  `;
+}
+
+window.renderPlanesInfoBox = renderPlanesInfoBox;
 window.editarPlan       = editarPlan;
 window.eliminarPlan     = eliminarPlan;
 window.abrirFormNuevoPlan = abrirFormNuevoPlan;

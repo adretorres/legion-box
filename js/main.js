@@ -19,8 +19,7 @@ import { renderUserList, renderBirthdays, renderVencimientos,
          verificarVencimientoAtleta } from './atletas.js';
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
-         resetProgramacion, toggleResetDay,
-         renderNoticiasPublico }              from './clases.js';
+         resetProgramacion, toggleResetDay }  from './clases.js';
 import { renderRanking, saveWodScore,
          editarResultadoRanking, cargarResultadoCoach,
          seleccionarModalidad, cambiarDiaRanking,
@@ -43,11 +42,12 @@ import { calculate, loadRMValue, saveRM,
          updateOwnProfile }              from './rm.js';
 import { inicializarNotificaciones }     from './notificaciones.js';
 import { renderHorariosAdmin, agregarHorario,
-         eliminarHorario, renderHorariosPublico } from './horarios.js';
+         eliminarHorario, renderHorariosPublico,
+         renderHorariosInfoBox } from './horarios.js';
 import { toggleAccordion } from './ui.js';
 import './share.js';
 import { cargarPlanes, renderPlanesLanding, renderPlanesAdmin,
-         renderPlanesAtleta, elegirPlan } from './planes.js';
+         renderPlanesAtleta, renderPlanesInfoBox, elegirPlan } from './planes.js';
 
 // ─── ESTADO LOCAL ─────────────────────────────────────────────────────────────
 export let selectedViewDay          = "lunes";
@@ -161,6 +161,8 @@ export async function showApp(isCoach, userData = null) {
     await cargarPlanes();
     renderPlanesAdmin();
     renderPlanesLanding();
+    renderPlanesInfoBox();
+    renderHorariosInfoBox();
     // Reset semanal solo lo evalúa el coach
     checkAutoReset();
   } else {
@@ -225,6 +227,8 @@ export function switchTab(id, btn) {
   if(id === "info") {
     loadBoxInfo();
     renderBirthdays();
+    renderPlanesInfoBox();
+    renderHorariosInfoBox();
     const wrap = document.getElementById('info-comp-btn-wrap');
     if(wrap) {
       if(cacheComp?.activa && cacheComp?.accesoPublico) {
@@ -324,13 +328,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(() => {
       renderHorariosPublico();
       renderPlanesLanding();
-      renderNoticiasPublico();
     })
     .catch(() => {
       // Si Firestore falla, renderizar igual con los datos por defecto de respaldo
       renderHorariosPublico();
       renderPlanesLanding();
-      renderNoticiasPublico();
     });
 
   // Registrar Service Worker (PWA)
@@ -357,7 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
         else showApp(false, cacheUsers[s.id] || s);
         renderHorariosPublico();
         renderPlanesLanding();
-        renderNoticiasPublico();
 
         const lastTab = localStorage.getItem('legion_last_tab');
         if (lastTab) {
@@ -444,6 +445,7 @@ window.renderHistorialPagosInline = renderHistorialPagosInline;
 window.cambiarDiaRanking  = cambiarDiaRanking;
 window.cambiarPlanRanking    = cambiarPlanRanking;
 window.renderPlanesLanding   = renderPlanesLanding;
-window.renderNoticiasPublico = renderNoticiasPublico;
+window.renderPlanesInfoBox   = renderPlanesInfoBox;
+window.renderHorariosInfoBox = renderHorariosInfoBox;
 window.renderHorariosPublico = renderHorariosPublico;
 window.elegirPlan         = elegirPlan;

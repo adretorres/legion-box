@@ -113,7 +113,6 @@ export async function saveNews() {
   cacheInfo.news = text;
   await fsSet('info', cacheInfo);
   document.getElementById("news-text").textContent = text;
-  renderNoticiasPublico();
   enviarNotificacion('comunicado');
   alert("Comunicado actualizado.");
 }
@@ -126,55 +125,12 @@ export async function savePrices() {
 }
 
 export function loadBoxInfo() {
-  const preciosHTML = cacheInfo.prices || '';
-  const displayApp = document.getElementById("display-prices");
-  if (displayApp) displayApp.innerHTML = preciosHTML;
-  if (currentUser && currentUser.role === "coach") {
-    const editPricesInput = document.getElementById("edit-prices");
-    if (editPricesInput) editPricesInput.value = preciosHTML;
-  }
-  const displayLanding = document.getElementById("lnd-pricing-content");
-  if (displayLanding) displayLanding.innerHTML = preciosHTML;
+  // Planes y horarios se renderizan via planes.js y horarios.js
+  // lnd-pricing-content lo maneja exclusivamente planes.js
   renderHorariosPublico();
-  renderNoticiasPublico();
 }
 
-// ─── NOVEDADES PÚBLICAS (LANDING) ─────────────────────────────────────────────
-export function renderNoticiasPublico() {
-  const cont = document.getElementById('lnd-news-content');
-  if (!cont) return;
 
-  const news = cacheInfo?.news || '';
-
-  if (!news.trim()) {
-    cont.innerHTML = `<p style="color:var(--text-secondary); text-align:center;
-      grid-column:1/-1; font-family:'Barlow',sans-serif; font-size:0.88rem;">
-      No hay eventos o novedades programadas por el momento.</p>`;
-    return;
-  }
-
-  // Dividir por líneas dobles para mostrar como tarjetas separadas
-  const items = news.split('\n\n').filter(t => t.trim());
-
-  if (items.length <= 1) {
-    // Un solo bloque — mostrar como una tarjeta ancha
-    cont.innerHTML = `
-      <div style="background:var(--card); border:1px solid rgba(255,255,255,0.08);
-        padding:20px; border-radius:var(--radius); color:var(--text-main);
-        font-family:'Barlow',sans-serif; font-size:0.9rem; line-height:1.7;
-        grid-column:1/-1; white-space:pre-wrap;">
-        ${news.trim()}
-      </div>`;
-  } else {
-    cont.innerHTML = items.map(item => `
-      <div style="background:var(--card); border:1px solid rgba(255,255,255,0.08);
-        padding:20px; border-radius:var(--radius); color:var(--text-main);
-        font-family:'Barlow',sans-serif; font-size:0.9rem; line-height:1.7;
-        white-space:pre-wrap;">
-        ${item.trim()}
-      </div>`).join('');
-  }
-}
 
 // ─── QUILL EDITOR ─────────────────────────────────────────────────────────────
 let quillEditor = null;
@@ -198,8 +154,6 @@ export function initQuillEditor() {
 
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.saveClass             = saveClass;
-window.renderNoticiasPublico = renderNoticiasPublico;
-window.saveNews         = saveNews;
 window.savePrices       = savePrices;
 window.syncAdminView    = syncAdminView;
 window.changeViewDay    = changeViewDay;
