@@ -19,7 +19,8 @@ import { renderUserList, renderBirthdays, renderVencimientos,
          verificarVencimientoAtleta } from './atletas.js';
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
-         resetProgramacion, toggleResetDay }  from './clases.js';
+         resetProgramacion, toggleResetDay,
+         renderNoticiasPublico }              from './clases.js';
 import { renderRanking, saveWodScore,
          editarResultadoRanking, cargarResultadoCoach,
          seleccionarModalidad, cambiarDiaRanking,
@@ -323,11 +324,13 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(() => {
       renderHorariosPublico();
       renderPlanesLanding();
+      renderNoticiasPublico();
     })
     .catch(() => {
       // Si Firestore falla, renderizar igual con los datos por defecto de respaldo
       renderHorariosPublico();
       renderPlanesLanding();
+      renderNoticiasPublico();
     });
 
   // Registrar Service Worker (PWA)
@@ -354,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
         else showApp(false, cacheUsers[s.id] || s);
         renderHorariosPublico();
         renderPlanesLanding();
+        renderNoticiasPublico();
 
         const lastTab = localStorage.getItem('legion_last_tab');
         if (lastTab) {
@@ -440,5 +444,6 @@ window.renderHistorialPagosInline = renderHistorialPagosInline;
 window.cambiarDiaRanking  = cambiarDiaRanking;
 window.cambiarPlanRanking    = cambiarPlanRanking;
 window.renderPlanesLanding   = renderPlanesLanding;
+window.renderNoticiasPublico = renderNoticiasPublico;
 window.renderHorariosPublico = renderHorariosPublico;
 window.elegirPlan         = elegirPlan;
