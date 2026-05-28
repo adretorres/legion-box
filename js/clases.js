@@ -154,7 +154,7 @@ export function renderNoticiasPublico() {
   }
 
   // Dividir por líneas dobles para mostrar como tarjetas separadas
-  const items = news.split(/+/).filter(t => t.trim());
+  const items = news.split('\n\n').filter(t => t.trim());
 
   if (items.length <= 1) {
     // Un solo bloque — mostrar como una tarjeta ancha
