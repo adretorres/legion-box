@@ -284,30 +284,27 @@ function renderizarMovimientosLanding(custom) {
   lndRenderEncLista('lnd-enc-list');
 }
 
-// ─── POLLING ──────────────────────────────────────────────────────────────────
-function inicializarMovimientosConPolling() {
-  let intentos = 0;
-  const maxIntentos = 100; // 100 * 50ms = 5 segundos máximo
-  const intervalo = setInterval(() => {
-    intentos++;
-    if (window._encMovimientosCustom !== undefined) {
-      clearInterval(intervalo);
-      console.log('[Landing] Movimientos detectados en intento ' + intentos + '. Renderizando...');
-      renderizarMovimientosLanding(window._encMovimientosCustom);
+// ─── CARGA DIRECTA DESDE FIRESTORE ───────────────────────────────────────────
+async function cargarMovimientosLandingDirecto() {
+  try {
+    if (typeof window._fsGet !== 'function') {
+      // _fsGet no está listo aún — reintentar en 500ms una sola vez
+      setTimeout(cargarMovimientosLandingDirecto, 500);
       return;
     }
-    if (intentos >= maxIntentos) {
-      clearInterval(intervalo);
-      console.warn('[Landing] Timeout esperando movimientos custom. Renderizando solo base.');
-      renderizarMovimientosLanding({});
-    }
-  }, 50);
+    const data = await window._fsGet('enciclopedia');
+    const custom = data?.movimientos || {};
+    renderizarMovimientosLanding(custom);
+  } catch(e) {
+    console.warn('[Landing] No se pudieron cargar movimientos custom:', e.message);
+    renderizarMovimientosLanding({});
+  }
 }
 
-// Render base inmediato + polling para custom
+// Render base inmediato al cargar el DOM + carga async de custom
 document.addEventListener('DOMContentLoaded', () => {
   lndRenderEncLista('lnd-enc-list');
-  inicializarMovimientosConPolling();
+  cargarMovimientosLandingDirecto();
 });
 
 // ─── ENCICLOPEDIA EN APP (tab Calculadora RM) ─────────────────────────────────
