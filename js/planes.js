@@ -211,13 +211,6 @@ export function renderPlanesAtleta(userData) {
         `;
       }).join('')}
     </div>
-    ${esCoach ? `
-    <button onclick="abrirFormNuevoPlan()"
-      style="width:100%;margin-top:10px;background:none;border:1px dashed var(--accent);
-      color:var(--accent);padding:10px;border-radius:var(--radius);cursor:pointer;
-      font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;">
-      + AGREGAR NUEVO PLAN
-    </button>` : ''}
   `;
 }
 

@@ -122,7 +122,7 @@ export async function showApp(isCoach, userData = null) {
   window.scrollTo(0, 0);
   localStorage.setItem('legion_session', JSON.stringify(currentUser));
 
-  const newsEl = document.getElementById("news-text"); if(newsEl) newsEl.textContent = cacheInfo.news;
+  document.getElementById("news-text").textContent = cacheInfo.news;
 
   // Sincronizar nav-username legacy (usado por otros módulos)
   const navUser = document.getElementById("nav-username");
@@ -137,23 +137,23 @@ export async function showApp(isCoach, userData = null) {
   suscribirResultados();
 
   if(isCoach) {
-    document.getElementById("admin-panel")?.classList.remove("hidden");
-    document.getElementById("tab-link-users")?.classList.remove("hidden");
+    document.getElementById("admin-panel").classList.remove("hidden");
+    document.getElementById("tab-link-users").classList.remove("hidden");
     document.getElementById("admin-prices-editor")?.classList.remove("hidden");
-    document.getElementById("tab-link-profile")?.classList.add("hidden");
-    document.getElementById("score-upload-container")?.classList.add("hidden");
+    document.getElementById("tab-link-profile").classList.add("hidden");
+    document.getElementById("score-upload-container").classList.add("hidden");
     renderUserList();
     syncAdminView();
     renderHorariosAdmin();
     renderVencimientos();
-    document.getElementById('tab-link-comp')?.classList.remove('hidden');
+    document.getElementById('tab-link-comp').classList.remove('hidden');
     await cargarCompetencia();
     if(cacheComp && cacheComp.activa) {
       mostrarFormComp();
       renderCompAdmin();
     } else {
-      document.getElementById('comp-empty')?.classList.remove('hidden');
-      document.getElementById('comp-form')?.classList.add('hidden');
+      document.getElementById('comp-empty').classList.remove('hidden');
+      document.getElementById('comp-form').classList.add('hidden');
     }
     // Planes admin
     const adminPlanes = document.getElementById('admin-planes-editor');
@@ -174,10 +174,10 @@ export async function showApp(isCoach, userData = null) {
     const puedeRanking   = tieneCrossFit || tieneFuncional;
 
     if(puedeRanking) {
-      document.getElementById("score-upload-container")?.classList.remove("hidden");
+      document.getElementById("score-upload-container").classList.remove("hidden");
       document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.remove("hidden");
     } else {
-      document.getElementById("score-upload-container")?.classList.add("hidden");
+      document.getElementById("score-upload-container").classList.add("hidden");
       document.querySelector('[onclick="switchTab(\'ranking\', this)"]')?.classList.add("hidden");
     }
     setupPlanSwitcher(userData.plans);
@@ -210,6 +210,9 @@ export function switchTab(id, btn) {
   if (btn) btn.classList.add("active");
 
   if(id === "profile")     loadProfileData();
+  if(id === "calc") {
+    if(window.appEncInit) window.appEncInit(currentUser?.role === 'coach');
+  }
   if(id === "ranking") {
     // Marcar el día actual como activo si ningún botón tiene activo todavía
     const rankDayBtns = document.querySelectorAll('#rank-day-btns .day-btn');
@@ -252,8 +255,8 @@ export function switchTab(id, btn) {
         mostrarFormComp();
         renderCompAdmin();
       } else {
-        document.getElementById('comp-empty')?.classList.remove('hidden');
-        document.getElementById('comp-form')?.classList.add('hidden');
+        document.getElementById('comp-empty').classList.remove('hidden');
+        document.getElementById('comp-form').classList.add('hidden');
       }
     });
   }
@@ -445,6 +448,13 @@ window.renderHistorialPagosInline = renderHistorialPagosInline;
 window.cambiarDiaRanking  = cambiarDiaRanking;
 window.cambiarPlanRanking    = cambiarPlanRanking;
 window.renderPlanesLanding   = renderPlanesLanding;
+// Exponer estado para módulos externos
+window._legionState = { get currentUser() { return currentUser; } };
+// Exponer fsGet/fsSet para módulos no-ES6 como landing.js
+import('./firebase.js').then(fb => {
+  window._fsGet = fb.fsGet;
+  window._fsSet = fb.fsSet;
+}).catch(() => {});
 window.renderPlanesInfoBox   = renderPlanesInfoBox;
 window.renderHorariosInfoBox = renderHorariosInfoBox;
 window.renderHorariosPublico = renderHorariosPublico;
