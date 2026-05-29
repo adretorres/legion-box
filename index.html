@@ -192,7 +192,7 @@
         <div class="lnd-container">
           <div class="lnd-section-header">
             <p class="lnd-eyebrow">HERRAMIENTAS</p>
-            <h2 class="lnd-section-title">Calculadora RM &amp; <span class="lnd-accent">Enciclopedia</span></h2>
+            <h2 class="lnd-section-title">Calculadora RM &amp; <span class="lnd-accent">Movimientos</span></h2>
           </div>
           <div class="lnd-tool-card" style="margin-bottom:24px;">
             <h3 class="lnd-tool-title">Calculadora de 1RM</h3>
@@ -202,7 +202,7 @@
             <p style="font-size:0.72rem; color:var(--lnd-text-muted); margin-top:10px;">¿Atleta del box? Iniciá sesión para guardar tu progreso.</p>
           </div>
           <div class="lnd-tool-card">
-            <h3 class="lnd-tool-title">Enciclopedia de Movimientos</h3>
+            <h3 class="lnd-tool-title">Movimientos</h3>
             <p class="lnd-body-text" style="font-size:0.84rem; margin-bottom:20px;">Lista alfabética. Hacé clic en un movimiento para ver la descripción técnica y recursos visuales.</p>
             <div class="lnd-enc-layout">
               <div class="lnd-enc-list" id="lnd-enc-list"></div>
@@ -286,7 +286,7 @@
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('dashboard', this)">Clases</button>
         <button class="tab-btn" onclick="switchTab('ranking', this)">Ranking</button>
-        <button id="tab-link-calc" class="tab-btn" onclick="switchTab('calc', this)">Calculadora RM</button>
+        <button id="tab-link-calc" class="tab-btn" onclick="switchTab('calc', this)">Ejercicios</button>
         <button class="tab-btn" onclick="switchTab('info', this)">Info Box</button>
         <button id="tab-link-profile" class="tab-btn" onclick="switchTab('profile', this)">Mi Perfil</button>
         <button id="tab-link-users" class="tab-btn hidden" onclick="switchTab('users', this)">Atletas</button>
@@ -1395,7 +1395,7 @@
 
         <!-- ── CALCULADORA RM ─────────────────────────── -->
         <div id="tab-calc" class="tab-content">
-          <div class="page-title">Calculadora RM</div>
+          <div class="page-title">Ejercicios</div>
 
           <div class="admin-section">
             <div
@@ -1473,7 +1473,7 @@
 
           <!-- ENCICLOPEDIA DE MOVIMIENTOS -->
           <div class="admin-section" style="margin-top:24px;" id="app-enc-section">
-            <div class="admin-title" style="margin-bottom:4px;">Enciclopedia de Movimientos</div>
+            <div class="admin-title" style="margin-bottom:4px;">Movimientos</div>
             <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:16px;">
               Hacé clic en un movimiento para ver la descripción técnica y recursos visuales.
             </p>
@@ -1971,8 +1971,8 @@
       </div>
     </div>
 
+    <script src="landing.js"></script>
     <script type="module" src="js/pagos-qr.js"></script>
     <script type="module" src="js/main.js"></script>
-    <script src="landing.js"></script>
   </body>
 </html>

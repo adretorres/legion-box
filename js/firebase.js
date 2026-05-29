@@ -1,7 +1,8 @@
 // ─── js/firebase.js ───────────────────────────────────────────────────────────
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getMessaging, getToken, onMessage }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot,
+         enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",
@@ -12,8 +13,18 @@ const firebaseConfig = {
   appId: "1:466827904574:web:abb454a6f79f00517ff36f"
 };
 
-export const app       = initializeApp(firebaseConfig);
-export const db        = getFirestore(app);
+export const app = initializeApp(firebaseConfig);
+export const db  = getFirestore(app);
+
+// Habilitar persistencia offline — sirve datos del caché cuando Firestore no conecta
+enableIndexedDbPersistence(db).catch(err => {
+  if (err.code === 'failed-precondition') {
+    console.log('Persistencia offline: múltiples pestañas abiertas.');
+  } else if (err.code === 'unimplemented') {
+    console.log('Persistencia offline no soportada en este navegador.');
+  }
+});
+
 export let messaging = null;
 try {
   messaging = getMessaging(app);

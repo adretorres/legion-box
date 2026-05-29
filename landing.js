@@ -245,8 +245,69 @@ window.lndCerrarMovimiento = function() {
 };
 
 // ─── INIT EN DOMContentLoaded ─────────────────────────────────────────────────
+// Render inicial con datos base al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
   lndRenderEncLista('lnd-enc-list');
+});
+
+// Cargar movimientos custom desde Firestore con reintentos
+async function cargarEnciclopediaFirestore(intentos) {
+  intentos = intentos || 0;
+  if (intentos > 5) return; // máximo 5 reintentos
+  try {
+    const fsGet = window._fsGet;
+    if (!fsGet) {
+      // _fsGet no está listo, reintentar en 1 segundo
+      setTimeout(() => cargarEnciclopediaFirestore(intentos + 1), 1000);
+      return;
+    }
+    const custom = await fsGet('enciclopedia');
+    if (custom?.movimientos && Object.keys(custom.movimientos).length > 0) {
+      Object.assign(ENC_MOVIMIENTOS, custom.movimientos);
+      lndRenderEncLista('lnd-enc-list');
+    } else {
+      // Sin datos aún, reintentar
+      setTimeout(() => cargarEnciclopediaFirestore(intentos + 1), 2000);
+    }
+  } catch(e) {
+    // Error de Firestore, reintentar con backoff
+    const delay = Math.min(1000 * Math.pow(2, intentos), 10000);
+    setTimeout(() => cargarEnciclopediaFirestore(intentos + 1), delay);
+  }
+}
+
+// ─── RENDER CON CUSTOM ───────────────────────────────────────────────────────
+function renderizarMovimientosLanding(custom) {
+  if (custom && typeof custom === 'object' && Object.keys(custom).length > 0) {
+    Object.assign(ENC_MOVIMIENTOS, custom);
+  }
+  lndRenderEncLista('lnd-enc-list');
+}
+
+// ─── POLLING ──────────────────────────────────────────────────────────────────
+function inicializarMovimientosConPolling() {
+  let intentos = 0;
+  const maxIntentos = 60; // 60 * 50ms = 3 segundos máximo
+  const intervalo = setInterval(() => {
+    intentos++;
+    if (window._encMovimientosCustom !== undefined) {
+      clearInterval(intervalo);
+      console.log('[Landing] Movimientos detectados en intento ' + intentos + '. Renderizando...');
+      renderizarMovimientosLanding(window._encMovimientosCustom);
+      return;
+    }
+    if (intentos >= maxIntentos) {
+      clearInterval(intervalo);
+      console.warn('[Landing] Timeout esperando movimientos custom. Renderizando solo base.');
+      renderizarMovimientosLanding({});
+    }
+  }, 50);
+}
+
+// Render base inmediato + polling para custom
+document.addEventListener('DOMContentLoaded', () => {
+  lndRenderEncLista('lnd-enc-list');
+  inicializarMovimientosConPolling();
 });
 
 // ─── ENCICLOPEDIA EN APP (tab Calculadora RM) ─────────────────────────────────
@@ -379,8 +440,12 @@ window.appEncGuardar = async function() {
   } catch(e) { console.log('Error guardando enciclopedia:', e); }
 
   appEncRenderLista();
-  // También actualizar el landing
-  lndRenderEncLista('lnd-enc-list');
+  // Sincronizar con el landing
+  if (typeof lndRenderEncLista === 'function') {
+    // Actualizar ENC_MOVIMIENTOS con los datos custom
+    Object.assign(ENC_MOVIMIENTOS, appEncMovimientos);
+    lndRenderEncLista('lnd-enc-list');
+  }
   window.appEncCancelar();
   alert('Movimiento guardado.');
 };

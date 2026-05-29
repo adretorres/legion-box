@@ -327,17 +327,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Cargar datos públicos del landing sin sesión
-  Promise.all([cargarDatos(), cargarPlanes()])
-    .then(() => {
-      renderHorariosPublico();
-      renderPlanesLanding();
-    })
-    .catch(() => {
-      // Si Firestore falla, renderizar igual con los datos por defecto de respaldo
-      renderHorariosPublico();
-      renderPlanesLanding();
-    });
-
   // Registrar Service Worker (PWA)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/legion-box/service-worker.js')
@@ -346,6 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const sesionGuardada = localStorage.getItem('legion_session');
   if(sesionGuardada) {
+    // Con sesión: cargar datos y mostrar app directamente
     const s = JSON.parse(sesionGuardada);
     setCurrentUser(s);
     if(s.role === 'espectador') {
@@ -370,6 +360,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
+  } else {
+    // Sin sesión: cargar datos para el landing público
+    Promise.all([
+      cargarDatos(),
+      cargarPlanes(),
+      fsGet('enciclopedia').catch(() => null)
+    ])
+      .then(([_, __, encData]) => {
+        renderHorariosPublico();
+        renderPlanesLanding();
+        // Pasar movimientos custom directamente a window para landing.js
+        window._encMovimientosCustom = encData?.movimientos || {};
+        setTimeout(() => window.dispatchEvent(new CustomEvent('landingDataLoaded')), 100);
+      })
+      .catch(() => {
+        renderHorariosPublico();
+        renderPlanesLanding();
+        window._encMovimientosCustom = {};
+        setTimeout(() => window.dispatchEvent(new CustomEvent('landingDataLoaded')), 100);
+      });
   }
 });
 
@@ -450,11 +460,9 @@ window.cambiarPlanRanking    = cambiarPlanRanking;
 window.renderPlanesLanding   = renderPlanesLanding;
 // Exponer estado para módulos externos
 window._legionState = { get currentUser() { return currentUser; } };
-// Exponer fsGet/fsSet para módulos no-ES6 como landing.js
-import('./firebase.js').then(fb => {
-  window._fsGet = fb.fsGet;
-  window._fsSet = fb.fsSet;
-}).catch(() => {});
+// Exponer fsGet/fsSet de forma inmediata (import estático ya cargado)
+window._fsGet = fsGet;
+window._fsSet = fsSet;
 window.renderPlanesInfoBox   = renderPlanesInfoBox;
 window.renderHorariosInfoBox = renderHorariosInfoBox;
 window.renderHorariosPublico = renderHorariosPublico;
