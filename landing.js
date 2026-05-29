@@ -287,7 +287,7 @@ function renderizarMovimientosLanding(custom) {
 // ─── POLLING ──────────────────────────────────────────────────────────────────
 function inicializarMovimientosConPolling() {
   let intentos = 0;
-  const maxIntentos = 60; // 60 * 50ms = 3 segundos máximo
+  const maxIntentos = 100; // 100 * 50ms = 5 segundos máximo
   const intervalo = setInterval(() => {
     intentos++;
     if (window._encMovimientosCustom !== undefined) {

@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cargar datos públicos del landing sin sesión
   // Registrar Service Worker (PWA)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/legion-box/service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .catch(err => console.log('SW error:', err));
   }
 
