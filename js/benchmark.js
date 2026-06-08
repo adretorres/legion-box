@@ -102,36 +102,34 @@ export function renderBenchmarkList(isCoach) {
 }
 
 function _renderGrupo(lista, isCoach) {
-  return '<div style="display:flex; flex-direction:column; gap:4px;">' +
+  return '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:16px;">' +
     lista.map(w => {
       const tieneRegistro = _getTiempoPersonal(w.id);
-      return '<div style="display:flex; align-items:center; justify-content:space-between;' +
-        'background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);' +
-        'padding:10px 14px; cursor:pointer; gap:8px; transition:border-color 0.15s;"' +
-        ' onmouseover="this.style.borderColor=\'rgba(52,223,69,0.3)\'"' +
-        ' onmouseout="this.style.borderColor=\'var(--border)\'">' +
-        '<div style="display:flex; align-items:center; gap:10px; flex:1;" onclick="abrirBenchmark(\'' + w.id + '\')">' +
-          '<div>' +
-            '<div style="font-family:Bebas Neue,sans-serif; font-size:1rem; letter-spacing:1px;">' + w.nombre + '</div>' +
-            '<div style="font-size:0.7rem; color:var(--text-secondary);">' + w.modalidad + '</div>' +
-          '</div>' +
+      return '<div style="background:var(--surface); border:1px solid var(--border);' +
+        'border-radius:10px; padding:14px; cursor:pointer; position:relative;' +
+        'transition:border-color 0.2s, transform 0.15s;"' +
+        ' onmouseover="this.style.borderColor=\'rgba(52,223,69,0.35)\';this.style.transform=\'translateY(-2px)\'"' +
+        ' onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'none\'"' +
+        ' onclick="abrirBenchmark(\'' + w.id + '\')">' +
+          '<div style="font-family:Bebas Neue,sans-serif; font-size:1.1rem; letter-spacing:1px;' +
+          'color:var(--text-primary); margin-bottom:3px;">' + w.nombre + '</div>' +
+          '<div style="font-size:0.68rem; color:var(--text-secondary);">' + w.modalidad + '</div>' +
           (tieneRegistro
-            ? '<div style="margin-left:auto; font-size:0.72rem; color:var(--accent);' +
+            ? '<div style="margin-top:8px; font-size:0.68rem; color:var(--accent);' +
               'background:rgba(52,223,69,0.08); border:1px solid rgba(52,223,69,0.2);' +
-              'padding:2px 8px; border-radius:10px; flex-shrink:0;">⏱ ' + tieneRegistro + '</div>'
+              'padding:2px 6px; border-radius:8px; display:inline-block;">⏱ ' + tieneRegistro + '</div>'
             : '') +
-        '</div>' +
-        (isCoach
-          ? '<div style="display:flex; gap:4px; flex-shrink:0;">' +
-              '<button onclick="abrirFormBenchmark(\'' + w.id + '\')"' +
-              ' style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary);' +
-              'padding:3px 8px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.65rem;">✏️</button>' +
-              '<button onclick="eliminarBenchmark(\'' + w.id + '\')"' +
-              ' style="background:none; border:1px solid var(--danger); color:var(--danger);' +
-              'padding:3px 8px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.65rem;">✕</button>' +
-            '</div>'
-          : '') +
-      '</div>';
+          (isCoach
+            ? '<div style="display:flex; gap:4px; margin-top:10px; padding-top:8px; border-top:1px solid var(--border);">' +
+                '<button onclick="event.stopPropagation(); abrirFormBenchmark(\'' + w.id + '\')"' +
+                ' style="flex:1; background:none; border:1px solid var(--border-strong); color:var(--text-secondary);' +
+                'padding:3px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.65rem;">✏️</button>' +
+                '<button onclick="event.stopPropagation(); eliminarBenchmark(\'' + w.id + '\')"' +
+                ' style="flex:1; background:none; border:1px solid var(--danger); color:var(--danger);' +
+                'padding:3px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.65rem;">✕</button>' +
+              '</div>'
+            : '') +
+        '</div>';
     }).join('') +
   '</div>';
 }
