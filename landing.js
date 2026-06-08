@@ -482,3 +482,142 @@ window.appEncInit = function(isCoach) {
   if (btnDel)  btnDel.dataset.coach  = isCoach ? 'true' : 'false';
   appEncCargar();
 };
+// ─── BENCHMARK EN LANDING ─────────────────────────────────────────────────────
+const BENCH_DEFAULT_LND = [
+  { id: 'fran',      nombre: 'Fran',      modalidad: 'For Time',  nivel: 'benchmark', descripcion: '21-15-9 reps de: Thrusters (43kg/30kg) · Pull-ups' },
+  { id: 'helen',     nombre: 'Helen',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '3 rounds: 400m Run · 21 KB Swings (24kg/16kg) · 12 Pull-ups' },
+  { id: 'grace',     nombre: 'Grace',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '30 reps de: Clean & Jerk (61kg/43kg)' },
+  { id: 'isabel',    nombre: 'Isabel',    modalidad: 'For Time',  nivel: 'benchmark', descripcion: '30 reps de: Snatch (61kg/43kg)' },
+  { id: 'cindy',     nombre: 'Cindy',     modalidad: 'AMRAP 20',  nivel: 'benchmark', descripcion: '5 Pull-ups · 10 Push-ups · 15 Air Squats' },
+  { id: 'mary',      nombre: 'Mary',      modalidad: 'AMRAP 20',  nivel: 'benchmark', descripcion: '5 Handstand Push-ups · 10 Pistols alternados · 15 Pull-ups' },
+  { id: 'chelsea',   nombre: 'Chelsea',   modalidad: 'EMOM 30',   nivel: 'benchmark', descripcion: '5 Pull-ups · 10 Push-ups · 15 Air Squats (cada minuto)' },
+  { id: 'barbara',   nombre: 'Barbara',   modalidad: 'For Time',  nivel: 'benchmark', descripcion: '5 rounds (3 min descanso): 20 Pull-ups · 30 Push-ups · 40 Sit-ups · 50 Air Squats' },
+  { id: 'annie',     nombre: 'Annie',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '50-40-30-20-10 reps de: Double Unders · Sit-ups' },
+  { id: 'angie',     nombre: 'Angie',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '100 Pull-ups · 100 Push-ups · 100 Sit-ups · 100 Air Squats (en ese orden)' },
+  { id: 'diane',     nombre: 'Diane',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '21-15-9 reps de: Deadlift (102kg/70kg) · Handstand Push-ups' },
+  { id: 'elizabeth', nombre: 'Elizabeth', modalidad: 'For Time',  nivel: 'benchmark', descripcion: '21-15-9 reps de: Clean (61kg/43kg) · Ring Dips' },
+  { id: 'kelly',     nombre: 'Kelly',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '5 rounds: 400m Run · 30 Box Jumps (61cm) · 30 Wall Ball Shots (9kg/6kg)' },
+  { id: 'nancy',     nombre: 'Nancy',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '5 rounds: 400m Run · 15 Overhead Squats (43kg/30kg)' },
+  { id: 'amanda',    nombre: 'Amanda',    modalidad: 'For Time',  nivel: 'benchmark', descripcion: '9-7-5 reps de: Muscle-ups · Squat Snatches (61kg/43kg)' },
+  { id: 'jackie',    nombre: 'Jackie',    modalidad: 'For Time',  nivel: 'benchmark', descripcion: '1000m Row · 50 Thrusters (20kg) · 30 Pull-ups' },
+  { id: 'karen',     nombre: 'Karen',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '150 Wall Ball Shots (9kg/6kg a 3m/2.7m)' },
+  { id: 'linda',     nombre: 'Linda',     modalidad: 'For Time',  nivel: 'benchmark', descripcion: '10-9-8...1 reps de: Deadlift (1.5×BW) · Bench Press (BW) · Clean (0.75×BW)' },
+  { id: 'eva',       nombre: 'Eva',       modalidad: 'For Time',  nivel: 'benchmark', descripcion: '5 rounds: 800m Run · 30 KB Swings (32kg/24kg) · 30 Pull-ups' },
+  { id: 'murph',     nombre: 'Murph',     modalidad: 'For Time',  nivel: 'hero',      descripcion: '1 Mile Run · 100 Pull-ups · 200 Push-ups · 300 Air Squats · 1 Mile Run (con chaleco 9kg)' },
+  { id: 'dt',        nombre: 'DT',        modalidad: 'For Time',  nivel: 'hero',      descripcion: '5 rounds: 12 Deadlifts · 9 Hang Power Cleans · 6 Push Jerks (70kg/47kg)' },
+  { id: 'daniel',    nombre: 'Daniel',    modalidad: 'For Time',  nivel: 'hero',      descripcion: '50 Pull-ups · 400m Run · 21 Thrusters (43kg) · 800m Run · 21 Thrusters · 400m Run · 50 Pull-ups' },
+  { id: 'jason',     nombre: 'Jason',     modalidad: 'For Time',  nivel: 'hero',      descripcion: '100-75-50-25 Squats alternados con 5-10-15-20 Muscle-ups' },
+];
+
+let lndBenchmarks = BENCH_DEFAULT_LND;
+let lndBenchDetalle = null; // WOD actualmente expandido
+
+function lndRenderBenchmark() {
+  const cont = document.getElementById('lnd-benchmark-list');
+  if (!cont) return;
+
+  const girls = lndBenchmarks.filter(w => w.nivel !== 'hero');
+  const heroes = lndBenchmarks.filter(w => w.nivel === 'hero');
+
+  function renderGrupo(lista, etiqueta, color) {
+    return '<div style="font-family:Barlow Condensed,sans-serif; font-size:0.62rem; font-weight:700;' +
+           'letter-spacing:2.5px; color:' + color + '; margin-bottom:12px; text-transform:uppercase;">' +
+           etiqueta + '</div>' +
+      '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:20px;">' +
+      lista.map(function(w) {
+        return '<div onclick="lndAbrirBench(\'' + w.id + '\')"' +
+          ' style="background:var(--lnd-card); border:1px solid var(--lnd-border);' +
+          'border-radius:10px; padding:16px 14px; cursor:pointer;' +
+          'transition:border-color 0.2s, transform 0.15s;"' +
+          ' onmouseover="this.style.borderColor=\'rgba(52,223,69,0.35)\';this.style.transform=\'translateY(-2px)\'"' +
+          ' onmouseout="this.style.borderColor=\'var(--lnd-border)\';this.style.transform=\'none\'">' +
+            '<div style="font-family:Bebas Neue,sans-serif; font-size:1.2rem; letter-spacing:1px;' +
+            'color:var(--lnd-text); margin-bottom:4px;">' + w.nombre + '</div>' +
+            '<div style="font-size:0.68rem; color:var(--lnd-text-muted);">' + w.modalidad + '</div>' +
+          '</div>';
+      }).join('') +
+      '</div>';
+  }
+
+  cont.innerHTML =
+    renderGrupo(girls,  'The Girls',  'var(--lnd-accent)') +
+    renderGrupo(heroes, 'Hero WODs',  '#ff6b6b');
+}
+
+window.lndAbrirBench = function(id) {
+  var w = lndBenchmarks.find(function(b) { return b.id === id; });
+  if (!w) return;
+  var modal = document.getElementById('lnd-bench-modal');
+  if (!modal) return;
+
+  document.getElementById('lnd-bench-modal-nombre').textContent    = w.nombre;
+  document.getElementById('lnd-bench-modal-modalidad').textContent = w.modalidad;
+
+  // Parsear descripción: separar intro y ejercicios por ·
+  var desc = w.descripcion || '';
+  var partes = desc.split('·').map(function(s) { return s.trim(); }).filter(Boolean);
+
+  var html = '';
+  if (partes.length <= 1) {
+    // Sin separadores — mostrar tal cual separando por salto de línea
+    html = '<p style="font-size:0.88rem; color:var(--lnd-text-muted); line-height:1.7; margin:0;">' +
+           desc + '</p>';
+  } else {
+    // Primera parte puede ser intro (rounds, reps scheme, etc.)
+    var intro = partes[0];
+    var ejercicios = partes.slice(1);
+
+    // Si la primera parte no tiene un peso entre () es intro, si tiene es un ejercicio
+    var tieneIntro = !intro.match(/\([\d,\.kg\/lb]+\)/i) && intro.length > 0;
+
+    if (tieneIntro) {
+      html += '<div style="font-size:0.82rem; color:var(--lnd-text-muted);' +
+              'margin-bottom:12px; font-style:italic;">' + intro + '</div>';
+    } else {
+      ejercicios = partes; // toda la lista son ejercicios
+    }
+
+    html += '<div style="display:flex; flex-direction:column; gap:8px;">';
+    ejercicios.forEach(function(ej) {
+      // Separar nombre del ejercicio y peso entre paréntesis
+      var match = ej.match(/^(.+?)\s*(\([^)]+\))\s*$/);
+      if (match) {
+        html += '<div style="display:flex; justify-content:space-between; align-items:baseline;' +
+                'padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);">' +
+                  '<span style="font-size:0.88rem; color:var(--lnd-text);">' + match[1].trim() + '</span>' +
+                  '<span style="font-size:0.78rem; color:var(--lnd-accent); font-family:Barlow Condensed,sans-serif;' +
+                  'letter-spacing:0.5px;">' + match[2] + '</span>' +
+                '</div>';
+      } else {
+        html += '<div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.06);' +
+                'font-size:0.88rem; color:var(--lnd-text);">' + ej + '</div>';
+      }
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('lnd-bench-modal-desc').innerHTML = html;
+  modal.classList.remove('hidden');
+};
+
+window.lndCerrarBench = function() {
+  document.getElementById('lnd-bench-modal')?.classList.add('hidden');
+};
+
+// Cargar benchmarks custom desde Firestore y renderizar
+async function cargarBenchmarkLanding() {
+  try {
+    const fsGet = window._fsGet;
+    if (fsGet) {
+      const data = await fsGet('benchmarks').catch(() => null);
+      if (data?.lista?.length) lndBenchmarks = data.lista;
+    }
+  } catch(e) {}
+  lndRenderBenchmark();
+}
+
+// Inicializar con datos base y luego actualizar desde Firestore
+document.addEventListener('DOMContentLoaded', function() {
+  lndRenderBenchmark();
+  setTimeout(cargarBenchmarkLanding, 800);
+});

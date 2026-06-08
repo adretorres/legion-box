@@ -246,6 +246,16 @@
               </div>
             </div>
           </div>
+
+          <!-- BENCHMARK LANDING -->
+          <div class="lnd-tool-card" style="margin-top:24px;">
+            <h3 class="lnd-tool-title">Benchmark WODs</h3>
+            <p class="lnd-body-text" style="font-size:0.84rem; margin-bottom:16px;">
+              Los WODs clásicos del CrossFit. Hacé clic para ver la descripción completa.
+            </p>
+            <div id="lnd-benchmark-list"></div>
+          </div>
+
         </div>
       </section>
 
@@ -1590,6 +1600,15 @@
             </div>
           </div>
 
+          <!-- BENCHMARK -->
+          <div class="admin-section" style="margin-top:24px;" id="benchmark-section">
+            <div class="admin-title" style="margin-bottom:4px;">Benchmark WODs</div>
+            <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:14px;">
+              Registrá tus tiempos en los WODs clásicos del CrossFit.
+            </p>
+            <div id="benchmark-list"></div>
+          </div>
+
           <!-- CONVERSOR INDEPENDIENTE -->
           <div class="admin-section" style="margin-top:24px;">
             <div class="admin-title">Conversor de Pesos</div>
@@ -2000,6 +2019,87 @@
         <button class="lnd-btn-primary" onclick="enviarNotificacionPago()" style="width:100%; padding:12px;">
           ENVIAR NOTIFICACIÓN
         </button>
+      </div>
+    </div>
+
+    <!-- ─── MODAL BENCHMARK LANDING ────────────────────────── -->
+    <div id="lnd-bench-modal" class="lnd-modal-overlay hidden" onclick="if(event.target===this) lndCerrarBench()">
+      <div class="lnd-modal-box" style="max-width:460px;" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="lndCerrarBench()">✕</button>
+        <p id="lnd-bench-modal-modalidad" class="lnd-eyebrow" style="margin-bottom:6px;"></p>
+        <h3 id="lnd-bench-modal-nombre"
+          style="font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:1px; margin-bottom:16px;"></h3>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+          border-radius:10px; padding:18px;">
+          <div id="lnd-bench-modal-desc"></div>
+        </div>
+        <p style="font-size:0.72rem; color:var(--lnd-text-muted); margin-top:14px; text-align:center;">
+          ¿Atleta del box? Iniciá sesión para registrar tu tiempo.
+        </p>
+      </div>
+    </div>
+
+    <!-- ─── MODAL BENCHMARK DETALLE ────────────────────────── -->
+    <div id="modal-benchmark" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarModalBenchmark()">
+      <div class="lnd-modal-box" style="max-width:480px;" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarModalBenchmark()">✕</button>
+        <p class="lnd-eyebrow" id="bench-modal-modalidad" style="margin-bottom:4px;"></p>
+        <h3 id="bench-modal-nombre" style="font-family:'Bebas Neue',sans-serif;
+          font-size:2rem; letter-spacing:1px; margin-bottom:12px;"></h3>
+        <div style="background:var(--surface); border:1px solid var(--border);
+          border-radius:8px; padding:14px; margin-bottom:18px;">
+          <div id="bench-modal-descripcion"></div>
+        </div>
+        <div id="bench-tiempo-guardado" style="font-size:0.8rem; color:var(--accent);
+          margin-bottom:12px; display:none;"></div>
+        <input type="hidden" id="bench-modal-id" />
+        <div class="lnd-form-row">
+          <label>Tu tiempo / score</label>
+          <input type="text" id="bench-tiempo-input" placeholder="Ej: 4:23 · 15 rondas · 185 reps" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Observación (opcional)</label>
+          <input type="text" id="bench-obs-input" placeholder="Ej: Rx · Scaled · con 40kg" />
+        </div>
+        <div id="bench-error" style="color:#ff5050; font-size:0.78rem; margin-bottom:8px;"></div>
+        <button class="lnd-btn-primary" onclick="guardarTiempoBenchmark()"
+          style="width:100%; padding:12px;">GUARDAR MI TIEMPO</button>
+      </div>
+    </div>
+
+    <!-- ─── MODAL BENCHMARK FORM (COACH) ─────────────────── -->
+    <div id="modal-benchmark-form" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarFormBenchmark()">
+      <div class="lnd-modal-box" style="max-width:460px;" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarFormBenchmark()">✕</button>
+        <p class="lnd-eyebrow" id="bench-form-titulo" style="margin-bottom:16px;">Nuevo WOD</p>
+        <input type="hidden" id="bench-form-id" />
+        <div class="lnd-form-row">
+          <label>Nombre del WOD *</label>
+          <input type="text" id="bench-form-nombre" placeholder="Ej: Fran" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Modalidad *</label>
+          <input type="text" id="bench-form-modalidad" placeholder="Ej: For Time · AMRAP 20 · EMOM 30" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Descripción *</label>
+          <textarea id="bench-form-descripcion" rows="4"
+            placeholder="21-15-9 reps de:&#10;Thrusters (43kg/30kg)&#10;Pull-ups"
+            style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16);
+            border-radius:8px; color:#fff; padding:10px 14px; font-size:0.86rem; outline:none;
+            resize:vertical; font-family:'Barlow',sans-serif;"></textarea>
+        </div>
+        <div class="lnd-form-row">
+          <label>Categoría</label>
+          <select id="bench-form-nivel" style="width:100%; background:rgba(255,255,255,0.04);
+            border:1px solid rgba(255,255,255,0.16); border-radius:8px; color:#fff;
+            padding:10px 14px; font-size:0.9rem; outline:none;">
+            <option value="benchmark">The Girls (Benchmark)</option>
+            <option value="hero">Hero WODs</option>
+          </select>
+        </div>
+        <button class="lnd-btn-primary" onclick="guardarFormBenchmark()"
+          style="width:100%; padding:12px; margin-top:8px;">GUARDAR WOD</button>
       </div>
     </div>
 

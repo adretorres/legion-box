@@ -46,6 +46,7 @@ import { renderHorariosAdmin, agregarHorario,
          eliminarHorario, renderHorariosPublico,
          renderHorariosInfoBox } from './horarios.js';
 import { toggleAccordion } from './ui.js';
+import { cargarBenchmarks, renderBenchmarkList, cacheBenchmarks } from './benchmark.js';
 import './share.js';
 import { calcularCotizacionSocio, generarMensajeWhatsApp,
          crearOrdenPendiente, aprobarOrden,
@@ -212,6 +213,11 @@ export function switchTab(id, btn) {
   if(id === "profile")     loadProfileData();
   if(id === "calc") {
     if(window.appEncInit) window.appEncInit(currentUser?.role === 'coach');
+    if(cacheBenchmarks === null) {
+      cargarBenchmarks().then(() => renderBenchmarkList(currentUser?.role === 'coach'));
+    } else {
+      renderBenchmarkList(currentUser?.role === 'coach');
+    }
   }
   if(id === "ranking") {
     // Marcar el día actual como activo si ningún botón tiene activo todavía
@@ -654,13 +660,23 @@ window.renderOrdenesPendientes = async function() {
 window.aprobarOrdenCoach = async function(idOrden) {
   if (!confirm('¿Aprobar este pago y actualizar la membresía del atleta?')) return;
   try {
+    // Guardar atletaId antes de aprobar para refrescar su cotización
+    const ordenes = await fsGet('ordenes_pago') || {};
+    const atletaId = ordenes[idOrden]?.atletaId;
+
     await aprobarOrden(idOrden, 'coach');
-    // Recargar cacheUsers desde Firestore para reflejar el nuevo expiry
     await cargarDatos();
+
     alert('✅ Pago aprobado. Membresía actualizada.');
+
     window.renderOrdenesPendientes();
     renderUserList();
     renderVencimientos();
+
+    // Refrescar cotización si el tab PAGOS del atleta está abierto
+    if (atletaId && window.renderCotizacion) {
+      window.renderCotizacion(atletaId);
+    }
   } catch(e) {
     alert('Error al aprobar: ' + e.message);
   }
