@@ -1,5 +1,5 @@
 // ─── service-worker.js ────────────────────────────────────────────────────────
-const CACHE_NAME = 'legion-box-v3';
+const CACHE_NAME = 'legion-box-v4';
 
 const ASSETS = [
   '/',
@@ -19,6 +19,7 @@ const ASSETS = [
   '/js/horarios.js',
   '/js/main.js',
   '/js/planes.js',
+  '/js/motor-pagos.js',
   '/js/pagos-qr.js',
   '/js/ui.js',
   '/icon-192.png',

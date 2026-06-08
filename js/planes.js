@@ -88,7 +88,8 @@ export async function guardarPlanes() {
 // ─── RENDER LANDING ───────────────────────────────────────────────────────────
 export function renderPlanesLanding() {
   const cont = document.getElementById('lnd-pricing-content');
-  if (!cont || !cachePlanes) return;
+  if (!cont) return;
+  if (!cachePlanes) cachePlanes = PLANES_DEFAULT;
 
   const planesNormales = cachePlanes.filter(p => p.id !== 'suelta');
   const planSuelta     = cachePlanes.find(p => p.id === 'suelta');
@@ -155,75 +156,105 @@ export function renderPlanesLanding() {
 
 // ─── RENDER APP — ATLETA (selector de plan) ───────────────────────────────────
 export function renderPlanesAtleta(userData) {
-  const cont = document.getElementById('planes-atleta-cont');
+  const cont  = document.getElementById('planes-atleta-cont');
+  const cotiz = document.getElementById('atleta-cotizacion-cont');
   if (!cont || !cachePlanes) return;
 
-  const hoy     = new Date(); hoy.setHours(0,0,0,0);
-  const expiry  = userData?.expiry ? new Date(userData.expiry + 'T00:00:00') : null;
-  const vencido = expiry ? expiry < hoy : true;
-  const esNuevo = !userData?.payments?.length;
-
-  // Calcular descuento aplicable
-  let descuento     = 0;
-  let descuentoDesc = '';
-  if (esNuevo) {
-    descuento     = 15;
-    descuentoDesc = 'Primer mes — 15% de descuento aplicado';
+  // ── Cotización personalizada ─────────────────────────────────────────────
+  if (cotiz && window.calcularCotizacionSocio && window.TARIFAS) {
+    try {
+      const plan      = userData?.plans?.[0] || 'crossfit';
+      const planKey   = plan + '_x5';
+      const precioBase = window.TARIFAS[planKey] || window.TARIFAS.crossfit_x5 || 45000;
+      const c = window.calcularCotizacionSocio(
+        {
+          condicion:      userData?.condicion || 'regular',
+          esPlanFamiliar: userData?.esPlanFamiliar || false,
+          primerMes:      userData?.primerMes || false,
+          primerMesUsado: userData?.primerMesUsado || false,
+          expiry:         userData?.expiry || null
+        },
+        { fechaPago: new Date(), precioBase }
+      );
+      if (c.alDia) {
+        // Membresía al día — mostrar estado y próximo vencimiento
+        cotiz.innerHTML =
+          '<div style="background:rgba(52,223,69,0.06); border:1px solid rgba(52,223,69,0.2);' +
+          'border-radius:var(--radius); padding:16px; margin-bottom:16px; text-align:center;">' +
+            '<div style="font-size:1.1rem; margin-bottom:6px;">✅</div>' +
+            '<div style="font-size:0.9rem; font-weight:700; color:var(--accent); margin-bottom:4px;">Membresía al día</div>' +
+            '<div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:14px;">' +
+              'Próx. vencimiento: ' + c.fechaVencimiento.toLocaleDateString('es-AR') +
+            '</div>' +
+            '<button onclick="abrirModalNotifPago(0)"' +
+            ' style="width:100%; background:var(--surface); color:var(--accent); border:1px solid var(--accent);' +
+            'padding:10px; border-radius:var(--radius); cursor:pointer; font-family:Barlow Condensed,sans-serif;' +
+            'font-size:0.82rem; font-weight:700; letter-spacing:2px;">ABONAR POR ADELANTADO</button>' +
+          '</div>';
+      } else {
+      const colorMonto = c.recargo > 0 ? '#ff5050' : 'var(--accent)';
+      cotiz.innerHTML =
+        '<div style="background:var(--surface); border:1px solid var(--border);' +
+        'border-radius:var(--radius); padding:16px; margin-bottom:16px;">' +
+          '<div style="font-size:0.65rem; font-weight:700; letter-spacing:2px;' +
+          'color:var(--accent); margin-bottom:10px; font-family:Barlow Condensed,sans-serif;">COTIZACIÓN HOY</div>' +
+          '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+            '<span style="font-size:0.82rem; color:var(--text-secondary);">Precio base</span>' +
+            '<span style="font-size:0.9rem;">$' + c.precioBase.toLocaleString('es-AR') + '</span>' +
+          '</div>' +
+          (c.recargo > 0
+            ? '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+              '<span style="font-size:0.82rem; color:#ff5050;">Mora (' + c.diasMora + ' días × $500)</span>' +
+              '<span style="font-size:0.9rem; color:#ff5050;">+$' + c.recargo.toLocaleString('es-AR') + '</span>' +
+              '</div>'
+            : '') +
+          '<div style="display:flex; justify-content:space-between; padding-top:8px;' +
+          'border-top:1px solid var(--border); margin-top:4px;">' +
+            '<span style="font-size:0.85rem; font-weight:700;">TOTAL A ABONAR</span>' +
+            '<span style="font-size:1.6rem; font-family:Bebas Neue,sans-serif; color:' + colorMonto + ';">' +
+              '$' + c.montoFinal.toLocaleString('es-AR') +
+            '</span>' +
+          '</div>' +
+          (c.detalle ? '<div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:6px;">' + c.detalle + '</div>' : '') +
+          '<div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:4px;">' +
+            'Próx. venc: ' + c.fechaVencimiento.toLocaleDateString('es-AR') +
+          '</div>' +
+          '<button onclick="abrirModalNotifPago(' + c.montoFinal + ', null, \"renovacion\")"' +
+          ' style="width:100%; margin-top:14px; background:var(--accent); color:#000; border:none;' +
+          'padding:11px; border-radius:var(--radius); cursor:pointer; font-family:Barlow Condensed,sans-serif;' +
+          'font-size:0.85rem; font-weight:700; letter-spacing:2px;">NOTIFICAR PAGO</button>' +
+        '</div>';
+      }
+    } catch(e) { cotiz.innerHTML = ''; }
   }
-  // Plan familiar se aplica manualmente por coach por ahora
 
-  cont.innerHTML = `
-    <div class="planes-atleta-header">
-      <p class="lnd-eyebrow">ELEGÍ TU PLAN</p>
-      <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.8rem; margin-bottom:4px;">
-        Renovar o cambiar membresía
-      </h3>
-      ${descuentoDesc ? `<div class="planes-descuento-aviso">🎉 ${descuentoDesc}</div>` : ''}
-    </div>
-
-    <div class="planes-atleta-grid">
-      ${cachePlanes.map(p => {
-        const precioFinal = descuento
-          ? Math.round(p.precio * (1 - descuento / 100))
-          : p.precio;
-        const esSuelta = p.id === 'suelta';
-        return `
-          <div class="planes-atleta-card ${p.destacado ? 'planes-atleta-featured' : ''}">
-            ${p.destacado ? '<div class="planes-atleta-badge">MÁS POPULAR</div>' : ''}
-            <div class="planes-atleta-top">
-              <span class="planes-atleta-disc">${p.disciplina === 'ambas' ? 'TODAS' : p.disciplina.toUpperCase()}</span>
-              <h4 class="planes-atleta-nombre">${p.nombre}</h4>
-              <p class="planes-atleta-freq">${p.frecuencia}</p>
-            </div>
-            <div class="planes-atleta-precio">
-              ${descuento && !esSuelta ? `<span class="planes-precio-original">$${Number(p.precio).toLocaleString('es-AR')}</span>` : ''}
-              <span class="planes-precio-final">$${Number(precioFinal).toLocaleString('es-AR')}</span>
-              <span class="planes-precio-periodo">${esSuelta ? '/ clase' : '/mes'}</span>
-            </div>
-            <ul class="planes-atleta-beneficios">
-              ${p.beneficios.map(b => `<li><span>✓</span>${b}</li>`).join('')}
-            </ul>
-            <button class="planes-atleta-btn ${p.destacado ? 'planes-atleta-btn-featured' : ''}"
-              onclick="elegirPlan('${p.id}', ${precioFinal})">
-              ELEGIR PLAN
-            </button>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+  // ── Lista de planes (solo lectura — para referencia) ─────────────────────
+  const planesNormales = cachePlanes.filter(p => p.id !== 'suelta');
+  cont.innerHTML =
+    '<p style="font-size:0.72rem; color:var(--text-secondary); margin-bottom:12px; letter-spacing:0.5px;">' +
+    'Planes disponibles — para cambiar de plan consultá al coach.</p>' +
+    '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;">' +
+    planesNormales.map(function(p) {
+      return '<div style="background:var(--surface); border:1px solid ' +
+        (p.destacado ? 'var(--accent)' : 'var(--border)') +
+        '; border-radius:var(--radius); padding:12px; text-align:center;">' +
+        '<div style="font-size:0.6rem; font-weight:700; letter-spacing:2px; color:var(--accent);">' +
+          p.disciplina.toUpperCase() + '</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif; font-size:1.2rem; margin:4px 0;">' +
+          p.nombre + '</div>' +
+        '<div style="font-size:0.7rem; color:var(--text-secondary); margin-bottom:8px;">' +
+          p.frecuencia + '</div>' +
+        '<div style="font-family:Bebas Neue,sans-serif; font-size:1.4rem; color:var(--accent);">' +
+          '$' + Number(p.precio).toLocaleString('es-AR') + '</div>' +
+        '</div>';
+    }).join('') +
+    '</div>';
 }
 
 // ─── ELEGIR PLAN (ATLETA) — por ahora registra intención, luego MP ────────────
 export function elegirPlan(planId, precio) {
-  const plan = cachePlanes.find(p => p.id === planId);
-  if (!plan) return;
-  // Por ahora redirige a WhatsApp con el plan seleccionado
-  // En la siguiente fase se conecta con Mercado Pago
-  const msg = encodeURIComponent(
-    `Hola! Quiero abonar el plan ${plan.nombre} (${plan.frecuencia}) — $${Number(precio).toLocaleString('es-AR')}`
-  );
-  window.open(`https://wa.me/5493704818550?text=${msg}`, '_blank');
+  // Abre el modal de notificación de pago con el plan seleccionado
+  abrirModalNotifPago(precio, planId);
 }
 
 // ─── RENDER ADMIN (COACH) ─────────────────────────────────────────────────────
@@ -336,7 +367,8 @@ export async function eliminarPlan(id) {
 // ─── RENDER INFO BOX (APP) ───────────────────────────────────────────────────
 export function renderPlanesInfoBox() {
   const cont = document.getElementById('planes-info-cont');
-  if (!cont || !cachePlanes) return;
+  if (!cont) return;
+  if (!cachePlanes) cachePlanes = PLANES_DEFAULT;
 
   const esCoach        = currentUser?.role === 'coach';
   const planesNormales = cachePlanes.filter(p => p.id !== 'suelta');

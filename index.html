@@ -52,6 +52,33 @@
         <div id="btn-ver-comp-wrap" class="hidden" style="margin-top:10px;">
           <button class="lnd-btn-outline" onclick="entrarLeaderboard()">Ver Competencia</button>
         </div>
+
+        <!-- Panel cuota vencida -->
+        <div id="panel-cuota-vencida" class="hidden" style="margin-top:4px;">
+          <div style="background:rgba(255,80,80,0.06); border:1px solid rgba(255,80,80,0.2);
+            border-radius:10px; padding:16px; text-align:center; margin-bottom:14px;">
+            <div style="font-size:1.1rem; margin-bottom:6px;">⚠️</div>
+            <div id="login-vencida-nombre" style="font-family:'Bebas Neue',sans-serif;
+              font-size:1.4rem; letter-spacing:1px; color:#fff; margin-bottom:4px;"></div>
+            <div style="font-size:0.82rem; color:rgba(255,255,255,0.6); margin-bottom:2px;">
+              Tu cuota se encuentra vencida. Podés notificar tu pago<br>o renovar directamente desde acá.
+            </div>
+            <div id="login-vencida-fecha" style="font-size:0.75rem; color:#ff5050;"></div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="lnd-btn-primary" onclick="abrirModalNotifPagoLogin()"
+              style="width:100%; font-size:0.82rem; letter-spacing:1.5px;">
+              📋 NOTIFICAR PAGO REALIZADO
+            </button>
+            <button class="lnd-btn-outline" onclick="abrirPagoMercadoPago()"
+              style="width:100%; font-size:0.82rem; letter-spacing:1.5px; opacity:0.6; cursor:not-allowed;"
+              disabled title="Próximamente">
+              💳 PAGAR CON MERCADO PAGO
+            </button>
+          </div>
+        </div>
+
+        <div id="btn-cuota-vencida" class="hidden"></div>
         <div id="login-error" class="lnd-error"></div>
       </div>
     </div>
@@ -1685,9 +1712,15 @@
             <div id="profile-payment-list" style="font-size: 0.88rem"></div>
           </div>
 
-          <!-- PLANES DISPONIBLES -->
+          <!-- PAGO Y RENOVACIÓN -->
           <div class="admin-section" id="planes-atleta-section">
-            <div class="admin-title" style="margin-bottom:16px;">Planes Disponibles</div>
+            <div class="admin-title" style="margin-bottom:4px;">Renovar Membresía</div>
+            <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:16px;">
+              Seleccioná tu plan y notificá el pago al coach.
+            </p>
+            <!-- Cotización del atleta -->
+            <div id="atleta-cotizacion-cont" style="margin-bottom:16px;"></div>
+            <!-- Selector de planes -->
             <div id="planes-atleta-cont"></div>
           </div>
         </div>
@@ -1701,15 +1734,20 @@
             style="width:100%; margin-bottom:16px;">
             + NUEVO ATLETA
           </button>
-
-          <!-- BOTÓN REGISTRO PAGO PRESENCIAL -->
-          <button onclick="abrirPagoRapidoQR()"
-            style="width:100%; background:var(--accent); color:#000; border:none;
-            padding:13px; border-radius:var(--radius); cursor:pointer; margin-bottom:16px;
-            font-family:'Barlow Condensed',sans-serif; font-size:0.9rem;
-            font-weight:700; letter-spacing:2px;">
-            💵 REGISTRAR PAGO PRESENCIAL
-          </button>
+          <!-- ÓRDENES PENDIENTES DE APROBACIÓN -->
+          <div id="ordenes-pendientes-wrap" class="hidden" style="margin-bottom:16px;">
+            <div class="accordion-header" onclick="toggleAccordion('ordenes-pendientes')">
+              <div class="admin-title" style="margin-bottom:0; color:var(--warning);">
+                Pagos Pendientes de Aprobación
+                <span id="ordenes-count-badge" style="background:var(--warning); color:#000;
+                  border-radius:12px; padding:2px 8px; font-size:0.65rem; margin-left:8px;">0</span>
+              </div>
+              <span class="accordion-arrow" id="acc-arrow-ordenes-pendientes">▼</span>
+            </div>
+            <div class="accordion-body" id="acc-body-ordenes-pendientes">
+              <div id="ordenes-pendientes-list" style="padding-top:12px;"></div>
+            </div>
+          </div>
 
           <!-- ALERTAS / VENCIMIENTOS (colapsable) -->
           <div class="admin-section" id="vencimientos-panel" style="margin-top:0; margin-bottom:16px; border-left:3px solid var(--danger); display:none; padding:0;">
@@ -1840,6 +1878,43 @@
             </div>
           </div>
 
+          <!-- CONDICIÓN Y DESCUENTOS -->
+          <div class="form-row">
+            <label>Condición del socio</label>
+            <select id="user-condicion" style="width:100%; background:var(--surface); color:var(--text);
+              border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+              padding:9px 12px; font-size:0.88rem; outline:none;">
+              <option value="regular">Regular</option>
+              <option value="nuevo_absoluto">Nuevo Absoluto</option>
+              <option value="reincorporado">Reincorporado</option>
+            </select>
+          </div>
+          <div class="form-row" style="display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size:0.72rem; font-weight:700; letter-spacing:1.5px;
+              text-transform:uppercase; color:var(--text-secondary);">Descuentos</label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;
+              font-size:0.86rem; font-weight:400; text-transform:none; letter-spacing:0;">
+              <input type="checkbox" id="user-plan-familiar"
+                style="width:16px; height:16px; accent-color:var(--accent);" />
+              Plan Familiar (10% OFF hasta el día 10)
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;
+              font-size:0.86rem; font-weight:400; text-transform:none; letter-spacing:0;">
+              <input type="checkbox" id="user-primer-mes"
+                style="width:16px; height:16px; accent-color:var(--accent);" />
+              Primer Mes (15% OFF — uso único)
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;
+              font-size:0.86rem; font-weight:400; text-transform:none; letter-spacing:0;">
+              <input type="checkbox" id="user-promesa-pago"
+                style="width:16px; height:16px; accent-color:var(--warning);" />
+              <span>Promesa de pago
+                <span style="font-size:0.72rem; color:var(--text-secondary);">
+                  — mantiene acceso, próximo mes paga 2 cuotas</span>
+              </span>
+            </label>
+          </div>
+
           <button class="btn-save" onclick="saveUser()" style="width:100%; margin-top:20px;">
             GUARDAR ATLETA
           </button>
@@ -1874,6 +1949,57 @@
           <button class="lnd-btn-outline" onclick="entrarLeaderboard()">Ver Competencia</button>
         </div>
         <div id="login-error" class="lnd-error"></div>
+      </div>
+    </div>
+
+    <!-- ─── MODAL NOTIFICACIÓN DE PAGO (ATLETA) ────────────── -->
+    <div id="modal-notif-pago" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarModalNotifPago()">
+      <div class="lnd-modal-box" style="max-width:420px;" onclick="event.stopPropagation()">
+        <button class="lnd-modal-close" onclick="cerrarModalNotifPago()">✕</button>
+        <p class="lnd-eyebrow" style="margin-bottom:4px;">NOTIFICAR PAGO</p>
+        <h3 style="font-family:'Bebas Neue',sans-serif; font-size:1.6rem; margin-bottom:4px; letter-spacing:1px;">
+          Registrar pago realizado
+        </h3>
+        <p style="font-size:0.78rem; color:var(--lnd-text-muted); margin-bottom:20px;">
+          El coach verificará y aprobará tu pago. Tu acceso se actualizará una vez confirmado.
+        </p>
+        <!-- Monto calculado -->
+        <div id="notif-monto-calculado" style="background:rgba(52,223,69,0.06);
+          border:1px solid rgba(52,223,69,0.2); border-radius:8px;
+          padding:12px 16px; margin-bottom:16px; display:none;">
+          <div style="font-size:0.7rem; color:var(--lnd-accent); font-family:'Barlow Condensed',sans-serif;
+            font-weight:700; letter-spacing:2px; margin-bottom:4px;">MONTO A ABONAR</div>
+          <div id="notif-monto-valor" style="font-family:'Bebas Neue',sans-serif; font-size:2rem;
+            color:var(--lnd-accent); letter-spacing:1px;"></div>
+          <div id="notif-monto-detalle" style="font-size:0.72rem; color:var(--lnd-text-muted); margin-top:2px;"></div>
+        </div>
+        <div class="lnd-form-row">
+          <label>Monto abonado ($)</label>
+          <input type="number" id="notif-monto-input" placeholder="Ej: 45000" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Fecha del pago</label>
+          <input type="date" id="notif-fecha-input" />
+        </div>
+        <div class="lnd-form-row">
+          <label>Medio de pago</label>
+          <select id="notif-medio-input" style="width:100%; background:rgba(255,255,255,0.04);
+            border:1px solid rgba(255,255,255,0.16); border-radius:8px; color:#fff;
+            padding:10px 14px; font-size:0.9rem; outline:none;">
+            <option value="transferencia">Transferencia</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </div>
+        <div class="lnd-form-row">
+          <label>Observación (opcional)</label>
+          <input type="text" id="notif-obs-input" placeholder="Ej: transferencia Banco Galicia" />
+        </div>
+        <input type="hidden" id="notif-tipo-input" value="renovacion" />
+        <div id="notif-error" style="color:#ff5050; font-size:0.8rem; margin-bottom:8px;"></div>
+        <button class="lnd-btn-primary" onclick="enviarNotificacionPago()" style="width:100%; padding:12px;">
+          ENVIAR NOTIFICACIÓN
+        </button>
       </div>
     </div>
 
@@ -1925,54 +2051,7 @@
         </button>
       </div>
     </div>
-
-    
-    <!-- ─── MODAL REGISTRO DE PAGO RÁPIDO QR ───────────────────── -->
-    <div id="modal-pago-rapido-qr" class="lnd-modal-overlay hidden">
-      <div class="lnd-modal-box" style="max-width: 450px;">
-        <button class="lnd-modal-close" onclick="document.getElementById('modal-pago-rapido-qr').classList.add('hidden')">✕</button>
-
-        <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--accent); margin-bottom: 15px; letter-spacing: 1px;">
-          💵 Registro de Pago Presencial
-        </h3>
-
-        <div class="lnd-form-row">
-          <label>DNI / Usuario del Atleta</label>
-          <input type="text" id="qr-pago-atleta" placeholder="Buscar por DNI o usuario" />
-        </div>
-        <div class="lnd-form-row" style="display: flex; gap: 10px;">
-          <div style="flex: 1;">
-            <label>Monto Abonado ($)</label>
-            <input type="number" id="qr-pago-monto" placeholder="Ej: 8500" />
-          </div>
-          <div style="flex: 1;">
-            <label>Tipo de Gestión</label>
-            <select id="qr-pago-gestion">
-              <option value="renovacion">Renovación</option>
-              <option value="reincorporacion">Reincorporación</option>
-            </select>
-          </div>
-        </div>
-        <div class="lnd-form-row">
-          <label>Tipo de Disciplina / Clase</label>
-          <select id="qr-pago-clase">
-            <option value="crossfit">CrossFit</option>
-            <option value="funcional">Funcional</option>
-            <option value="pase_libre">Pase Libre (Ambas)</option>
-          </select>
-        </div>
-        <div class="lnd-form-row">
-          <label>Coach que Registra</label>
-          <input type="text" id="qr-pago-coach" placeholder="Nombre del Coach" />
-        </div>
-        <button class="lnd-btn-primary" style="margin-top: 15px; width: 100%;" onclick="procesarPagoRapidoQR()">
-          CONFIRMAR Y RENOVAR CUOTA
-        </button>
-      </div>
-    </div>
-
     <script src="landing.js"></script>
-    <script type="module" src="js/pagos-qr.js"></script>
     <script type="module" src="js/main.js"></script>
   </body>
 </html>

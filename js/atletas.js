@@ -6,6 +6,7 @@ import {
 } from './firebase.js';
 
 import { currentSocioStatusFilter, setCurrentSocioStatusFilter, editingUserId, setEditingUserId, tipoPagoSeleccionado, setTipoPagoSeleccionado } from './main.js';
+import { generarMensajeWhatsApp, calcularCotizacionSocio, TARIFAS } from './motor-pagos.js';
 
 // ─── HELPER INICIALES ─────────────────────────────────────────────────────────
 function iniciales(nombre) {
@@ -55,8 +56,9 @@ export function renderUserList() {
     if (disc && disc !== "all" && (!u.plans || !u.plans.includes(disc))) continue;
     if (search && !u.name.toLowerCase().includes(search) && !id.includes(search)) continue;
 
-    const label = isInactive ? "INACTIVO" : isVencido ? "VENCIDA" : "AL DÍA";
-    const color = isInactive ? "var(--text-tertiary)" : isVencido ? "var(--danger)" : "var(--accent)";
+    const tienePromesa = u.promesaPago || false;
+    const label = isInactive ? "INACTIVO" : tienePromesa ? "PROMESA" : isVencido ? "VENCIDA" : "AL DÍA";
+    const color = isInactive ? "var(--text-tertiary)" : tienePromesa ? "var(--warning)" : isVencido ? "var(--danger)" : "var(--accent)";
 
     let vencCorto = "—";
     if (fv) {
@@ -67,20 +69,8 @@ export function renderUserList() {
     const pagos = u.payments || [];
     const ultimoPago = pagos.length ? pagos[pagos.length - 1] : null;
 
-    // ── WhatsApp ──────────────────────────────────────────────────────────────
-    const tel = (u.phone || '').replace(/\D/g, '');
-    const fechaVenc = u.expiry ? u.expiry.split('-').reverse().join('/') : '';
-    const nombre1 = u.name.split(' ')[0];
-    const diasParaVencer = fv ? Math.round((fv - hoy) / (1000*60*60*24)) : null;
-    let msgWsp = '';
-    if (isInactive || isVencido) {
-      msgWsp = `Hola ${nombre1}! Tu cuota venció el ${fechaVenc}, comunicate con el coach. Si tuviste algún problema o necesitás que veamos algo, escribinos. ¡Queremos verte pronto por acá! y ponete al día para seguir entrenando. @legion.box`;
-    } else if (diasParaVencer !== null && diasParaVencer <= 7) {
-      msgWsp = `Hola ${nombre1}, como estás? Tu cuota vence el ${fechaVenc}, no lo dejes pasar y seguí entrenando con nosotros. Saludos @legion.box`;
-    } else {
-      msgWsp = `Hola ${nombre1}, como estás? Queríamos avisarte que [mensaje de aviso]. Saludos @legion.box`;
-    }
-    const urlWsp = tel ? `https://wa.me/54${tel}?text=${encodeURIComponent(msgWsp)}` : '';
+    // ── WhatsApp — generado por motor-pagos.js ──────────────────────────────────
+    const { url: urlWsp, tipo: tipoWsp } = generarMensajeWhatsApp(id, u);
 
     cont.innerHTML += `
       <div class="atleta-acordeon" id="atleta-${id}">
@@ -166,7 +156,7 @@ export function renderUserList() {
                     style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px;
                     background:none; border:1px solid #25D366; color:#25D366;
                     border-radius:var(--radius-sm); font-size:0.75rem; font-weight:700;
-                    font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;
+                    font-family:Barlow+Condensed,sans-serif; letter-spacing:1px;
                     padding:7px; text-decoration:none; cursor:pointer;">
                     WhatsApp
                   </a>`
@@ -180,9 +170,13 @@ export function renderUserList() {
           </div>
 
           <div id="panel-pagos-${id}" class="atleta-panel" style="display:none;">
+
+            <!-- COTIZACIÓN AUTOMÁTICA — renderizada por renderCotizacion() -->
+            <div id="cotiz-${id}"></div>
+
             <div class="pago-mini-header" onclick="togglePagoPanel('${id}')">
               <span style="font-size:0.72rem; font-weight:700; letter-spacing:1.5px;
-                color:var(--warning); font-family:'Barlow Condensed',sans-serif;">
+                color:var(--warning); font-family:Barlow+Condensed,sans-serif;">
                 REGISTRAR PAGO
               </span>
               <span id="chev-pago-${id}" style="font-size:0.72rem; color:var(--text-tertiary);">▼</span>
@@ -280,7 +274,7 @@ export function switchAtletaTab(id, tab) {
   document.getElementById(`panel-pagos-${id}`).style.display = tab === 'pagos' ? '' : 'none';
   document.getElementById(`tab-info-${id}`).classList.toggle('active',  tab === 'info');
   document.getElementById(`tab-pagos-${id}`).classList.toggle('active', tab === 'pagos');
-  if (tab === 'pagos') setEditingUserId(id);
+  if (tab === 'pagos') { setEditingUserId(id); renderCotizacion(id); }
 }
 
 // ─── TOGGLE MINI-PANEL PAGO ───────────────────────────────────────────────────
@@ -308,16 +302,44 @@ export function seleccionarTipoPagoAtleta(id, tipo) {
 
   const u = cacheUsers[id];
   if (!u) return;
-  const base = u.expiry && tipo === 'renovacion'
-    ? new Date(u.expiry + 'T00:00:00')
-    : new Date();
-  if (tipo === 'reincorporacion') base.setHours(0,0,0,0);
-  base.setMonth(base.getMonth() + 1);
-  const yyyy = base.getFullYear();
-  const mm   = String(base.getMonth() + 1).padStart(2, '0');
-  const dd   = String(base.getDate()).padStart(2, '0');
+
+  // Calcular vencimiento usando la misma lógica del motor
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const expiryActual = u.expiry ? new Date(u.expiry + 'T00:00:00') : null;
+  const base = (expiryActual && expiryActual > hoy && tipo === 'renovacion')
+    ? expiryActual : hoy;
+
+  let fv;
+  if (tipo === 'reincorporacion') {
+    // 30 días desde hoy
+    fv = new Date(hoy);
+    fv.setDate(fv.getDate() + 30);
+  } else {
+    // Día 10 del mes siguiente a la base
+    fv = new Date(base.getFullYear(), base.getMonth() + 1, 10);
+  }
+
+  const yyyy = fv.getFullYear();
+  const mm   = String(fv.getMonth() + 1).padStart(2, '0');
+  const dd   = String(fv.getDate()).padStart(2, '0');
   const inputVenc = document.getElementById(`pay-nuevo-venc-${id}`);
   if (inputVenc) inputVenc.value = `${yyyy}-${mm}-${dd}`;
+
+  // Pre-cargar monto calculado en el campo de monto
+  if (window.calcularCotizacionSocio && window.TARIFAS) {
+    try {
+      const planKey    = (u.plans?.[0] || 'crossfit') + '_x5';
+      const precioBase = window.TARIFAS[planKey] || window.TARIFAS.crossfit_x5;
+      const c = window.calcularCotizacionSocio(
+        { condicion: tipo === 'reincorporacion' ? 'reincorporado' : (u.condicion || 'regular'),
+          esPlanFamiliar: u.esPlanFamiliar, primerMes: u.primerMes,
+          primerMesUsado: u.primerMesUsado, expiry: null },
+        { fechaPago: hoy, precioBase }
+      );
+      const inputAmount = document.getElementById(`pay-amount-${id}`);
+      if (inputAmount && !inputAmount.value) inputAmount.value = c.montoFinal;
+    } catch(e) {}
+  }
 }
 
 // ─── GUARDAR PAGO INLINE ──────────────────────────────────────────────────────
@@ -344,6 +366,13 @@ export async function guardarPagoAtleta(id) {
   });
 
   cacheUsers[id].expiry = nuevoVenc;
+  cacheUsers[id].condicion = 'regular';
+  cacheUsers[id].promesaPago = false;
+  // Marcar primerMes como usado si aplicó
+  if (cacheUsers[id].primerMes) {
+    cacheUsers[id].primerMes = false;
+    cacheUsers[id].primerMesUsado = true;
+  }
   await fsSet('users', cacheUsers);
 
   document.getElementById(`pay-amount-${id}`).value = '';
@@ -405,6 +434,13 @@ export function abrirDrawerAtleta(id) {
     document.getElementById("user-address").value    = u.address   || '';
     document.getElementById("user-emergency").value  = u.emergency || '';
     document.getElementById("user-birth").value      = u.birth     || '';
+    document.getElementById("user-condicion").value  = u.condicion  || 'regular';
+    const pfEl = document.getElementById("user-plan-familiar");
+    const pmEl = document.getElementById("user-primer-mes");
+    const ppEl = document.getElementById("user-promesa-pago");
+    if (pfEl) pfEl.checked = !!u.esPlanFamiliar;
+    if (pmEl) pmEl.checked = !!u.primerMes;
+    if (ppEl) ppEl.checked = !!u.promesaPago;
     document.querySelectorAll(".plan-check").forEach(c => {
       c.checked = !!(u.plans && u.plans.includes(c.value));
     });
@@ -423,6 +459,14 @@ export function abrirDrawerAtleta(id) {
     document.getElementById("user-address").value    = '';
     document.getElementById("user-emergency").value  = '';
     document.getElementById("user-birth").value      = '';
+    const pfEl2 = document.getElementById("user-condicion");
+    const famEl2 = document.getElementById("user-plan-familiar");
+    const pmEl2  = document.getElementById("user-primer-mes");
+    const ppEl2  = document.getElementById("user-promesa-pago");
+    if (pfEl2)  pfEl2.value   = 'regular';
+    if (famEl2) famEl2.checked = false;
+    if (pmEl2)  pmEl2.checked  = false;
+    if (ppEl2)  ppEl2.checked  = false;
     document.querySelectorAll(".plan-check").forEach(c => c.checked = false);
     refreshScheduleUI();
   }
@@ -452,16 +496,31 @@ export async function saveUser() {
     if (!confirmar) return;
   }
 
+  const condicionVal   = document.getElementById('user-condicion')?.value || 'regular';
+  const esPlanFamiliar = document.getElementById('user-plan-familiar')?.checked || false;
+  const primerMesNuevo = document.getElementById('user-primer-mes')?.checked || false;
+  const promesaPago    = document.getElementById('user-promesa-pago')?.checked || false;
+
+  // Primer mes: si ya fue usado antes, no permitir reactivarlo
+  const primerMesAnterior = cacheUsers[id]?.primerMesUsado || false;
+  const primerMesFinal = primerMesAnterior ? false : primerMesNuevo;
+  const primerMesUsado = primerMesAnterior || (primerMesNuevo && !primerMesAnterior);
+
   cacheUsers[id] = {
     ...cacheUsers[id], name, plans: p,
-    pass:      document.getElementById('user-pass-admin').value || cacheUsers[id]?.pass || '1234',
-    expiry:    document.getElementById('user-expiry').value,
-    email:     document.getElementById('user-email').value,
-    phone:     document.getElementById('user-phone').value,
-    address:   document.getElementById('user-address').value,
-    emergency: document.getElementById('user-emergency').value,
-    birth:     document.getElementById('user-birth').value,
-    schedule:  document.getElementById('user-schedule').value
+    pass:         document.getElementById('user-pass-admin').value || cacheUsers[id]?.pass || '1234',
+    expiry:       document.getElementById('user-expiry').value,
+    email:        document.getElementById('user-email').value,
+    phone:        document.getElementById('user-phone').value,
+    address:      document.getElementById('user-address').value,
+    emergency:    document.getElementById('user-emergency').value,
+    birth:        document.getElementById('user-birth').value,
+    schedule:     document.getElementById('user-schedule').value,
+    condicion:    condicionVal,
+    esPlanFamiliar,
+    primerMes:    primerMesFinal,
+    primerMesUsado,
+    promesaPago
   };
 
   await fsSet('users', cacheUsers);
@@ -615,7 +674,7 @@ cumples.forEach(c => {
         <span style="font-size:0.88rem; font-weight:600;"> ${c.name}</span>
         <small style="color:var(--text-tertiary); font-size:0.75rem;">${c.schedule}</small>
       </div>
-      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.82rem;
+      <span style="font-family:var(--font-condensed, sans-serif); font-size:0.82rem;
         font-weight:700; color:var(--accent); letter-spacing:1px; white-space:nowrap;">
         día ${c.dia}
       </span>
@@ -752,7 +811,7 @@ export function renderVencimientos() {
         <b style="font-size:0.88rem;">${a.name}</b>
         <small style="color:var(--text-tertiary); margin-left:6px;">DNI: ${a.id}</small>
       </div>
-      <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; font-weight:700;
+      <span style="font-family:var(--font-condensed, sans-serif); font-size:0.72rem; font-weight:700;
         letter-spacing:1px; color:${color}; white-space:nowrap;">${texto}</span>
     </div>`;
 
@@ -780,6 +839,21 @@ export function verificarVencimientoAtleta(user) {
     return;
   }
 
+
+  // ── Promesa de pago activa ─────────────────────────────────────────────────
+  if (user.promesaPago) {
+    cont.innerHTML =
+      '<div style="background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.3);' +
+      'padding:12px 16px; border-radius:var(--radius); margin-bottom:12px; font-size:0.85rem; color:var(--text-secondary);">' +
+        '⚠️ <strong style="color:var(--warning);">Promesa de pago activa.</strong> ' +
+        'El próximo mes abonarás 2 cuotas sin recargos ($' +
+        ((window.TARIFAS?.crossfit_x5 || 45000) * 2).toLocaleString('es-AR') +
+        '). Coordiná el pago con el Coach.' +
+      '</div>';
+    cont.classList.remove('hidden');
+    return;
+  }
+
   if (!user.expiry) {
     cont.classList.add('hidden');
     return;
@@ -800,7 +874,7 @@ export function verificarVencimientoAtleta(user) {
     html = `
       <div style="background:var(--card); border:1px solid rgba(255,80,80,0.25);
         padding:12px 16px; border-radius:var(--radius); margin-bottom:12px;
-        font-size:0.85rem; color:var(--text-secondary); font-family:'Barlow',sans-serif;">
+        font-size:0.85rem; color:var(--text-secondary); font-family:Barlow,sans-serif;">
         ⚠️ Tu cuota venció el <strong style="color:#ff5050;">${fechaFormateada}</strong>.
         Comunicate con el Coach para renovar.
       </div>`;
@@ -808,7 +882,7 @@ export function verificarVencimientoAtleta(user) {
     html = `
       <div style="background:var(--card); border:1px solid rgba(255,255,255,0.1);
         padding:12px 16px; border-radius:var(--radius); margin-bottom:12px;
-        font-size:0.85rem; color:var(--text-secondary); font-family:'Barlow',sans-serif;">
+        font-size:0.85rem; color:var(--text-secondary); font-family:Barlow,sans-serif;">
         ⏰ Tu cuota está próxima a vencer: <strong>${fechaFormateada}</strong>
         (Quedan <strong>${diff}</strong> día${diff !== 1 ? 's' : ''}).
       </div>`;
@@ -819,6 +893,112 @@ export function verificarVencimientoAtleta(user) {
 }
 
 window.verificarVencimientoAtleta = verificarVencimientoAtleta;
+
+// ─── COTIZACIÓN PANEL ────────────────────────────────────────────────────────
+export function renderCotizacion(id) {
+  const cont = document.getElementById('cotiz-' + id);
+  if (!cont) return;
+  const u = cacheUsers[id];
+  if (!u || !window.calcularCotizacionSocio || !window.TARIFAS) return;
+
+  try {
+    const plan = u.plans?.[0] || 'crossfit';
+    const planKey = plan + '_x5';
+    const precioBase = window.TARIFAS[planKey] || window.TARIFAS.crossfit_x5 || 45000;
+    const c = window.calcularCotizacionSocio(
+      {
+        condicion:      u.condicion || 'regular',
+        esPlanFamiliar: u.esPlanFamiliar || false,
+        primerMes:      u.primerMes || false,
+        primerMesUsado: u.primerMesUsado || false,
+        expiry:         u.expiry || null,
+        promesaPago:    u.promesaPago || false
+      },
+      { fechaPago: new Date(), precioBase }
+    );
+    if (!c) return;
+
+
+    if (c.alDia) {
+      cont.innerHTML =
+        '<div style="background:rgba(52,223,69,0.06); border:1px solid rgba(52,223,69,0.2);' +
+        'border-radius:var(--radius); padding:14px; margin-bottom:14px; text-align:center;">' +
+          '<div style="font-size:0.9rem; font-weight:700; color:var(--accent);">✅ Membresía al día</div>' +
+          '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">' +
+            'Vence: ' + c.fechaVencimiento.toLocaleDateString('es-AR') +
+          '</div>' +
+        '</div>';
+      return;
+    }
+    const colorMonto = c.recargo > 0 ? 'var(--danger)' : 'var(--accent)';
+    const fmtVenc = c.fechaVencimiento.toLocaleDateString('es-AR');
+
+    cont.innerHTML =
+      '<div style="background:var(--surface); border:1px solid var(--border);' +
+      'border-radius:var(--radius); padding:14px; margin-bottom:14px;">' +
+        '<div style="font-family:var(--font-condensed, sans-serif); font-size:0.65rem;' +
+        'font-weight:700; letter-spacing:2px; color:var(--accent); margin-bottom:10px;">' +
+          'COTIZACIÓN HOY</div>' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+          '<span style="font-size:0.8rem; color:var(--text-secondary);">Precio base</span>' +
+          '<span style="font-size:0.9rem;">$' + c.precioBase.toLocaleString('es-AR') + '</span>' +
+        '</div>' +
+        (c.recargo > 0
+          ? '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+            '<span style="font-size:0.8rem; color:var(--danger);">Mora (' + c.diasMora + ' días × $500)</span>' +
+            '<span style="font-size:0.9rem; color:var(--danger);">+$' + c.recargo.toLocaleString('es-AR') + '</span>' +
+            '</div>'
+          : '') +
+        '<div style="display:flex; justify-content:space-between; padding-top:8px;' +
+        'border-top:1px solid var(--border); margin-top:6px;">' +
+          '<span style="font-size:0.82rem; font-weight:700;">TOTAL A ABONAR</span>' +
+          '<span style="font-family:Bebas+Neue,sans-serif; font-size:1.4rem; color:' + colorMonto + ';">' +
+            '$' + c.montoFinal.toLocaleString('es-AR') +
+          '</span>' +
+        '</div>' +
+        (c.detalle
+          ? '<div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:6px;">' + c.detalle + '</div>'
+          : '') +
+        '<div style="font-size:0.72rem; color:var(--text-tertiary); margin-top:4px;">' +
+          'Próx. venc: ' + fmtVenc +
+        '</div>' +
+        '<div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08);">' +
+          (u.promesaPago
+            ? '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+                '<div>' +
+                  '<div style="font-size:0.78rem; font-weight:700; color:var(--warning);">⚠️ Promesa de pago activa</div>' +
+                  '<div style="font-size:0.7rem; color:var(--text-secondary);">Sigue entrenando — próximo mes paga 2 cuotas</div>' +
+                '</div>' +
+                '<button onclick="togglePromesaPago(\'' + id + '\', false)"' +
+                ' style="background:none; border:1px solid var(--border-strong); color:var(--text-secondary);' +
+                'padding:5px 12px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.72rem;">Cancelar</button>' +
+              '</div>'
+            : '<button onclick="togglePromesaPago(\'' + id + '\', true)"' +
+              ' style="width:100%; background:rgba(255,193,7,0.12); border:1px solid var(--warning); color:var(--warning);' +
+              'padding:8px; border-radius:var(--radius); cursor:pointer; font-family:Barlow Condensed,sans-serif;' +
+              'font-size:0.78rem; font-weight:700; letter-spacing:1.5px;">' +
+              '⚠️ ACTIVAR PROMESA DE PAGO</button>'
+          ) +
+        '</div>' +
+      '</div>';
+
+  } catch(e) { cont.innerHTML = ''; }
+}
+
+// ─── TOGGLE PROMESA DE PAGO ──────────────────────────────────────────────────
+export async function togglePromesaPago(id, activar) {
+  const u = cacheUsers[id];
+  if (!u) return;
+  const msg = activar
+    ? 'El atleta mantiene acceso sin mora. Próximo mes se cobran 2 cuotas. ¿Confirmar?'
+    : '¿Cancelar la promesa de pago?';
+  if (!confirm(msg)) return;
+  cacheUsers[id].promesaPago = activar;
+  await fsSet('users', cacheUsers);
+  renderCotizacion(id);
+  renderUserList();
+  alert(activar ? '✅ Promesa de pago activada.' : 'Promesa de pago cancelada.');
+}
 
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.setSocioFilter    = setSocioFilter;
@@ -832,6 +1012,8 @@ window.exportAtletas     = exportAtletas;
 window.renderUserList    = renderUserList;
 window.renderVencimientos = renderVencimientos;
 window.renderBirthdays   = renderBirthdays;
+window.renderCotizacion    = renderCotizacion;
+window.togglePromesaPago   = togglePromesaPago;
 window.toggleAtleta              = toggleAtleta;
 window.switchAtletaTab           = switchAtletaTab;
 window.togglePagoPanel           = togglePagoPanel;

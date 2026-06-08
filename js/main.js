@@ -16,7 +16,8 @@ import { renderUserList, renderBirthdays, renderVencimientos,
          seleccionarTipoPagoAtleta, guardarPagoAtleta,
          deletePaymentInline, abrirDrawerAtleta, cerrarDrawerAtleta,
          renderHistorialPagosInline,
-         verificarVencimientoAtleta } from './atletas.js';
+         verificarVencimientoAtleta,
+         renderCotizacion } from './atletas.js';
 import { renderClass, syncAdminView, saveClass, changeViewDay,
          setupPlanSwitcher, saveNews, savePrices, loadBoxInfo,
          resetProgramacion, toggleResetDay }  from './clases.js';
@@ -46,6 +47,9 @@ import { renderHorariosAdmin, agregarHorario,
          renderHorariosInfoBox } from './horarios.js';
 import { toggleAccordion } from './ui.js';
 import './share.js';
+import { calcularCotizacionSocio, generarMensajeWhatsApp,
+         crearOrdenPendiente, aprobarOrden,
+         obtenerOrdenesPendientes, TARIFAS } from './motor-pagos.js';
 import { cargarPlanes, renderPlanesLanding, renderPlanesAdmin,
          renderPlanesAtleta, renderPlanesInfoBox, elegirPlan } from './planes.js';
 
@@ -120,6 +124,9 @@ export async function showApp(isCoach, userData = null) {
   document.getElementById("screen-landing")?.classList.add("hidden");
   document.getElementById("screen-app").classList.remove("hidden");
   window.scrollTo(0, 0);
+  // Asegurar que el tab activo sea Clases al ingresar
+  const tabDashboard = document.querySelector('.tab-btn');
+  if (tabDashboard) switchTab('dashboard', tabDashboard);
   localStorage.setItem('legion_session', JSON.stringify(currentUser));
 
   document.getElementById("news-text").textContent = cacheInfo.news;
@@ -144,6 +151,7 @@ export async function showApp(isCoach, userData = null) {
     document.getElementById("score-upload-container").classList.add("hidden");
     renderUserList();
     syncAdminView();
+    renderClass();
     renderHorariosAdmin();
     renderVencimientos();
     document.getElementById('tab-link-comp').classList.remove('hidden');
@@ -163,6 +171,7 @@ export async function showApp(isCoach, userData = null) {
     renderPlanesLanding();
     renderPlanesInfoBox();
     renderHorariosInfoBox();
+    window.renderOrdenesPendientes();
     // Reset semanal solo lo evalúa el coach
     checkAutoReset();
   } else {
@@ -190,16 +199,7 @@ export async function showApp(isCoach, userData = null) {
     setTimeout(() => inicializarNotificaciones(), 2000);
   }
 
-  // Detectar si el acceso viene desde el código QR físico de recepción
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('pago_presencial') === 'true' && isCoach) {
-    const modalQR = document.getElementById('modal-pago-rapido-qr');
-    if (modalQR) {
-      modalQR.classList.remove('hidden');
-      // Limpiar el parámetro de la URL para que no se reabra al recargar
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
+
 }
 
 // ─── SWITCH TAB ───────────────────────────────────────────────────────────────
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     } else {
-      cargarDatos().then(() => {
+      Promise.all([cargarDatos(), cargarPlanes()]).then(() => {
         if(s.role === 'coach') showApp(true);
         else showApp(false, cacheUsers[s.id] || s);
         renderHorariosPublico();
@@ -464,6 +464,217 @@ window._legionState = { get currentUser() { return currentUser; } };
 window._fsGet = fsGet;
 window._fsSet = fsSet;
 window.renderPlanesInfoBox   = renderPlanesInfoBox;
+window.renderCotizacion      = renderCotizacion;
 window.renderHorariosInfoBox = renderHorariosInfoBox;
 window.renderHorariosPublico = renderHorariosPublico;
+
+// ─── MÓDULO DE PAGOS — FUNCIONES GLOBALES ─────────────────────────────────────
+
+// Abrir modal notificación de pago
+window.abrirModalNotifPago = function(montoSugerido, detalle, tipoGestion, editable) {
+  const modal = document.getElementById('modal-notif-pago');
+  if (!modal) return;
+  const hoy = new Date().toISOString().split('T')[0];
+  const inputMonto = document.getElementById('notif-monto-input');
+  const inputFecha = document.getElementById('notif-fecha-input');
+  const inputTipo  = document.getElementById('notif-tipo-input');
+  if (inputMonto) {
+    inputMonto.value = montoSugerido || '';
+    inputMonto.dataset.montoCalculado = editable ? 0 : (montoSugerido || 0);
+    inputMonto.readOnly = !editable && montoSugerido > 0;
+    inputMonto.style.opacity = (!editable && montoSugerido > 0) ? '0.7' : '1';
+  }
+  if (inputFecha) inputFecha.value = hoy;
+  if (inputTipo)  inputTipo.value  = tipoGestion || 'renovacion';
+  // Mostrar monto calculado
+  const montoCont = document.getElementById('notif-monto-calculado');
+  const montoVal  = document.getElementById('notif-monto-valor');
+  const montoDet  = document.getElementById('notif-monto-detalle');
+  if (montoCont && montoSugerido) {
+    montoCont.style.display = 'block';
+    if (montoVal) montoVal.textContent = '$' + Number(montoSugerido).toLocaleString('es-AR');
+    if (montoDet) montoDet.textContent = detalle || '';
+    if (montoDet && !detalle) montoDet.style.display = 'none';
+  }
+  document.getElementById('notif-error').textContent = '';
+  modal.classList.remove('hidden');
+};
+
+window.cerrarModalNotifPago = function() {
+  document.getElementById('modal-notif-pago')?.classList.add('hidden');
+  // Si venía del login, restaurar el formulario
+  _restaurarFormLogin();
+};
+
+function _restaurarFormLogin() {
+  // Mostrar campos del login nuevamente
+  ['login-user', 'login-pass'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.closest('.lnd-form-row').style.display = '';
+  });
+  const tagline = document.querySelector('.lnd-modal-tagline');
+  if (tagline) tagline.style.display = '';
+  const btnLogin = document.querySelector('[onclick="doLogin()"]');
+  if (btnLogin) btnLogin.style.display = '';
+  // Ocultar panel vencida
+  document.getElementById('panel-cuota-vencida')?.classList.add('hidden');
+  // Limpiar campos
+  const userEl = document.getElementById('login-user');
+  const passEl = document.getElementById('login-pass');
+  const errEl  = document.getElementById('login-error');
+  if (userEl) userEl.value = '';
+  if (passEl) passEl.value = '';
+  if (errEl)  errEl.textContent = '';
+  // Mostrar modal login
+  document.getElementById('modal-login')?.classList.remove('hidden');
+}
+
+// Enviar notificación de pago
+window.enviarNotificacionPago = async function() {
+  const monto  = parseFloat(document.getElementById('notif-monto-input')?.value);
+  const fecha  = document.getElementById('notif-fecha-input')?.value;
+  const medio  = document.getElementById('notif-medio-input')?.value;
+  const obs    = document.getElementById('notif-obs-input')?.value || '';
+  const errEl  = document.getElementById('notif-error');
+
+  if (!monto || monto <= 0) { if(errEl) errEl.textContent = 'Ingresá un monto válido.'; return; }
+  if (!fecha)               { if(errEl) errEl.textContent = 'Seleccioná la fecha del pago.'; return; }
+
+  // Si no hay sesión activa, usar el DNI del campo de login
+  const atletaId = currentUser?.id || document.getElementById('login-user')?.value?.toLowerCase()?.trim();
+  if (!atletaId) { if(errEl) errEl.textContent = 'Error: no se pudo identificar al atleta.'; return; }
+
+  // Validar que el monto coincida con el calculado (±5% tolerancia por redondeo)
+  const montoCalculado = parseFloat(document.getElementById('notif-monto-input')?.dataset.montoCalculado || 0);
+  if (montoCalculado > 0) {
+    const diferencia = Math.abs(monto - montoCalculado) / montoCalculado;
+    if (diferencia > 0.05) {
+      if(errEl) errEl.textContent =
+        'El monto debe ser $' + montoCalculado.toLocaleString('es-AR') +
+        '. No puede ser diferente al monto calculado.';
+      return;
+    }
+  }
+
+  try {
+    const tipo    = document.getElementById('notif-tipo-input')?.value || 'renovacion';
+    const concepto = medio + (obs ? ' — ' + obs : '') + ' | Fecha: ' + fecha;
+    await crearOrdenPendiente(atletaId, monto, concepto, tipo);
+    window.cerrarModalNotifPago();
+    // Si no había sesión (venía del login), restaurar formulario limpio
+    if (!currentUser?.id) {
+      alert('✅ Notificación enviada. El coach revisará y aprobará tu pago a la brevedad.');
+    } else {
+      alert('✅ Notificación enviada. El coach revisará y aprobará tu pago a la brevedad.');
+      if (window.loadProfileData) loadProfileData();
+    }
+    // Recargar perfil
+    if (window.loadProfileData) loadProfileData();
+  } catch(e) {
+    if (errEl) errEl.textContent = 'Error al enviar: ' + e.message;
+  }
+};
+
+// Abrir modal desde login cuota vencida
+window.abrirModalNotifPagoLogin = function() {
+  const userIn = document.getElementById('login-user')?.value?.toLowerCase()?.trim();
+  if (!userIn) { alert('Ingresá tu DNI primero.'); return; }
+  // Cerrar modal login, abrir notif
+  document.getElementById('modal-login')?.classList.add('hidden');
+  // Calcular monto si hay datos en caché
+  const u = cacheUsers?.[userIn];
+  let monto = 0;
+  if (u && window.TARIFAS && window.calcularCotizacionSocio) {
+    const planKey = (u.plans?.[0] || 'crossfit') + '_x5';
+    const precioBase = window.TARIFAS[planKey] || 45000;
+    const c = window.calcularCotizacionSocio(
+      { condicion: u.condicion || 'regular', esPlanFamiliar: u.esPlanFamiliar,
+        primerMes: u.primerMes, primerMesUsado: u.primerMesUsado },
+      { fechaPago: new Date(), precioBase }
+    );
+    monto = c.montoFinal;
+  }
+  // Sin detalle y monto editable — atleta ingresa lo que abonó
+  window.abrirModalNotifPago(monto, null, 'renovacion', true);
+};
+
+// Panel órdenes pendientes (coach)
+window.renderOrdenesPendientes = async function() {
+  const wrap  = document.getElementById('ordenes-pendientes-wrap');
+  const list  = document.getElementById('ordenes-pendientes-list');
+  const badge = document.getElementById('ordenes-count-badge');
+  if (!wrap || !list) return;
+
+  const ordenes = await obtenerOrdenesPendientes();
+  if (ordenes.length === 0) { wrap.classList.add('hidden'); return; }
+
+  wrap.classList.remove('hidden');
+  if (badge) badge.textContent = ordenes.length;
+
+  list.innerHTML = '';
+  ordenes.forEach(function(o) {
+    const atletaNombre = cacheUsers[o.atletaId]?.name || o.atletaId;
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface); border:1px solid var(--border);' +
+      'border-radius:var(--radius); padding:12px; margin-bottom:8px;' +
+      'display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;';
+    div.innerHTML =
+      '<div>' +
+        '<div style="font-size:0.85rem; font-weight:700;">' + atletaNombre + '</div>' +
+        '<div style="font-size:0.78rem; color:var(--text-secondary);">' + (o.concepto || '') + '</div>' +
+        '<div style="font-size:0.72rem; color:var(--text-tertiary);">' +
+          new Date(o.fechaCreacion).toLocaleDateString('es-AR') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex; align-items:center; gap:8px;">' +
+        '<span style="font-family:Bebas Neue,sans-serif; font-size:1.3rem; color:var(--accent);">' +
+          '$' + Number(o.monto).toLocaleString('es-AR') +
+        '</span>' +
+        '<button data-orden-id="' + o.id + '"' +
+        ' style="background:var(--accent); color:#000; border:none; padding:6px 14px;' +
+        'border-radius:var(--radius-sm); cursor:pointer; font-family:Barlow Condensed,sans-serif;' +
+        'font-size:0.75rem; font-weight:700; letter-spacing:1px;">APROBAR</button>' +
+        '<button data-orden-del="' + o.id + '"' +
+        ' style="background:none; border:1px solid var(--danger); color:var(--danger);' +
+        'padding:6px 10px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.75rem;">✕</button>' +
+      '</div>';
+    // Eventos sin onclick inline
+    const btnAprobar = div.querySelector('[data-orden-id]');
+    const btnEliminar = div.querySelector('[data-orden-del]');
+    btnAprobar.addEventListener('click', function() {
+      window.aprobarOrdenCoach(o.id);
+    });
+    btnEliminar.addEventListener('click', function() {
+      window.eliminarOrdenCoach(o.id);
+    });
+    list.appendChild(div);
+  });
+};
+
+window.aprobarOrdenCoach = async function(idOrden) {
+  if (!confirm('¿Aprobar este pago y actualizar la membresía del atleta?')) return;
+  try {
+    await aprobarOrden(idOrden, 'coach');
+    // Recargar cacheUsers desde Firestore para reflejar el nuevo expiry
+    await cargarDatos();
+    alert('✅ Pago aprobado. Membresía actualizada.');
+    window.renderOrdenesPendientes();
+    renderUserList();
+    renderVencimientos();
+  } catch(e) {
+    alert('Error al aprobar: ' + e.message);
+  }
+};
+
+window.eliminarOrdenCoach = async function(idOrden) {
+  if (!confirm('¿Eliminar esta notificación de pago?')) return;
+  try {
+    const ordenes = await fsGet('ordenes_pago') || {};
+    delete ordenes[idOrden];
+    await fsSet('ordenes_pago', ordenes);
+    window.renderOrdenesPendientes();
+  } catch(e) {
+    alert('Error al eliminar: ' + e.message);
+  }
+};
 window.elegirPlan         = elegirPlan;

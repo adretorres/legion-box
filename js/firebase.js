@@ -1,9 +1,9 @@
 // ─── js/firebase.js ───────────────────────────────────────────────────────────
-import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getMessaging, getToken, onMessage }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getMessaging, getToken, onMessage }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging.js";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot,
          initializeFirestore, persistentLocalCache,
-         persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+         persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDv21TtSaK8W5ewTgM9oVgCf7CMoRFSW_o",

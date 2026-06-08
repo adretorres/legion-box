@@ -36,8 +36,27 @@ export async function doLogin() {
     hoy.setHours(0, 0, 0, 0);
     const fv = u.expiry ? new Date(u.expiry + "T00:00:00") : null;
     if (fv && fv < hoy) {
-      document.getElementById("login-error").innerHTML =
-        "CUOTA VENCIDA.<br>Comunicate con el Coach.";
+      // Ocultar solo los campos del formulario de login
+      document.getElementById('login-error').textContent = '';
+      ['login-user', 'login-pass'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.closest('.lnd-form-row').style.display = 'none';
+      });
+      document.querySelector('.lnd-modal-tagline')?.style && (document.querySelector('.lnd-modal-tagline').style.display = 'none');
+      // Ocultar solo el botón INICIAR SESIÓN (no los botones del panel)
+      document.querySelector('[onclick="doLogin()"]')?.style && (document.querySelector('[onclick="doLogin()"]').style.display = 'none');
+
+      const panel = document.getElementById('panel-cuota-vencida');
+      if (panel) {
+        panel.classList.remove('hidden');
+        // Nombre personalizado
+        const nombreEl = document.getElementById('login-vencida-nombre');
+        const fechaEl  = document.getElementById('login-vencida-fecha');
+        const nombre   = u.name ? 'Hola, ' + u.name.split(' ')[0] + '!' : 'Hola!';
+        const fechaVenc = fv ? fv.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+        if (nombreEl) nombreEl.textContent = nombre;
+        if (fechaEl)  fechaEl.textContent  = fechaVenc ? 'Venció el ' + fechaVenc : '';
+      }
       return;
     }
     setCurrentUser({ id: userIn, ...u, role: "atleta" });
@@ -62,3 +81,8 @@ export function cerrarSesion() {
 // ─── EXPONER AL WINDOW ────────────────────────────────────────────────────────
 window.doLogin      = doLogin;
 window.cerrarSesion = cerrarSesion;
+
+// Placeholder Mercado Pago — se integra en siguiente fase
+window.abrirPagoMercadoPago = function() {
+  alert('Próximamente podés pagar directamente con Mercado Pago. Por ahora, notificá tu pago manual o consultá al Coach.');
+};
