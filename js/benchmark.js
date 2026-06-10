@@ -3,52 +3,29 @@ import { fsGet, fsSet, currentUser, cacheResults } from './firebase.js';
 
 // ─── BENCHMARK BASE DATA ──────────────────────────────────────────────────────
 export const BENCHMARK_DEFAULT = [
-  { id: 'fran',      nombre: 'Fran',      modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['21-15-9 reps', 'Thrusters (43kg / 30kg)', 'Pull-ups'] },
-  { id: 'helen',     nombre: 'Helen',     modalidad: 'For Time — 3 rounds', nivel: 'benchmark',
-    ejercicios: ['400m Run', 'KB Swings x21 (24kg / 16kg)', 'Pull-ups x12'] },
-  { id: 'grace',     nombre: 'Grace',     modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['Clean & Jerk x30 (61kg / 43kg)'] },
-  { id: 'isabel',    nombre: 'Isabel',    modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['Snatch x30 (61kg / 43kg)'] },
-  { id: 'cindy',     nombre: 'Cindy',     modalidad: 'AMRAP 20 min', nivel: 'benchmark',
-    ejercicios: ['Pull-ups x5', 'Push-ups x10', 'Air Squats x15'] },
-  { id: 'mary',      nombre: 'Mary',      modalidad: 'AMRAP 20 min', nivel: 'benchmark',
-    ejercicios: ['Handstand Push-ups x5', 'Pistols alternados x10', 'Pull-ups x15'] },
-  { id: 'chelsea',   nombre: 'Chelsea',   modalidad: 'EMOM 30 min', nivel: 'benchmark',
-    ejercicios: ['Pull-ups x5', 'Push-ups x10', 'Air Squats x15'] },
-  { id: 'barbara',   nombre: 'Barbara',   modalidad: 'For Time — 5 rounds (3 min descanso)', nivel: 'benchmark',
-    ejercicios: ['Pull-ups x20', 'Push-ups x30', 'Sit-ups x40', 'Air Squats x50'] },
-  { id: 'annie',     nombre: 'Annie',     modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['50-40-30-20-10 reps', 'Double Unders', 'Sit-ups'] },
-  { id: 'angie',     nombre: 'Angie',     modalidad: 'For Time — en ese orden', nivel: 'benchmark',
-    ejercicios: ['Pull-ups x100', 'Push-ups x100', 'Sit-ups x100', 'Air Squats x100'] },
-  { id: 'diane',     nombre: 'Diane',     modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['21-15-9 reps', 'Deadlift (102kg / 70kg)', 'Handstand Push-ups'] },
-  { id: 'elizabeth', nombre: 'Elizabeth', modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['21-15-9 reps', 'Clean (61kg / 43kg)', 'Ring Dips'] },
-  { id: 'kelly',     nombre: 'Kelly',     modalidad: 'For Time — 5 rounds', nivel: 'benchmark',
-    ejercicios: ['400m Run', 'Box Jumps x30 (61cm / 51cm)', 'Wall Ball x30 (9kg / 6kg)'] },
-  { id: 'nancy',     nombre: 'Nancy',     modalidad: 'For Time — 5 rounds', nivel: 'benchmark',
-    ejercicios: ['400m Run', 'Overhead Squats x15 (43kg / 30kg)'] },
-  { id: 'amanda',    nombre: 'Amanda',    modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['9-7-5 reps', 'Muscle-ups', 'Squat Snatches (61kg / 43kg)'] },
-  { id: 'jackie',    nombre: 'Jackie',    modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['1000m Row', 'Thrusters x50 (20kg)', 'Pull-ups x30'] },
-  { id: 'karen',     nombre: 'Karen',     modalidad: 'For Time',  nivel: 'benchmark',
-    ejercicios: ['Wall Ball Shots x150 (9kg / 6kg — objetivo 3m / 2.7m)'] },
-  { id: 'linda',     nombre: 'Linda',     modalidad: 'For Time — 10-9-8...1', nivel: 'benchmark',
-    ejercicios: ['Deadlift (1.5 × bodyweight)', 'Bench Press (bodyweight)', 'Clean (0.75 × bodyweight)'] },
-  { id: 'eva',       nombre: 'Eva',       modalidad: 'For Time — 5 rounds', nivel: 'benchmark',
-    ejercicios: ['800m Run', 'KB Swings x30 (32kg / 24kg)', 'Pull-ups x30'] },
-  { id: 'murph',     nombre: 'Murph',     modalidad: 'For Time (chaleco 9kg)', nivel: 'hero',
-    ejercicios: ['1 Mile Run', 'Pull-ups x100', 'Push-ups x200', 'Air Squats x300', '1 Mile Run'] },
-  { id: 'dt',        nombre: 'DT',        modalidad: 'For Time — 5 rounds', nivel: 'hero',
-    ejercicios: ['Deadlift x12 (70kg / 47kg)', 'Hang Power Clean x9 (70kg / 47kg)', 'Push Jerk x6 (70kg / 47kg)'] },
-  { id: 'daniel',    nombre: 'Daniel',    modalidad: 'For Time',  nivel: 'hero',
-    ejercicios: ['Pull-ups x50', '400m Run', 'Thrusters x21 (43kg)', '800m Run', 'Thrusters x21 (43kg)', '400m Run', 'Pull-ups x50'] },
-  { id: 'jason',     nombre: 'Jason',     modalidad: 'For Time',  nivel: 'hero',
-    ejercicios: ['100 Squats — 5 Muscle-ups', '75 Squats — 10 Muscle-ups', '50 Squats — 15 Muscle-ups', '25 Squats — 20 Muscle-ups'] },
+  { id:'fran',      nombre:'Fran',      modalidad:'For Time', tiempo:'',   esquema:'21-15-9',         nivel:'benchmark', ejercicios:[{nombre:'Thrusters',peso:'43kg/30kg'},{nombre:'Pull-ups',peso:''}] },
+  { id:'helen',     nombre:'Helen',     modalidad:'For Time', tiempo:'',   esquema:'3 rounds',        nivel:'benchmark', ejercicios:[{nombre:'400m Run',peso:''},{nombre:'KB Swings',peso:'24kg/16kg'},{nombre:'Pull-ups',peso:''}] },
+  { id:'grace',     nombre:'Grace',     modalidad:'For Time', tiempo:'',   esquema:'30 reps',         nivel:'benchmark', ejercicios:[{nombre:'Clean & Jerk',peso:'61kg/43kg'}] },
+  { id:'isabel',    nombre:'Isabel',    modalidad:'For Time', tiempo:'',   esquema:'30 reps',         nivel:'benchmark', ejercicios:[{nombre:'Snatch',peso:'61kg/43kg'}] },
+  { id:'cindy',     nombre:'Cindy',     modalidad:'AMRAP',    tiempo:'20', esquema:'',                nivel:'benchmark', ejercicios:[{nombre:'Pull-ups',peso:''},{nombre:'Push-ups',peso:''},{nombre:'Air Squats',peso:''}] },
+  { id:'mary',      nombre:'Mary',      modalidad:'AMRAP',    tiempo:'20', esquema:'',                nivel:'benchmark', ejercicios:[{nombre:'Handstand Push-ups',peso:''},{nombre:'Pistols alternados',peso:''},{nombre:'Pull-ups',peso:''}] },
+  { id:'chelsea',   nombre:'Chelsea',   modalidad:'EMOM',     tiempo:'30', esquema:'cada minuto',     nivel:'benchmark', ejercicios:[{nombre:'Pull-ups',peso:''},{nombre:'Push-ups',peso:''},{nombre:'Air Squats',peso:''}] },
+  { id:'barbara',   nombre:'Barbara',   modalidad:'For Time', tiempo:'',   esquema:'5 rounds',        nivel:'benchmark', ejercicios:[{nombre:'Pull-ups',peso:''},{nombre:'Push-ups',peso:''},{nombre:'Sit-ups',peso:''},{nombre:'Air Squats',peso:''}] },
+  { id:'annie',     nombre:'Annie',     modalidad:'For Time', tiempo:'',   esquema:'50-40-30-20-10',  nivel:'benchmark', ejercicios:[{nombre:'Double Unders',peso:''},{nombre:'Sit-ups',peso:''}] },
+  { id:'angie',     nombre:'Angie',     modalidad:'For Time', tiempo:'',   esquema:'100 reps c/u',    nivel:'benchmark', ejercicios:[{nombre:'Pull-ups',peso:''},{nombre:'Push-ups',peso:''},{nombre:'Sit-ups',peso:''},{nombre:'Air Squats',peso:''}] },
+  { id:'diane',     nombre:'Diane',     modalidad:'For Time', tiempo:'',   esquema:'21-15-9',         nivel:'benchmark', ejercicios:[{nombre:'Deadlift',peso:'102kg/70kg'},{nombre:'Handstand Push-ups',peso:''}] },
+  { id:'elizabeth', nombre:'Elizabeth', modalidad:'For Time', tiempo:'',   esquema:'21-15-9',         nivel:'benchmark', ejercicios:[{nombre:'Clean',peso:'61kg/43kg'},{nombre:'Ring Dips',peso:''}] },
+  { id:'kelly',     nombre:'Kelly',     modalidad:'For Time', tiempo:'',   esquema:'5 rounds',        nivel:'benchmark', ejercicios:[{nombre:'400m Run',peso:''},{nombre:'Box Jumps',peso:'61cm/51cm'},{nombre:'Wall Ball',peso:'9kg/6kg'}] },
+  { id:'eva',       nombre:'Eva',       modalidad:'For Time', tiempo:'',   esquema:'5 rounds',        nivel:'benchmark', ejercicios:[{nombre:'800m Run',peso:''},{nombre:'KB Swings',peso:'32kg/24kg'},{nombre:'Pull-ups',peso:''}] },
+  { id:'linda',     nombre:'Linda',     modalidad:'For Time', tiempo:'',   esquema:'10-9-8...1',      nivel:'benchmark', ejercicios:[{nombre:'Deadlift',peso:'1.5xBW'},{nombre:'Bench Press',peso:'BW'},{nombre:'Clean',peso:'0.75xBW'}] },
+  { id:'nancy',     nombre:'Nancy',     modalidad:'For Time', tiempo:'',   esquema:'5 rounds',        nivel:'benchmark', ejercicios:[{nombre:'400m Run',peso:''},{nombre:'Overhead Squats',peso:'43kg/30kg'}] },
+  { id:'amanda',    nombre:'Amanda',    modalidad:'For Time', tiempo:'',   esquema:'9-7-5',           nivel:'benchmark', ejercicios:[{nombre:'Muscle-ups',peso:''},{nombre:'Squat Snatches',peso:'61kg/43kg'}] },
+  { id:'jackie',    nombre:'Jackie',    modalidad:'For Time', tiempo:'',   esquema:'',                nivel:'benchmark', ejercicios:[{nombre:'1000m Row',peso:''},{nombre:'Thrusters',peso:'20kg'},{nombre:'Pull-ups',peso:''}] },
+  { id:'karen',     nombre:'Karen',     modalidad:'For Time', tiempo:'',   esquema:'150 reps',        nivel:'benchmark', ejercicios:[{nombre:'Wall Ball',peso:'9kg/6kg a 3m/2.7m'}] },
+  { id:'murph',     nombre:'Murph',     modalidad:'For Time', tiempo:'',   esquema:'con chaleco 9kg', nivel:'hero',      ejercicios:[{nombre:'1 Mile Run',peso:''},{nombre:'Pull-ups',peso:''},{nombre:'Push-ups',peso:''},{nombre:'Air Squats',peso:''},{nombre:'1 Mile Run',peso:''}] },
+  { id:'dt',        nombre:'DT',        modalidad:'For Time', tiempo:'',   esquema:'5 rounds',        nivel:'hero',      ejercicios:[{nombre:'Deadlift',peso:'70kg/47kg'},{nombre:'Hang Power Clean',peso:'70kg/47kg'},{nombre:'Push Jerk',peso:'70kg/47kg'}] },
+  { id:'daniel',    nombre:'Daniel',    modalidad:'For Time', tiempo:'',   esquema:'',                nivel:'hero',      ejercicios:[{nombre:'Pull-ups',peso:''},{nombre:'400m Run',peso:''},{nombre:'Thrusters',peso:'43kg'},{nombre:'800m Run',peso:''},{nombre:'400m Run',peso:''},{nombre:'Pull-ups',peso:''}] },
+  { id:'jason',     nombre:'Jason',     modalidad:'For Time', tiempo:'',   esquema:'100-75-50-25 / 5-10-15-20', nivel:'hero', ejercicios:[{nombre:'Air Squats',peso:''},{nombre:'Muscle-ups',peso:''}] },
 ];
 
 // ─── CACHE LOCAL ──────────────────────────────────────────────────────────────
@@ -154,49 +131,44 @@ window.abrirBenchmark = function(id) {
   document.getElementById('bench-modal-modalidad').textContent = w.modalidad;
   document.getElementById('bench-modal-id').value              = w.id;
 
-  // Parsear descripción estructurada
+  // Render descripción estructurada
   const descEl = document.getElementById('bench-modal-descripcion');
   if (descEl) {
-    const partes = (w.descripcion || '').split('·').map(s => s.trim()).filter(Boolean);
-    if (partes.length <= 1) {
-      descEl.innerHTML = '<p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7; margin:0;">' +
-                         (w.descripcion || '') + '</p>';
-    } else {
-      const tieneIntro = !partes[0].match(/\([\d,\.kgKGlbLB\/]+\)/);
-      const intro      = tieneIntro ? partes[0] : null;
-      const ejercicios = tieneIntro ? partes.slice(1) : partes;
-      let html = '';
-      if (intro) {
-        html += '<div style="font-size:0.82rem; color:var(--text-secondary);' +
-                'margin-bottom:12px; font-style:italic;">' + intro + '</div>';
-      }
-      html += '<div style="display:flex; flex-direction:column; gap:0;">';
-      ejercicios.forEach(ej => {
-        const match = ej.match(/^(.+?)\s*(\([^)]+\))\s*$/);
-        if (match) {
-          html += '<div style="display:flex; justify-content:space-between; align-items:baseline;' +
-                  'padding:9px 0; border-bottom:1px solid var(--border);">' +
-                    '<span style="font-size:0.88rem; color:var(--text-primary);">' + match[1].trim() + '</span>' +
-                    '<span style="font-size:0.78rem; color:var(--accent);' +
-                    'font-family:Barlow Condensed,sans-serif; letter-spacing:0.5px;">' + match[2] + '</span>' +
-                  '</div>';
-        } else {
-          html += '<div style="padding:9px 0; border-bottom:1px solid var(--border);' +
-                  'font-size:0.88rem; color:var(--text-primary);">' + ej + '</div>';
-        }
+    let html = '';
+    // Esquema en itálica
+    if (w.esquema) {
+      html += '<div style="font-size:0.82rem; color:var(--text-secondary); font-style:italic;' +
+              'margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border);">' +
+              w.esquema + '</div>';
+    }
+    // Ejercicios
+    const lista = w.ejercicios || [];
+    if (lista.length) {
+      html += '<div style="display:flex; flex-direction:column;">';
+      lista.forEach(ej => {
+        const nombre = typeof ej === 'string' ? ej : ej.nombre;
+        const peso   = typeof ej === 'string' ? '' : (ej.peso || '');
+        html += '<div style="display:flex; justify-content:space-between; align-items:center;' +
+                'padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06);">' +
+                  '<span style="font-size:0.88rem; color:var(--text);">' + nombre + '</span>' +
+                  (peso ? '<span style="font-size:0.78rem; color:var(--accent); font-weight:600;' +
+                  'font-family:Barlow Condensed,sans-serif; letter-spacing:0.5px;' +
+                  'flex-shrink:0; margin-left:12px;">(' + peso + ')</span>' : '') +
+                '</div>';
       });
       html += '</div>';
-      descEl.innerHTML = html;
+    } else if (w.descripcion) {
+      // Fallback: texto plano con saltos de línea
+      html += '<p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.7; margin:0; white-space:pre-line;">' + w.descripcion + '</p>';
     }
+    descEl.innerHTML = html;
   }
 
 
   // Cargar tiempo personal si existe
   const tiempoPersonal = _getTiempoPersonal(w.id);
-  const inputTiempo    = document.getElementById('bench-tiempo-input');
-  const inputObs       = document.getElementById('bench-obs-input');
+  const inputTiempo = document.getElementById('bench-tiempo-input');
   if (inputTiempo) inputTiempo.value = tiempoPersonal || '';
-  if (inputObs)    inputObs.value    = '';
 
   // Mostrar tiempo guardado
   const tiempoGuardado = document.getElementById('bench-tiempo-guardado');
@@ -212,7 +184,6 @@ window.abrirBenchmark = function(id) {
 window.guardarTiempoBenchmark = async function() {
   const wodId  = document.getElementById('bench-modal-id')?.value;
   const tiempo = document.getElementById('bench-tiempo-input')?.value?.trim();
-  const obs    = document.getElementById('bench-obs-input')?.value?.trim();
   const errEl  = document.getElementById('bench-error');
 
   if (!tiempo) { if(errEl) errEl.textContent = 'Ingresá tu tiempo.'; return; }
@@ -223,7 +194,6 @@ window.guardarTiempoBenchmark = async function() {
     const resultados = await fsGet('results') || {};
     resultados[key] = {
       tiempo,
-      obs:   obs || '',
       fecha: new Date().toLocaleDateString('es-AR'),
       uid:   currentUser.id,
       wod:   wodId
@@ -244,14 +214,62 @@ window.abrirFormBenchmark = function(id) {
   const modal = document.getElementById('modal-benchmark-form');
   if (!modal) return;
 
-  document.getElementById('bench-form-titulo').textContent    = w ? 'Editar WOD' : 'Nuevo WOD';
-  document.getElementById('bench-form-id').value              = w?.id || '';
-  document.getElementById('bench-form-nombre').value          = w?.nombre || '';
-  document.getElementById('bench-form-modalidad').value       = w?.modalidad || 'For Time';
-  document.getElementById('bench-form-descripcion').value     = w?.descripcion || '';
-  document.getElementById('bench-form-nivel').value           = w?.nivel || 'benchmark';
+  document.getElementById('bench-form-titulo').textContent = w ? 'Editar WOD' : 'Nuevo WOD';
+  document.getElementById('bench-form-id').value           = w?.id || '';
+  document.getElementById('bench-form-nombre').value       = w?.nombre || '';
+  document.getElementById('bench-form-modalidad').value    = w?.modalidad || 'For Time';
+  document.getElementById('bench-form-tiempo').value       = w?.tiempo || '';
+  document.getElementById('bench-form-esquema').value      = w?.esquema || '';
+  document.getElementById('bench-form-nivel').value        = w?.nivel || 'benchmark';
+
+  // Cargar ejercicios
+  const ejercicios = w?.ejercicios || [];
+  _renderEjerciciosForm(ejercicios);
 
   modal.classList.remove('hidden');
+};
+
+function _renderEjerciciosForm(ejercicios) {
+  const cont = document.getElementById('bench-form-ejercicios');
+  if (!cont) return;
+  cont.innerHTML = '';
+  const lista = ejercicios.length ? ejercicios : [{nombre:'', peso:''}];
+  lista.forEach((ej, i) => _agregarFilaEjercicio(cont, ej.nombre || '', ej.peso || '', i));
+}
+
+function _agregarFilaEjercicio(cont, nombre, peso, idx) {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+
+  const inputNombre = document.createElement('input');
+  inputNombre.type        = 'text';
+  inputNombre.placeholder = 'Ejercicio (ej: Thrusters)';
+  inputNombre.value       = nombre;
+  inputNombre.setAttribute('data-ej-nombre', '');
+  inputNombre.style.cssText = 'flex:1.5; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16); border-radius:8px; color:#fff; padding:8px 12px; font-size:0.84rem; outline:none;';
+
+  const inputPeso = document.createElement('input');
+  inputPeso.type        = 'text';
+  inputPeso.placeholder = 'Peso (ej: 43kg/30kg)';
+  inputPeso.value       = peso;
+  inputPeso.setAttribute('data-ej-peso', '');
+  inputPeso.style.cssText = 'flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16); border-radius:8px; color:#fff; padding:8px 12px; font-size:0.84rem; outline:none;';
+
+  const btnDel = document.createElement('button');
+  btnDel.textContent    = '✕';
+  btnDel.style.cssText  = 'background:none; border:1px solid rgba(255,80,80,0.4); color:#ff5050; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:0.75rem; flex-shrink:0;';
+  btnDel.addEventListener('click', function() { div.remove(); });
+
+  div.appendChild(inputNombre);
+  div.appendChild(inputPeso);
+  div.appendChild(btnDel);
+  cont.appendChild(div);
+}
+
+
+window.benchAgregarEjercicio = function() {
+  const cont = document.getElementById('bench-form-ejercicios');
+  if (cont) _agregarFilaEjercicio(cont, '', '', cont.children.length);
 };
 
 window.cerrarFormBenchmark = function() {
@@ -259,17 +277,27 @@ window.cerrarFormBenchmark = function() {
 };
 
 window.guardarFormBenchmark = async function() {
-  const id          = document.getElementById('bench-form-id').value.trim();
-  const nombre      = document.getElementById('bench-form-nombre').value.trim();
-  const modalidad   = document.getElementById('bench-form-modalidad').value.trim();
-  const descripcion = document.getElementById('bench-form-descripcion').value.trim();
-  const nivel       = document.getElementById('bench-form-nivel').value;
+  const id       = document.getElementById('bench-form-id').value.trim();
+  const nombre   = document.getElementById('bench-form-nombre').value.trim();
+  const modalidad= document.getElementById('bench-form-modalidad').value.trim();
+  const tiempo   = document.getElementById('bench-form-tiempo').value.trim();
+  const esquema  = document.getElementById('bench-form-esquema').value.trim();
+  const nivel    = document.getElementById('bench-form-nivel').value;
 
-  if (!nombre || !descripcion) { alert('Completá nombre y descripción.'); return; }
+  if (!nombre) { alert('Ingresá el nombre del WOD.'); return; }
+
+  // Recolectar ejercicios del formulario dinámico
+  const filas = document.querySelectorAll('#bench-form-ejercicios > div');
+  const ejercicios = Array.from(filas).map(fila => ({
+    nombre: fila.querySelector('[data-ej-nombre]')?.value?.trim() || '',
+    peso:   fila.querySelector('[data-ej-peso]')?.value?.trim()   || ''
+  })).filter(e => e.nombre);
+
+  if (!ejercicios.length) { alert('Agregá al menos un ejercicio.'); return; }
 
   const finalId = id || nombre.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const idx = cacheBenchmarks.findIndex(b => b.id === finalId);
-  const wod = { id: finalId, nombre, modalidad, descripcion, nivel };
+  const wod = { id: finalId, nombre, modalidad, tiempo, esquema, nivel, ejercicios };
 
   if (idx >= 0) cacheBenchmarks[idx] = wod;
   else cacheBenchmarks.push(wod);

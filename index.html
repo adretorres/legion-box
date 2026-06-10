@@ -93,7 +93,8 @@
           <a href="#disciplinas">Disciplinas</a>
           <a href="#horarios">Horarios</a>
           <a href="#membresias">Membresías</a>
-          <a href="#calculadora">Calculadora</a>
+          <a href="#calculadora">Movimientos</a>
+          <a href="#benchmark-landing">Benchmark</a>
           <a href="#contacto">Contacto</a>
         </nav>
         <!-- Estado sin sesión -->
@@ -113,7 +114,8 @@
         <a href="#disciplinas" onclick="toggleMobileMenu()">Disciplinas</a>
         <a href="#horarios" onclick="toggleMobileMenu()">Horarios</a>
         <a href="#membresias" onclick="toggleMobileMenu()">Membresías</a>
-        <a href="#calculadora" onclick="toggleMobileMenu()">Calculadora</a>
+        <a href="#calculadora" onclick="toggleMobileMenu()">Movimientos</a>
+        <a href="#benchmark-landing" onclick="toggleMobileMenu()">Benchmark</a>
         <a href="#contacto" onclick="toggleMobileMenu()">Contacto</a>
         <button class="lnd-btn-primary" onclick="abrirModalLogin(); toggleMobileMenu()">INICIAR SESIÓN</button>
       </div>
@@ -248,7 +250,7 @@
           </div>
 
           <!-- BENCHMARK LANDING -->
-          <div class="lnd-tool-card" style="margin-top:24px;">
+          <div class="lnd-tool-card" style="margin-top:24px;" id="benchmark-landing">
             <h3 class="lnd-tool-title">Benchmark WODs</h3>
             <p class="lnd-body-text" style="font-size:0.84rem; margin-bottom:16px;">
               Los WODs clásicos del CrossFit. Hacé clic para ver la descripción completa.
@@ -298,6 +300,17 @@
           </div>
         </div>
       </section>
+
+      <!-- ── VOLVER ARRIBA ─────────────────────────────────────── -->
+      <div style="text-align:center; padding:12px 0;">
+        <a href="#" style="font-size:0.72rem; color:var(--lnd-text-muted); text-decoration:none;
+          letter-spacing:1.5px; font-family:'Barlow Condensed',sans-serif; font-weight:600;
+          display:inline-flex; align-items:center; gap:6px; transition:color 0.2s;"
+          onmouseover="this.style.color='var(--lnd-accent)'"
+          onmouseout="this.style.color='var(--lnd-text-muted)'">
+          ↑ VOLVER AL INICIO
+        </a>
+      </div>
 
       <!-- ── FOOTER ────────────────────────────────────────────── -->
       <footer class="lnd-footer-simple" id="contacto">
@@ -2022,23 +2035,6 @@
       </div>
     </div>
 
-    <!-- ─── MODAL BENCHMARK LANDING ────────────────────────── -->
-    <div id="lnd-bench-modal" class="lnd-modal-overlay hidden" onclick="if(event.target===this) lndCerrarBench()">
-      <div class="lnd-modal-box" style="max-width:460px;" onclick="event.stopPropagation()">
-        <button class="lnd-modal-close" onclick="lndCerrarBench()">✕</button>
-        <p id="lnd-bench-modal-modalidad" class="lnd-eyebrow" style="margin-bottom:6px;"></p>
-        <h3 id="lnd-bench-modal-nombre"
-          style="font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:1px; margin-bottom:16px;"></h3>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
-          border-radius:10px; padding:18px;">
-          <div id="lnd-bench-modal-desc"></div>
-        </div>
-        <p style="font-size:0.72rem; color:var(--lnd-text-muted); margin-top:14px; text-align:center;">
-          ¿Atleta del box? Iniciá sesión para registrar tu tiempo.
-        </p>
-      </div>
-    </div>
-
     <!-- ─── MODAL BENCHMARK DETALLE ────────────────────────── -->
     <div id="modal-benchmark" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarModalBenchmark()">
       <div class="lnd-modal-box" style="max-width:480px;" onclick="event.stopPropagation()">
@@ -2057,10 +2053,6 @@
           <label>Tu tiempo / score</label>
           <input type="text" id="bench-tiempo-input" placeholder="Ej: 4:23 · 15 rondas · 185 reps" />
         </div>
-        <div class="lnd-form-row">
-          <label>Observación (opcional)</label>
-          <input type="text" id="bench-obs-input" placeholder="Ej: Rx · Scaled · con 40kg" />
-        </div>
         <div id="bench-error" style="color:#ff5050; font-size:0.78rem; margin-bottom:8px;"></div>
         <button class="lnd-btn-primary" onclick="guardarTiempoBenchmark()"
           style="width:100%; padding:12px;">GUARDAR MI TIEMPO</button>
@@ -2069,26 +2061,40 @@
 
     <!-- ─── MODAL BENCHMARK FORM (COACH) ─────────────────── -->
     <div id="modal-benchmark-form" class="lnd-modal-overlay hidden" onclick="if(event.target===this) cerrarFormBenchmark()">
-      <div class="lnd-modal-box" style="max-width:460px;" onclick="event.stopPropagation()">
+      <div class="lnd-modal-box" style="max-width:480px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
         <button class="lnd-modal-close" onclick="cerrarFormBenchmark()">✕</button>
         <p class="lnd-eyebrow" id="bench-form-titulo" style="margin-bottom:16px;">Nuevo WOD</p>
         <input type="hidden" id="bench-form-id" />
+
         <div class="lnd-form-row">
           <label>Nombre del WOD *</label>
           <input type="text" id="bench-form-nombre" placeholder="Ej: Fran" />
         </div>
-        <div class="lnd-form-row">
-          <label>Modalidad *</label>
-          <input type="text" id="bench-form-modalidad" placeholder="Ej: For Time · AMRAP 20 · EMOM 30" />
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="lnd-form-row" style="margin:0;">
+            <label>Modalidad *</label>
+            <select id="bench-form-modalidad" style="width:100%; background:rgba(255,255,255,0.04);
+              border:1px solid rgba(255,255,255,0.16); border-radius:8px; color:#fff;
+              padding:10px 12px; font-size:0.86rem; outline:none;">
+              <option value="For Time">For Time</option>
+              <option value="AMRAP">AMRAP</option>
+              <option value="EMOM">EMOM</option>
+              <option value="Every">Every</option>
+              <option value="Tabata">Tabata</option>
+            </select>
+          </div>
+          <div class="lnd-form-row" style="margin:0;">
+            <label>Tiempo / Duración</label>
+            <input type="text" id="bench-form-tiempo" placeholder="Ej: 20 min · 30 · —" />
+          </div>
         </div>
-        <div class="lnd-form-row">
-          <label>Descripción *</label>
-          <textarea id="bench-form-descripcion" rows="4"
-            placeholder="21-15-9 reps de:&#10;Thrusters (43kg/30kg)&#10;Pull-ups"
-            style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.16);
-            border-radius:8px; color:#fff; padding:10px 14px; font-size:0.86rem; outline:none;
-            resize:vertical; font-family:'Barlow',sans-serif;"></textarea>
+
+        <div class="lnd-form-row" style="margin-top:12px;">
+          <label>Esquema de repeticiones <span style="font-style:italic; opacity:0.6;">(se muestra en itálica)</span></label>
+          <input type="text" id="bench-form-esquema" placeholder="Ej: 21-15-9 · 5 rounds · 50-40-30-20-10" />
         </div>
+
         <div class="lnd-form-row">
           <label>Categoría</label>
           <select id="bench-form-nivel" style="width:100%; background:rgba(255,255,255,0.04);
@@ -2098,6 +2104,18 @@
             <option value="hero">Hero WODs</option>
           </select>
         </div>
+
+        <div class="lnd-form-row">
+          <label>Ejercicios *</label>
+          <div id="bench-form-ejercicios" style="display:flex; flex-direction:column; gap:0;"></div>
+          <button onclick="benchAgregarEjercicio()"
+            style="width:100%; margin-top:8px; background:none;
+            border:1px dashed rgba(255,255,255,0.2); color:rgba(255,255,255,0.5);
+            padding:8px; border-radius:8px; cursor:pointer; font-size:0.78rem;">
+            + Agregar ejercicio
+          </button>
+        </div>
+
         <button class="lnd-btn-primary" onclick="guardarFormBenchmark()"
           style="width:100%; padding:12px; margin-top:8px;">GUARDAR WOD</button>
       </div>
@@ -2153,5 +2171,22 @@
     </div>
     <script src="landing.js"></script>
     <script type="module" src="js/main.js"></script>
+  <!-- MODAL BENCHMARK LANDING — fuera de screen-app y screen-landing -->
+  <div id="lnd-bench-modal" class="lnd-modal-overlay hidden" onclick="if(event.target===this) lndCerrarBench()">
+    <div class="lnd-modal-box" style="max-width:460px;" onclick="event.stopPropagation()">
+      <button class="lnd-modal-close" onclick="lndCerrarBench()">✕</button>
+      <p id="lnd-bench-modal-modalidad" class="lnd-eyebrow" style="margin-bottom:6px;"></p>
+      <h3 id="lnd-bench-modal-nombre"
+        style="font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:1px; margin-bottom:16px;"></h3>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+        border-radius:10px; padding:18px;">
+        <div id="lnd-bench-modal-desc"></div>
+      </div>
+      <p style="font-size:0.72rem; color:var(--lnd-text-muted); margin-top:14px; text-align:center;">
+        ¿Atleta del box? Iniciá sesión para registrar tu tiempo.
+      </p>
+    </div>
+  </div>
+
   </body>
 </html>
