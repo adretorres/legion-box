@@ -56,6 +56,16 @@ export async function doLogin() {
         const fechaVenc = fv ? fv.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'}) : '';
         if (nombreEl) nombreEl.textContent = nombre;
         if (fechaEl)  fechaEl.textContent  = fechaVenc ? 'Venció el ' + fechaVenc : '';
+        // Conectar boton MP con datos del atleta
+        const btnMp = document.getElementById('btn-pagar-mp');
+        if (btnMp) {
+          const plan = (u.plans && u.plans[0]) ? u.plans[0] : 'crossfit';
+          const precioBase = window.TARIFAS ? (window.TARIFAS[plan + '_x5'] || 45000) : 45000;
+          const concepto = 'Cuota Legion Box - ' + (u.name || userIn);
+          btnMp.addEventListener('click', function() {
+            window.abrirPagoMercadoPago(userIn, precioBase, concepto);
+          });
+        }
       }
       return;
     }
@@ -82,7 +92,25 @@ export function cerrarSesion() {
 window.doLogin      = doLogin;
 window.cerrarSesion = cerrarSesion;
 
-// Placeholder Mercado Pago — se integra en siguiente fase
-window.abrirPagoMercadoPago = function() {
-  alert('Próximamente podés pagar directamente con Mercado Pago. Por ahora, notificá tu pago manual o consultá al Coach.');
+// Mercado Pago
+window.abrirPagoMercadoPago = async function(atletaId, monto, concepto) {
+  const btn = document.getElementById('btn-pagar-mp');
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirigiendo...'; }
+  try {
+    const resp = await fetch('https://crearpreferencia-cnhha4x2ca-uc.a.run.app', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atletaId: atletaId, monto: monto, concepto: concepto })
+    });
+    if (!resp.ok) throw new Error('Error al conectar con el servidor de pagos');
+    const data = await resp.json();
+    if (data.initPoint) {
+      window.location.href = data.initPoint;
+    } else {
+      throw new Error('No se recibio el link de pago');
+    }
+  } catch(err) {
+    alert('Error al iniciar el pago: ' + err.message + '. Intenta de nuevo o notifica tu pago manualmente.');
+    if (btn) { btn.disabled = false; btn.textContent = 'Pagar con Mercado Pago'; }
+  }
 };
